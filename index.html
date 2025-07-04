@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Rogue</title>
+    <link rel="stylesheet" href="src/css/style.css">
+    <link rel="stylesheet" href="src/css/menu.css">
+     
+
+
+    <!-- <style>
+        /* Temporary debugging styles     */
+        #game-container { border: 2px solid red; }
+        #ui-container { border: 2px solid green; }
+        #equipment-area, #stats-area, #message-area { 
+            border: 2px solid blue; 
+            min-height: 50px; /* Ensure they have some height */
+            margin: 5px;
+        }
+    </style> -->
+
+    
+</head>
+<body>
+    <!-- Landing Page / Menu (initially visible) -->
+    <div id="landing-page">
+        <div class="menu-container">
+            <h1 class="game-title">Modern Rogue</h1>
+            
+            <div class="menu-options">
+                <button id="quick-play-btn" class="menu-btn">Quick Play</button>
+                <button id="multiplayer-btn" class="menu-btn">Multiplayer</button>
+                <button id="options-btn" class="menu-btn">Options</button>
+                <button id="credits-btn" class="menu-btn">Credits</button>
+            </div>
+            
+            <div class="game-version">v0.1.0 Alpha</div>
+        </div>
+    </div>
+    
+    <!-- Original Game Structure (initially hidden) -->
+    <div id="main-container" style="display: none;">
+        <!-- Game area - contains the game map -->
+        <div id="game-container">
+            <canvas id="game-canvas"></canvas>
+        </div>
+        
+        <!-- UI area - for permanent UI elements -->
+        <div id="ui-container">
+            <div id="equipment-area"></div>
+            <div id="stats-area"></div>
+            <div id="message-area"></div>
+        </div>
+        
+        <!-- Overlay area - for modal windows like inventory -->
+        <div id="overlay-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="src/js/menu.js"></script>
+    <script type="module" src="src/js/main.js"></script>
+</body>
+</html>

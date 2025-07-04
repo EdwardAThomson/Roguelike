@@ -1,0 +1,13 @@
+{
+  "name": "modern-rogue",
+  "version": "0.1.0",
+  "description": "A modern browser-based roguelike game inspired by the original Rogue",
+  "scripts": {
+    "start": "npx http-server -o",
+    "dev": "npx vite"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "http-server": "^14.1.1"
+  }
+}

@@ -1,0 +1,74 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: monospace;
+    overflow: hidden;
+    color: #fff;
+}
+
+/* Main container that holds everything */
+#main-container {
+    display: flex;
+    width: 80%; /*100%;*/
+    height: 100vh;
+}
+
+/* Game area with the canvas (left side) */
+#game-container {
+    flex: 3; /* Takes 75% of the space */
+    position: relative;
+    margin-right: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    background-color: #111;
+    border-radius: 5px;
+    overflow: hidden; /* Keep the canvas inside bounds */
+}
+
+#game-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: #111;
+    image-rendering: pixelated; /* For crisp pixel art */
+}
+
+/* UI area for permanent UI elements (right side) */
+#ui-container {
+    flex: 1; /* Takes 25% of the space */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#equipment-area, #stats-area, #message-area {
+    margin: 10px;
+    flex: 1;
+    border: 1px solid #333;
+}
+
+/* Overlay container for modals like inventory */
+#overlay-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    pointer-events: none; /* Let clicks go through by default */
+    visibility: visible !important; /* Ensure it's visible */
+}
+
+/* When overlays are active, they should receive clicks */
+#overlay-container.active {
+    pointer-events: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    visibility: visible !important; /* Ensure it's visible */
+}
