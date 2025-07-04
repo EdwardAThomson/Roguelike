@@ -12,7 +12,7 @@ export class MonsterDatabase {
                 baseStats: {
                     level: 1,
                     maxHealth: 8,
-                    attackPower: 2,
+                    attackPower: 3,
                     defense: 10,
                     criticalChance: 3
                 },
@@ -30,7 +30,7 @@ export class MonsterDatabase {
                 baseStats: {
                     level: 1,
                     maxHealth: 6,
-                    attackPower: 3,
+                    attackPower: 4,
                     defense: 12,
                     criticalChance: 5
                 },
@@ -49,7 +49,7 @@ export class MonsterDatabase {
                 baseStats: {
                     level: 2,
                     maxHealth: 15,
-                    attackPower: 4,
+                    attackPower: 5,
                     defense: 14,
                     criticalChance: 6
                 },

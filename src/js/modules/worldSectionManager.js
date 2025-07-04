@@ -65,7 +65,7 @@ export class WorldSectionManager {
             this.game.dungeon.worldSectionId = sectionId;
             
             // Generate the new map with entry information
-            this.game.map = this.game.dungeon.generate(fromDirection, previousSectionId);
+            this.game.map = this.game.dungeon.generate(this.game, fromDirection, previousSectionId);
             
             // Clear monsters and items
             this.game.monsters = [];
@@ -76,7 +76,7 @@ export class WorldSectionManager {
             this.game.combat.spawnMonsters(monsterCount, difficulty);
             
             // Place items
-            const itemCount = 20 + difficulty * 2;
+            const itemCount = 12 + difficulty * 1;
             this.game.itemManager.populateDungeon(itemCount);
             
             // Position player based on where they entered from
@@ -90,40 +90,57 @@ export class WorldSectionManager {
     }
 
     positionPlayerAtEntrance(fromDirection) {
-        // Reverse the direction to find where to place the player
-        let oppositeDirection;
-        switch(fromDirection) {
-            case 'north': oppositeDirection = 'south'; break;
-            case 'east': oppositeDirection = 'west'; break;
-            case 'south': oppositeDirection = 'north'; break;
-            case 'west': oppositeDirection = 'east'; break;
-            default: oppositeDirection = 'south'; // Default fallback
+        // With the new 4-gate system, find the gate that connects back to the previous section
+        // rather than just looking for opposite direction
+        
+        let entranceGate = null;
+        
+        // Find the gate that leads back to the previous section
+        if (this.previousSectionId) {
+            entranceGate = this.game.dungeon.gates.find(gate => 
+                gate.nextSectionId === this.previousSectionId
+            );
         }
-    
-        // Find a gate on the opposite side if possible
-        let entranceGate = this.game.dungeon.gates.find(gate => gate.direction === oppositeDirection);
-    
+        
+        // Fallback: if no specific gate found, look for gate in opposite direction
+        if (!entranceGate && fromDirection) {
+            let oppositeDirection;
+            switch(fromDirection) {
+                case 'north': oppositeDirection = 'south'; break;
+                case 'east': oppositeDirection = 'west'; break;
+                case 'south': oppositeDirection = 'north'; break;
+                case 'west': oppositeDirection = 'east'; break;
+                default: oppositeDirection = 'south'; break;
+            }
+            
+            entranceGate = this.game.dungeon.gates.find(gate => gate.direction === oppositeDirection);
+        }
+        
         if (entranceGate) {
             // Place player just inside the gate
             let offsetX = 0, offsetY = 0;
             
-            // Determine offset based on direction
-            if (oppositeDirection === 'north') offsetY = 1;
-            if (oppositeDirection === 'east') offsetX = -1;
-            if (oppositeDirection === 'south') offsetY = -1;
-            if (oppositeDirection === 'west') offsetX = 1;
+            // Determine offset based on gate direction
+            switch(entranceGate.direction) {
+                case 'north': offsetY = 1; break;
+                case 'east': offsetX = -1; break;
+                case 'south': offsetY = -1; break;
+                case 'west': offsetX = 1; break;
+            }
             
             // Set player position
             this.game.player.x = entranceGate.x + offsetX;
             this.game.player.y = entranceGate.y + offsetY;
+            
+            console.log(`Positioned player at (${this.game.player.x}, ${this.game.player.y}) near ${entranceGate.direction} gate leading to ${entranceGate.nextSectionId}`);
         } else {
             // No matching gate found, use a random floor position
             const pos = this.game.dungeon.getRandomFloorPosition();
             this.game.player.x = pos.x;
             this.game.player.y = pos.y;
+            
+            console.log(`Positioned player at random location (${this.game.player.x}, ${this.game.player.y}) - no entrance gate found`);
         }
-    
-        console.log(`Positioned player at (${this.game.player.x}, ${this.game.player.y}) coming from ${fromDirection}`);
     }
 
 

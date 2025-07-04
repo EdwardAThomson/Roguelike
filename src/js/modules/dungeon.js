@@ -17,7 +17,7 @@ export class Dungeon {
     }
 
     // Dungeon generation
-    generate(entryDirection = null, previousSectionId = null) {
+    generate(game, entryDirection = null, previousSectionId = null) {
         // Initialize all tiles as walls
         this.tiles = Array(this.height).fill().map(() => 
             Array(this.width).fill('wall'));
@@ -29,20 +29,9 @@ export class Dungeon {
 
 
         // ##########   Gates ##################################
-        // After rooms are generated... place RETURN gates
-        // If this is starting section, then we won't need to place a return gate
-        // Then add NEW gates to connect to other sections.
-        if (entryDirection && previousSectionId) {
-            console.log(`[...] Placing return gate for section ${previousSectionId} from direction ${entryDirection}`);
-            this.createReturnGate(entryDirection, previousSectionId);
-            this.ensureGatesAccessibility();
-
-            this.gatePlacement(entryDirection);
-        }
-        else {
-            console.log(`[...] No return gate needed for section ${previousSectionId}`);
-            this.gatePlacement();
-        }
+        // NEW: Use the 4-gate constrained system
+        console.log(`[NEW] Generating 4 constrained gates for section ${this.worldSectionId}`);
+        this.generateConstrainedGates(game);
 
         
         return this.tiles;
@@ -1189,5 +1178,148 @@ export class Dungeon {
         this.tiles[floorY][floorX] = 'floor';
         
         return {x, y};
+    }
+
+    // New 4-gate system with neighbor constraints
+    generateConstrainedGates(game) {
+        console.log('========= Generating 4 constrained gates ==========');
+        
+        const neighbors = this.getNeighboringSections(game);
+        const gates = {};
+        
+        // North wall - constrained if south neighbor exists
+        if (neighbors.north?.gates?.south) {
+            gates.north = {
+                x: neighbors.north.gates.south.x, 
+                y: 0,
+                constrained: true
+            };
+            console.log(`North gate constrained by neighbor: (${gates.north.x}, ${gates.north.y})`);
+        } else {
+            gates.north = {
+                x: Math.floor(Math.random() * (this.width - 4)) + 2,
+                y: 0,
+                constrained: false
+            };
+            console.log(`North gate random: (${gates.north.x}, ${gates.north.y})`);
+        }
+        
+        // South wall - constrained if north neighbor exists
+        if (neighbors.south?.gates?.north) {
+            gates.south = {
+                x: neighbors.south.gates.north.x,
+                y: this.height - 1,
+                constrained: true
+            };
+            console.log(`South gate constrained by neighbor: (${gates.south.x}, ${gates.south.y})`);
+        } else {
+            gates.south = {
+                x: Math.floor(Math.random() * (this.width - 4)) + 2,
+                y: this.height - 1,
+                constrained: false
+            };
+            console.log(`South gate random: (${gates.south.x}, ${gates.south.y})`);
+        }
+        
+        // East wall - constrained if west neighbor exists
+        if (neighbors.east?.gates?.west) {
+            gates.east = {
+                x: this.width - 1,
+                y: neighbors.east.gates.west.y,
+                constrained: true
+            };
+            console.log(`East gate constrained by neighbor: (${gates.east.x}, ${gates.east.y})`);
+        } else {
+            gates.east = {
+                x: this.width - 1,
+                y: Math.floor(Math.random() * (this.height - 4)) + 2,
+                constrained: false
+            };
+            console.log(`East gate random: (${gates.east.x}, ${gates.east.y})`);
+        }
+        
+        // West wall - constrained if east neighbor exists
+        if (neighbors.west?.gates?.east) {
+            gates.west = {
+                x: 0,
+                y: neighbors.west.gates.east.y,
+                constrained: true
+            };
+            console.log(`West gate constrained by neighbor: (${gates.west.x}, ${gates.west.y})`);
+        } else {
+            gates.west = {
+                x: 0,
+                y: Math.floor(Math.random() * (this.height - 4)) + 2,
+                constrained: false
+            };
+            console.log(`West gate random: (${gates.west.x}, ${gates.west.y})`);
+        }
+        
+        // Place gates on the map and create gate objects
+        this.placeConstrainedGates(gates);
+        
+        // Ensure all gates are accessible from rooms
+        this.ensureGatesAccessibility();
+        
+        console.log('========= 4 constrained gates generated ==========');
+    }
+    
+    // Helper function to check neighboring sections
+    getNeighboringSections(game) {
+        const worldManager = game.worldManager;
+        if (!worldManager || !worldManager.sectionStates) {
+            return {north: null, south: null, east: null, west: null};
+        }
+        
+        return {
+            north: worldManager.sectionStates[`${this.worldX}_${this.worldY + 1}`],
+            south: worldManager.sectionStates[`${this.worldX}_${this.worldY - 1}`],
+            east: worldManager.sectionStates[`${this.worldX + 1}_${this.worldY}`],
+            west: worldManager.sectionStates[`${this.worldX - 1}_${this.worldY}`]
+        };
+    }
+    
+    // Helper function to place the 4 constrained gates
+    placeConstrainedGates(gates) {
+        // Clear existing gates
+        this.gates = [];
+        
+        // Place each gate on the map and create gate objects
+        Object.entries(gates).forEach(([direction, gateData]) => {
+            const {x, y, constrained} = gateData;
+            
+            // Place the gate tile
+            this.tiles[y][x] = 'gate';
+            
+            // Calculate target world coordinates
+            let targetWorldX = this.worldX;
+            let targetWorldY = this.worldY;
+            
+            switch(direction) {
+                case 'north': targetWorldY += 1; break;
+                case 'south': targetWorldY -= 1; break;
+                case 'east': targetWorldX += 1; break;
+                case 'west': targetWorldX -= 1; break;
+            }
+            
+            // Create gate object
+            const gateId = `gate_${Date.now()}_${Math.random()}_${this.worldX}_${this.worldY}_${direction}`;
+            const gate = {
+                id: gateId,
+                x: x,
+                y: y,
+                direction: direction,
+                sectionId: this.worldSectionId,
+                nextSectionId: `${targetWorldX}_${targetWorldY}`,
+                constrained: constrained,
+                sections: [
+                    {x: this.worldX, y: this.worldY},
+                    {x: targetWorldX, y: targetWorldY}
+                ]
+            };
+            
+            this.gates.push(gate);
+            console.log(`Placed ${direction} gate at (${x}, ${y}) leading to section (${targetWorldX}, ${targetWorldY})`);
+        });
     }
 }

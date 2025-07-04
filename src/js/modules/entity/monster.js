@@ -262,7 +262,7 @@ export class Monster extends Character {
     
     dropLoot(game) {
         // Chance to drop gold
-        if (Math.random() < 0.5) {
+        if (Math.random() < 0.3) {
             const goldAmount = Math.floor(Math.random() * 10) + 1;
             const gold = game.itemManager.createGoldPile(goldAmount);
             game.itemManager.addItemToGround(gold, this.x, this.y);
