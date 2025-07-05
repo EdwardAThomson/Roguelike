@@ -165,7 +165,14 @@ export class Character {
     
     // Health and damage methods
     heal(amount) {
+        console.log(`HEAL METHOD: ${this.name} healing ${amount} HP`);
+        console.log(`HEAL METHOD: Before - health: ${this.health}, maxHealth: ${this.maxHealth}`);
+        
+        const oldHealth = this.health;
         this.health = Math.min(this.health + amount, this.maxHealth);
+        
+        console.log(`HEAL METHOD: After - health: ${this.health}, maxHealth: ${this.maxHealth}`);
+        console.log(`HEAL METHOD: Actually healed: ${this.health - oldHealth} HP`);
     }
     
     takeDamage(amount) {

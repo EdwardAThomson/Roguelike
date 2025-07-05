@@ -45,12 +45,12 @@ export class WorldManager {
         console.log(`Player placed at (${startPos.x}, ${startPos.y})`);
         
         // Populate the dungeon with items
-        console.log(`About to populate dungeon with 8 items...`);
-        const itemsPlaced = this.game.itemManager.populateDungeon(8);
-        console.log(`Items placed in first section: ${itemsPlaced} (should be 8)`);
+        console.log(`About to populate dungeon with 6 items...`);
+        const itemsPlaced = this.game.itemManager.populateDungeon(6);
+        console.log(`Items placed in first section: ${itemsPlaced} (should be 6)`);
         
         // Spawn monsters
-        this.spawnMonstersForSection(10, 1);
+        this.spawnMonstersForSection(8, 1);
         
         // Initialize exploration memory for this section
         if (!this.explorationMemory[this.currentSectionId]) {
@@ -139,11 +139,11 @@ export class WorldManager {
             this.game.itemManager.itemsOnGround = [];
             
             // Spawn monsters with appropriate difficulty
-            const monsterCount = 10 + difficulty * 3;
+            const monsterCount = 11 // + difficulty * 2; // should the difficulty be 0, 1 or 2? Maybe 0.
             this.spawnMonstersForSection(monsterCount, difficulty);
             
             // Place items
-            const itemCount = 12 + difficulty * 1;
+            const itemCount = Math.floor(8 + difficulty * 0.5);
             console.log(`About to populate section ${sectionId} with ${itemCount} items...`);
             const itemsPlaced = this.game.itemManager.populateDungeon(itemCount);
             console.log(`Items placed in section ${sectionId}: ${itemsPlaced} (should be ${itemCount})`);

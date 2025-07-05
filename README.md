@@ -38,7 +38,12 @@ npm install
 npm start
 ```
 
-4. Open your browser and navigate to `http://localhost:3000` (or the port specified)
+4. Open your browser and navigate to `http://localhost:8080` (or the port specified)
+
+**For development with cache disabled:**
+```bash
+npx http-server . -p 8080 -c-1 -o
+```
 
 ## 🎯 How to Play
 

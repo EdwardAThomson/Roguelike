@@ -339,4 +339,23 @@ export class ItemDatabase {
         
         return this.getRandomItem({...options, rarity});
     }
+    
+    getRandomEquipment() {
+        // Filter for equipment items only (weapons, armor, accessories)
+        const equipmentItems = Object.values(this.items).filter(item => {
+            return item.canEquip && 
+                   item.type !== 'key' && 
+                   item.id !== 'gate_key' && 
+                   (item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory');
+        });
+        
+        if (equipmentItems.length === 0) {
+            console.warn('No equipment items found');
+            return null;
+        }
+        
+        // Select random equipment item
+        const randomIndex = Math.floor(Math.random() * equipmentItems.length);
+        return equipmentItems[randomIndex].clone();
+    }
 }

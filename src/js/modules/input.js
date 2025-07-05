@@ -16,7 +16,7 @@ export class InputHandler {
         // Prevent default for game keys to avoid browser scrolling, etc.
         const gameKeys = [
             'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-            'w', 'a', 's', 'd', 'i', 'c', 'e', 'g', 'h', 'u', 'm', ' '
+            'w', 'a', 's', 'd', 'i', 'c', 'e', 'g', 'h', 'u', 'p', 'm'
         ];
         
         if (gameKeys.includes(e.key)) {

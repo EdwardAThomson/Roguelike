@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function showCredits() {
-        alert('Credits:\nDeveloped by: Your Name\nMusic: Your Music Source\nArt: Your Art Source');
+        alert('Credits:\n\nDeveloped by: Edward Thomson\n\nBuilt with vanilla JavaScript and HTML5 Canvas\nInspired by classic roguelike games\n\nThank you for playing!');
         // This could be a modal with credits
     }
 }); 

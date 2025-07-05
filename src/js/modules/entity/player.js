@@ -11,6 +11,9 @@ export class Player extends Character {
         
         super(); // Now call parent constructor
         
+        // Set player name
+        this.name = 'Player';
+        
         // Set position
         this.x = x;
         this.y = y;
@@ -40,7 +43,7 @@ export class Player extends Character {
         
         // Add some potions
         const healthPotion = this.itemDatabase.getItem('health_potion');
-        healthPotion.quantity = 3;
+        healthPotion.quantity = 3; // Give 3 potions in one stack
         this.inventory.addItem(healthPotion);
         
         // Add some gold
@@ -160,16 +163,25 @@ export class Player extends Character {
         if (success) {
             game.ui.addMessage(`Used ${item.name}`, '#5f5');
             
-            // If it was a healing item, show the amount healed
+            // Handle healing items
             if (item.stats && item.stats.healAmount) {
                 game.ui.addMessage(`Healed for ${item.stats.healAmount} HP`, '#5f5');
-                this.health = Math.min(this.health + item.stats.healAmount, this.maxHealth);
+                this.health = Math.min(this.health + item.stats.healAmount, this.maxHealth); // restored.
             }
             
-            // If it was a mana item, show the amount restored
+            // Handle mana restoration items
             if (item.stats && item.stats.manaRestore) {
                 game.ui.addMessage(`Restored ${item.stats.manaRestore} MP`, '#55f');
-                this.mana = Math.min(this.mana + item.stats.manaRestore, this.maxMana);
+                this.mana = Math.min(this.mana + item.stats.manaRestore, this.maxMana); // restored.
+            }
+            
+            // Handle item consumption (since inheritance isn't working properly)
+            if (item.stackable && item.quantity > 1) {
+                // Reduce quantity for stackable items
+                item.quantity--;
+            } else {
+                // Remove item completely if quantity is 1 or item isn't stackable
+                this.inventory.removeItem(index);
             }
             
             return true;

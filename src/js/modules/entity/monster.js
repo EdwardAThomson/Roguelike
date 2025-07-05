@@ -261,14 +261,75 @@ export class Monster extends Character {
     }
     
     dropLoot(game) {
-        // Chance to drop gold
-        if (Math.random() < 0.3) {
-            const goldAmount = Math.floor(Math.random() * 10) + 1;
-            const gold = game.itemManager.createGoldPile(goldAmount);
-            game.itemManager.addItemToGround(gold, this.x, this.y);
+        // Defensive check for game dependencies
+        if (!game || !game.itemManager || !game.itemManager.itemDB) {
+            console.warn('Monster dropLoot: Missing game dependencies');
+            return;
         }
         
-        // Chance to drop an item (implement later)
+        // Determine loot quality based on monster level/difficulty
+        const monsterLevel = this.level || 1;
+        const isElite = this.name.includes('Elite');
+        
+        // Base drop chance
+        let dropChance = 0.25; // 25% base chance
+        if (isElite) dropChance += 0.15; // +15% for elite monsters
+        
+        // Roll for loot drop
+        if (Math.random() > dropChance) return;
+        
+        // Determine what type of loot to drop
+        const lootRoll = Math.random();
+        
+        if (lootRoll < 0.5) {
+            // Gold (50% of drops)
+            const goldAmount = Math.floor(Math.random() * 10) + 1 + (isElite ? 5 : 0);
+            const gold = game.itemManager.createGoldPile(goldAmount);
+            game.itemManager.addItemToGround(gold, this.x, this.y);
+            
+        } else if (lootRoll < 0.75) {
+            // Health Potion (25% of drops)
+            const potion = game.itemManager.itemDB.getItem('health_potion');
+            if (potion) {
+                game.itemManager.addItemToGround(potion, this.x, this.y);
+                game.ui.addMessage(`${this.name} dropped a ${potion.name}!`, '#5f5');
+            }
+            
+        } else if (lootRoll < 0.85) {
+            // Mana Potion (10% of drops)
+            const manaPotion = game.itemManager.itemDB.getItem('mana_potion');
+            if (manaPotion) {
+                game.itemManager.addItemToGround(manaPotion, this.x, this.y);
+                game.ui.addMessage(`${this.name} dropped a ${manaPotion.name}!`, '#5f5');
+            }
+            
+        } else if (lootRoll < 0.95) {
+            // Scroll (10% of drops)
+            const scrolls = ['scroll_of_identify', 'scroll_of_teleport'];
+            const randomScroll = scrolls[Math.floor(Math.random() * scrolls.length)];
+            const scroll = game.itemManager.itemDB.getItem(randomScroll);
+            if (scroll) {
+                game.itemManager.addItemToGround(scroll, this.x, this.y);
+                game.ui.addMessage(`${this.name} dropped a ${scroll.name}!`, '#5f5');
+            }
+            
+        } else {
+            // Equipment (5% of drops, more likely for elite monsters)
+            const equipmentChance = isElite ? 0.75 : 0.5;
+            if (Math.random() < equipmentChance) {
+                // Try to get a random equipment item
+                const equipment = game.itemManager.itemDB.getRandomEquipment();
+                if (equipment) {
+                    game.itemManager.addItemToGround(equipment, this.x, this.y);
+                    game.ui.addMessage(`${this.name} dropped ${equipment.name}!`, '#ff5');
+                }
+            } else {
+                // Fallback to gold if no equipment available
+                const goldAmount = Math.floor(Math.random() * 15) + 5;
+                const gold = game.itemManager.createGoldPile(goldAmount);
+                game.itemManager.addItemToGround(gold, this.x, this.y);
+            }
+        }
     }
     
     getSummary() {

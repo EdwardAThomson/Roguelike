@@ -100,7 +100,7 @@ class RogueGame {
         this.ui.addMessage('Welcome to Modern Rogue!', '#0ff');
         this.ui.addMessage('Use arrow keys to move.', '#aaa');
         this.ui.addMessage('Press H for help screen with controls and info.', '#0f0');
-        this.ui.addMessage('Press G to pick up items, E to equip them.', '#aaa');
+        this.ui.addMessage('Press G to pick up items, P to pick up and equip.', '#aaa');
         this.ui.addMessage('Attack monsters by moving into them.', '#f55');
         
         // Calculate initial field of view
@@ -155,8 +155,8 @@ class RogueGame {
                 }
             }
             
-            // Equip item
-            if ((e.key === 'e' || e.key === 'E') && this.stateManager.isPlaying() && this.player) {
+            // Pick up and equip item
+            if ((e.key === 'p' || e.key === 'P') && this.stateManager.isPlaying() && this.player) {
                 this.inputManager.handleEquipItem();
             }
             

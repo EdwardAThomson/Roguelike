@@ -339,7 +339,7 @@ export class HelpScreen {
                     </tr>
                     <tr>
                         <td>Pick Up & Equip</td>
-                        <td><span class="help-key">E</span></td>
+                        <td><span class="help-key">P</span></td>
                         <td>Pick up and immediately equip items</td>
                     </tr>
                     <tr>
@@ -387,6 +387,16 @@ export class HelpScreen {
                         <td>Quick Use</td>
                         <td><span class="help-key">Alt</span> + <span class="help-key">1</span>-<span class="help-key">9</span></td>
                         <td>Use item at position without opening menu</td>
+                    </tr>
+                    <tr>
+                        <td>Equip Selected</td>
+                        <td><span class="help-key">E</span></td>
+                        <td>Equip the currently selected item</td>
+                    </tr>
+                    <tr>
+                        <td>Use Selected</td>
+                        <td><span class="help-key">U</span></td>
+                        <td>Use the currently selected item</td>
                     </tr>
                 </table>
             </div>

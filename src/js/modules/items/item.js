@@ -70,6 +70,7 @@ export class Item {
             console.log(`${entity.name} uses ${this.name}`);
             return true; // Indicates item was used
         }
+        
         return false;
     }
     

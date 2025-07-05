@@ -36,26 +36,42 @@ export class InventoryUI {
         // Add styles
         this.addStyles();
         
-        // Add event listeners (only for Escape and number keys)
+        // Add event listeners (Escape, number keys, and action keys)
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isOpen) {
                 this.closeInventory();
             } else if (this.isOpen) {
+                // E key to equip selected item
+                if ((e.key === 'e' || e.key === 'E') && this.selectedItemIndex >= 0) {
+                    const item = this.game.player.inventory.items[this.selectedItemIndex];
+                    if (item && item.canEquip) {
+                        this.handleItemAction('equip', this.selectedItemIndex);
+                    }
+                }
+                // U key to use selected item
+                else if ((e.key === 'u' || e.key === 'U') && this.selectedItemIndex >= 0) {
+                    const item = this.game.player.inventory.items[this.selectedItemIndex];
+                    if (item && item.canUse) {
+                        this.handleItemAction('use', this.selectedItemIndex);
+                    }
+                }
                 // Number keys for quick actions when inventory is open
-                const numKey = parseInt(e.key);
-                if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
-                    const index = numKey - 1;
-                    if (index < this.game.player.inventory.items.length) {
-                        this.selectItem(index);
-                        const item = this.game.player.inventory.items[index];
-                        
-                        // If holding Alt, use item
-                        if (e.altKey && item.canUse) {
-                            this.handleItemAction('use', index);
-                        }
-                        // If holding Shift, equip item
-                        else if (e.shiftKey && item.canEquip) {
-                            this.handleItemAction('equip', index);
+                else {
+                    const numKey = parseInt(e.key);
+                    if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
+                        const index = numKey - 1;
+                        if (index < this.game.player.inventory.items.length) {
+                            this.selectItem(index);
+                            const item = this.game.player.inventory.items[index];
+                            
+                            // If holding Alt, use item
+                            if (e.altKey && item.canUse) {
+                                this.handleItemAction('use', index);
+                            }
+                            // If holding Shift, equip item
+                            else if (e.shiftKey && item.canEquip) {
+                                this.handleItemAction('equip', index);
+                            }
                         }
                     }
                 }
@@ -395,6 +411,12 @@ export class InventoryUI {
             .rarity-legendary {
                 color: #fb0;
             }
+            
+            .item-quantity {
+                color: #888;
+                font-weight: bold;
+                font-size: 0.9em;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -477,7 +499,7 @@ export class InventoryUI {
             <div class="inventory-instructions">
                 ${this.dropMode ? 
                 'Click item to drop • D key to cancel' : 
-                'Click item to select • Number keys (1-9) to select • Shift+Number to equip • Alt+Number to use'}
+                'Click item to select • Number keys (1-9) to select • E to equip • U to use • Shift+Number to equip • Alt+Number to use'}
             </div>
             <div class="inventory-container">
                 <div class="inventory-items">
@@ -506,7 +528,7 @@ export class InventoryUI {
                         <div class="item-icon">${item.icon}</div>
                         <div class="item-info">
                             <div class="item-name ${item.equipped ? 'equipped' : ''} rarity-${item.rarity}">
-                                ${item.name} ${item.equipped ? '(E)' : ''}
+                                ${item.name} ${item.equipped ? '(E)' : ''}${item.stackable && item.quantity > 1 ? ` <span class="item-quantity">x${item.quantity}</span>` : ''}
                             </div>
                             <div class="item-description">${item.description}</div>
                         </div>

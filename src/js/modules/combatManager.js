@@ -89,17 +89,17 @@ export class CombatManager {
             
             // Scale monster with difficulty
             if (difficultyLevel > 1) {
-                monster.health = Math.floor(monster.health * (1 + (difficultyLevel - 1) * 0.3));
+                monster.health = Math.floor(monster.health * (1 + (difficultyLevel - 1) * 0.4));
                 monster.maxHealth = monster.health;
-                monster.strength = Math.floor(monster.strength * (1 + (difficultyLevel - 1) * 0.2));
+                monster.strength = Math.floor(monster.strength * (1 + (difficultyLevel - 1) * 0.3));
                 
                 // Add a visual indicator of stronger monsters
                 monster.name = `${difficultyLevel > 3 ? 'Elite ' : ''}${monster.name}`;
                 
-                // Make the hardest monsters more visually distinct
-                if (difficultyLevel >= 5) {
+               // Make the hardest monsters more visually distinct
+               if (difficultyLevel >= 7) {
                     monster.symbol = '👹'; // Different symbol for elite monsters
-                }
+               }
             }
             
             this.game.monsters.push(monster);

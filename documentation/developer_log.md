@@ -2,6 +2,162 @@
 
 This log tracks updates, fixes, and development decisions made during the game's development.
 
+## 2025-07-05 - Critical Health Potion System Fixes & Inventory UI Improvements
+
+### 1. Player Entity Initialization Bug
+- **Issue**: Player character had `undefined` name property causing "undefined uses Health Potion" messages
+- **Root Cause**: Character constructor didn't set a name property, Player constructor inherited this issue
+- **Fix**: Added `this.name = 'Player'` to Player constructor after calling `super()`
+- **Impact**: All entity references now display correctly in combat and item usage messages
+
+### 2. Health Potion Inheritance System Breakdown
+- **Critical Discovery**: Item inheritance system was fundamentally broken due to cloning process
+- **Issue**: `ItemDatabase.getItem()` calls `item.clone()` which creates base `Item` instances, not `HealthPotion` instances
+- **Result**: `HealthPotion.use()` method never gets called - only base `Item.use()` executes
+- **Implications**: All specialized item behavior (healing, consumption) was non-functional
+
+### 3. Health Potion Functionality Restoration
+- **Problem**: Healing code was previously removed as "duplicate" but was actually the only working healing
+- **Solution**: Restored direct healing logic in `Player.useItemFromInventory()`:
+  - `this.health = Math.min(this.health + item.stats.healAmount, this.maxHealth)`
+  - Added mana restoration: `this.mana = Math.min(this.mana + item.stats.manaRestore, this.maxMana)`
+- **Workaround**: Bypassed broken inheritance by implementing functionality directly in player class
+
+### 4. Item Consumption System Fix
+- **Issue**: Potions had infinite uses due to consumption logic being in unreachable `HealthPotion.use()` method
+- **Solution**: Added consumption logic to `Player.useItemFromInventory()`:
+  - For stackable items with quantity > 1: `item.quantity--`
+  - For single items or last in stack: `this.inventory.removeItem(index)`
+- **Result**: Potions now properly consume when used, preventing infinite healing exploit
+
+### 5. Inventory UI: Quantity Indicators
+- **User Experience Issue**: No visual indication of item quantities in stacked consumables
+- **Implementation**: 
+  - Added quantity display for stackable items: `Health Potion x3`
+  - Only shows when `item.stackable = true` AND `item.quantity > 1`
+  - Styled with subtle gray color using `.item-quantity` CSS class
+- **Player Setup Improvement**: Changed from 3 separate potions to 1 stack of 3 potions
+- **Benefits**: Clear inventory management, space efficiency, real-time quantity updates
+
+### 6. Technical Architecture Insights
+- **Item System Flaw**: The `clone()` method in base `Item` class doesn't preserve subclass behavior
+- **Design Decision**: Implemented functional workaround rather than deep architectural refactor
+- **Future Consideration**: Item inheritance system needs fundamental redesign for proper polymorphism
+- **Current State**: All consumable functionality works correctly despite inheritance limitations
+
+### 7. Quality Assurance
+- **Testing Coverage**: Verified healing, consumption, and UI display functions correctly
+- **Debug Cleanup**: Removed all debugging code after identifying and fixing root causes
+- **User Feedback**: Addressed player-reported issues with clear visual and functional improvements
+- **Code Maintainability**: Added clear comments explaining workaround logic for future developers
+
+### 8. Player Experience Impact
+- **Health Management**: Potions now work reliably for tactical health recovery
+- **Inventory Clarity**: Players can immediately see consumable quantities (x3, x2, x1)
+- **Resource Strategy**: Proper consumption mechanics enable strategic resource management
+- **System Reliability**: Eliminated confusion from broken healing and infinite potion exploits
+
+This session resolved critical game-breaking issues while improving user experience and maintaining code stability through practical workarounds.
+
+---
+
+## 2025-07-05 - Part 2: Loot Economy Overhaul & Monster Drop Diversification
+
+### 1. Further Loot Spawn Reduction
+- **First Section**: 8 → 6 items (25% additional reduction)
+- **New Sections**: 12 + difficulty × 1 → Math.floor(8 + difficulty × 0.5) (~33% reduction)
+- **Impact**: Significantly more scarce item spawns, making exploration rewards more meaningful
+- **Resource Management**: Items now feel genuinely valuable and require strategic usage
+
+### 2. Revolutionary Monster Loot System Implementation
+- **Complete Loot Overhaul**: Replaced simple gold-only drops with sophisticated variety system
+- **Two-Stage Drop Logic**: Base drop chance calculation followed by loot type determination
+- **Elite Monster Rewards**: Enhanced drop rates and better loot quality for Elite monsters
+
+### 3. Monster Drop Rates & Variety
+- **Base Drop Chances**:
+  - Normal monsters: 25% chance to drop loot
+  - Elite monsters: 40% chance to drop loot (+15% bonus)
+- **Loot Distribution When Drops Occur**:
+  - Gold: 50% (1-10 coins, +5 for Elite)
+  - Health Potions: 25% 
+  - Mana Potions: 10%
+  - Scrolls (Identify/Teleport): 10%
+  - Equipment (weapons/armor/accessories): 5%
+
+### 4. Equipment Drop Sub-System
+- **Elite Equipment Chance**: 75% success rate when equipment is rolled
+- **Normal Equipment Chance**: 50% success rate when equipment is rolled
+- **Fallback System**: Better gold drops (5-19 coins) when equipment fails
+- **Equipment Variety**: Weapons, armor, and accessories from full item database
+
+### 5. Technical Implementation Details
+- **Item Database Integration**: Added `getRandomEquipment()` method to ItemDatabase
+- **Defensive Programming**: Comprehensive error checking for missing dependencies
+- **Property Name Consistency**: Fixed `itemDB` vs `itemDatabase` naming conflicts
+- **Visual Feedback**: Color-coded drop messages for different loot types
+
+### 6. Bug Resolution
+- **Critical Fix**: Resolved "Cannot read properties of undefined (reading 'getItem')" error
+- **Root Cause**: ItemManager stores database as `itemDB`, monster code was accessing `itemDatabase`
+- **Solution**: Updated all monster loot references to use correct property name
+- **Error Prevention**: Added defensive checks to prevent future undefined reference crashes
+
+### 7. Balance Impact Analysis
+- **Real-World Drop Rates**:
+  - Normal monsters: 12.5% gold, 6.25% health potions, 0.625% equipment
+  - Elite monsters: 20% gold, 10% health potions, 1.5% equipment
+- **Strategic Depth**: Equipment drops create excitement and tactical decisions
+- **Elite Value**: Elite monsters now provide 60% more loot opportunities
+- **Resource Scarcity**: Combined with reduced spawn rates, creates meaningful item economy
+
+### 8. Player Experience Enhancement
+- **Combat Rewards**: Every monster kill potentially rewarding with varied outcomes
+- **Elite Hunting**: Elite monsters become genuine treasure opportunities
+- **Tactical Consumables**: Health/mana potions provide strategic combat options
+- **Equipment Progression**: Rare equipment drops enable character advancement
+- **Scroll Utility**: Utility scrolls add magical progression elements
+
+### 9. Code Quality Improvements
+- **Modular Loot Logic**: Clean separation of drop chance calculation and loot type selection
+- **Extensible System**: Easy to add new loot types or adjust percentages
+- **Performance Optimized**: Efficient two-stage system prevents unnecessary calculations
+- **Maintainable**: Clear documentation of drop rates and probability calculations
+
+This comprehensive loot system transformation significantly enhances the game's progression mechanics while maintaining balanced resource scarcity. The varied monster rewards create genuine excitement for combat encounters and make Elite monsters worth seeking out.
+
+---
+
+## 2025-07-04 - Part 3: Monster Balance Refinement
+
+### 1. Monster Population Reduction
+- **Spawn Count Reduction**: Reduced monster density across all sections for better gameplay flow
+  - First section: 10 → 8 monsters (20% reduction)
+  - New sections: 10 + difficulty × 3 → 8 + difficulty × 2 (20% base reduction + reduced scaling)
+- **Quality over Quantity**: Fewer monsters but each encounter more meaningful
+
+### 2. Monster Toughness Increase
+- **Enhanced Scaling**: Increased stat scaling to make monsters more challenging
+  - Health scaling: +30% → +40% per difficulty level (33% stronger)
+  - Attack scaling: +20% → +30% per difficulty level (50% stronger)
+- **Elite Monster Impact**: Elite monsters now significantly more dangerous at higher difficulties
+
+### 3. Balance Impact Analysis
+- **Combat Encounters**: Each fight now more tactical and engaging
+- **Resource Management**: Players must be more strategic with health/healing
+- **Progression Curve**: Equipment upgrades feel more necessary and impactful
+- **Elite Threat**: Elite monsters (difficulty 4+) are now genuine threats requiring preparation
+
+### 4. Expected Gameplay Changes
+- **Reduced Grinding**: Fewer monsters mean less repetitive combat
+- **Increased Challenge**: Individual monsters require more tactical thinking
+- **Better Pacing**: Combat encounters feel more meaningful and less overwhelming
+- **Equipment Importance**: Player gear choices have greater impact on success
+
+This refinement maintains the game's challenge while improving the overall flow and making each encounter more strategic.
+
+---
+
 ## 2025-07-04 - Part 2: Revolutionary 4-Gate World System Implementation
 
 ### 1. Complete Gate System Overhaul

@@ -507,7 +507,7 @@ export class Renderer {
             this.ctx.fillStyle = '#ffff00'; // Bright yellow
             this.ctx.textAlign = 'left';
             this.ctx.textBaseline = 'top';
-            this.ctx.fillText(`Section: ${sectionId}`, 10, 10);
+            this.ctx.fillText(`Section (x: ${worldX}, y: ${worldY})`, 10, 10);
             
             // Also show area if applicable
             if (this.game.dungeonArea > 1) {

@@ -136,7 +136,7 @@ export class InputManager {
         }
         
         // Check for pickup and equip in one action
-        if (this.input.isKeyPressed('e')) {
+        if (this.input.isKeyPressed('p')) {
             this.handleEquipItem();
         }
         
@@ -200,7 +200,7 @@ export class InputManager {
                 this.game.ui.addMessage(`${groundItem.item.name} cannot be equipped`, '#f55');
             }
         } else {
-            this.game.ui.addMessage('There is nothing here to equip.', '#aaa');
+            this.game.ui.addMessage('There is nothing here to pick up and equip.', '#aaa');
         }
     }
     
