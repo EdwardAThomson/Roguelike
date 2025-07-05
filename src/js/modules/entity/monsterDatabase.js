@@ -12,7 +12,7 @@ export class MonsterDatabase {
                 baseStats: {
                     level: 1,
                     maxHealth: 8,
-                    attackPower: 3,
+                    attackPower: 5,
                     defense: 10,
                     criticalChance: 3
                 },
@@ -30,7 +30,7 @@ export class MonsterDatabase {
                 baseStats: {
                     level: 1,
                     maxHealth: 6,
-                    attackPower: 4,
+                    attackPower: 7,
                     defense: 12,
                     criticalChance: 5
                 },
@@ -38,6 +38,24 @@ export class MonsterDatabase {
                 attackDelay: 1000,
                 detectionRange: 5,
                 xpValue: 15
+            },
+
+            bat: {
+                name: 'Cave Bat',
+                description: 'A quick, aggressive bat with razor-sharp teeth',
+                symbol: 'b',
+                color: '#654',
+                baseStats: {
+                    level: 1,
+                    maxHealth: 5,
+                    attackPower: 8,
+                    defense: 11,
+                    criticalChance: 12
+                },
+                moveDelay: 150,
+                attackDelay: 900,
+                detectionRange: 6,
+                xpValue: 18
             },
             
             // Level 2 monsters
@@ -49,7 +67,7 @@ export class MonsterDatabase {
                 baseStats: {
                     level: 2,
                     maxHealth: 15,
-                    attackPower: 5,
+                    attackPower: 8,
                     defense: 14,
                     criticalChance: 6
                 },
@@ -65,12 +83,12 @@ export class MonsterDatabase {
             skeleton: {
                 name: 'Skeleton',
                 description: 'An animated pile of bones',
-                symbol: 'k',
+                symbol: 'S',
                 color: '#fff',
                 baseStats: {
                     level: 2,
                     maxHealth: 12,
-                    attackPower: 5,
+                    attackPower: 10,
                     defense: 13,
                     criticalChance: 8
                 },
@@ -78,6 +96,42 @@ export class MonsterDatabase {
                 attackDelay: 1200,
                 detectionRange: 7,
                 xpValue: 30
+            },
+
+            kobold: {
+                name: 'Kobold',
+                description: 'A cunning reptilian humanoid with crude weapons',
+                symbol: 'k',
+                color: '#a85',
+                baseStats: {
+                    level: 2,
+                    maxHealth: 13,
+                    attackPower: 9,
+                    defense: 12,
+                    criticalChance: 7
+                },
+                moveDelay: 280,
+                attackDelay: 1050,
+                detectionRange: 5,
+                xpValue: 28
+            },
+
+            wolf: {
+                name: 'Wolf',
+                description: 'A fierce predator with glowing yellow eyes',
+                symbol: 'w',
+                color: '#777',
+                baseStats: {
+                    level: 2,
+                    maxHealth: 16,
+                    attackPower: 10,
+                    defense: 11,
+                    criticalChance: 9
+                },
+                moveDelay: 200,
+                attackDelay: 1000,
+                detectionRange: 7,
+                xpValue: 32
             },
             
             // Level 3 monsters
@@ -89,7 +143,7 @@ export class MonsterDatabase {
                 baseStats: {
                     level: 3,
                     maxHealth: 25,
-                    attackPower: 7,
+                    attackPower: 12,
                     defense: 16,
                     criticalChance: 7
                 },
@@ -107,7 +161,7 @@ export class MonsterDatabase {
                 baseStats: {
                     level: 3,
                     maxHealth: 18,
-                    attackPower: 8,
+                    attackPower: 15,
                     defense: 15,
                     criticalChance: 12
                 },
@@ -115,6 +169,42 @@ export class MonsterDatabase {
                 attackDelay: 1200,
                 detectionRange: 8,
                 xpValue: 50
+            },
+
+            centaur: {
+                name: 'Centaur',
+                description: 'A proud half-human, half-horse warrior',
+                symbol: 'C',
+                color: '#d83',
+                baseStats: {
+                    level: 3,
+                    maxHealth: 22,
+                    attackPower: 14,
+                    defense: 17,
+                    criticalChance: 8
+                },
+                moveDelay: 280,
+                attackDelay: 1100,
+                detectionRange: 6,
+                xpValue: 55
+            },
+
+            minotaur: {
+                name: 'Minotaur',
+                description: 'A massive bull-headed humanoid with tremendous strength',
+                symbol: 'M',
+                color: '#c63',
+                baseStats: {
+                    level: 4,
+                    maxHealth: 35,
+                    attackPower: 16,
+                    defense: 18,
+                    criticalChance: 6
+                },
+                moveDelay: 450,
+                attackDelay: 1400,
+                detectionRange: 5,
+                xpValue: 65
             }
         };
     }

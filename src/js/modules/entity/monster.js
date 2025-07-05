@@ -272,7 +272,7 @@ export class Monster extends Character {
         const isElite = this.name.includes('Elite');
         
         // Base drop chance
-        let dropChance = 0.25; // 25% base chance
+        let dropChance = 0.35; // was 25% base chance
         if (isElite) dropChance += 0.15; // +15% for elite monsters
         
         // Roll for loot drop
@@ -287,7 +287,7 @@ export class Monster extends Character {
             const gold = game.itemManager.createGoldPile(goldAmount);
             game.itemManager.addItemToGround(gold, this.x, this.y);
             
-        } else if (lootRoll < 0.75) {
+        } else if (lootRoll < 0.70) {
             // Health Potion (25% of drops)
             const potion = game.itemManager.itemDB.getItem('health_potion');
             if (potion) {
@@ -295,7 +295,7 @@ export class Monster extends Character {
                 game.ui.addMessage(`${this.name} dropped a ${potion.name}!`, '#5f5');
             }
             
-        } else if (lootRoll < 0.85) {
+        } else if (lootRoll < 0.80) {
             // Mana Potion (10% of drops)
             const manaPotion = game.itemManager.itemDB.getItem('mana_potion');
             if (manaPotion) {
@@ -303,7 +303,7 @@ export class Monster extends Character {
                 game.ui.addMessage(`${this.name} dropped a ${manaPotion.name}!`, '#5f5');
             }
             
-        } else if (lootRoll < 0.95) {
+        } else if (lootRoll < 0.90) {
             // Scroll (10% of drops)
             const scrolls = ['scroll_of_identify', 'scroll_of_teleport'];
             const randomScroll = scrolls[Math.floor(Math.random() * scrolls.length)];

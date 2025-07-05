@@ -2,6 +2,72 @@
 
 This log tracks updates, fixes, and development decisions made during the game's development.
 
+## 2025-07-06 - Equipment Bonus System Overhaul & Amulet Health Fix
+
+### 1. Critical Equipment Bonus Bug Discovery
+- **Issue**: Amulet of Health (+15 max health) and other equipment bonuses not applying properly
+- **Root Cause**: Equipment system applied bonuses directly to `maxHealth`, then `updateStats()` immediately overwrote them
+- **Sequence**: `applyStats()` → `entity.maxHealth += 15` → `updateStats()` → `calculateMaxHealth()` → bonus lost
+- **Impact**: All equipment health/mana bonuses were non-functional, making accessories nearly useless
+
+### 2. Equipment Calculation System Redesign
+- **Architecture Change**: Moved from direct stat modification to calculation-based approach
+- **New Player Methods**:
+  - `calculateMaxHealth()` - includes equipment health bonuses
+  - `calculateMaxMana()` - includes equipment mana bonuses
+  - Matches existing pattern of `calculateAttackPower()` and `calculateDefense()`
+- **Consistency**: All equipment bonuses now calculated uniformly instead of mixed approaches
+
+### 3. Equipment.js Stat Application Refactor
+- **Removed Direct Modification**: No longer directly modifies `maxHealth` or `maxMana` properties
+- **Preserved Base Stats**: Still directly modifies strength, dexterity, constitution, intelligence
+- **Smart Clamping**: Added health/mana clamping when equipment is unequipped
+- **Clean Architecture**: Equipment effects now properly isolated from base character stats
+
+### 4. UI Enhancement: Equipment Bonus Visibility
+- **Character Screen Updates**: Added green equipment bonus indicators
+  - Health: `45 / 50 (+15)` - shows amulet bonus
+  - Mana: `25 / 35 (+15)` - shows staff/tome bonuses
+- **Visual Feedback**: Players can now see equipment bonuses working in real-time
+- **Debugging Aid**: Makes it easy to verify equipment effects are applying correctly
+
+### 5. Technical Implementation Details
+- **Defensive Programming**: Added proper error handling for equipment bonus calculations
+- **Equipment Iteration**: Safely loops through all equipped items to sum bonuses
+- **Performance**: Minimal impact - calculations only run when stats update
+- **Backwards Compatibility**: All existing equipment continues to work without changes
+
+### 6. Equipment Balance Impact
+- **Amulet of Health**: Now properly provides +15 max health + constitution bonus
+- **Spell Tome**: +15 max mana bonus now functional
+- **Staff**: +10 max mana bonus now applies correctly
+- **Accessory Value**: Equipment slots now provide meaningful character progression
+- **Strategic Depth**: Players can now build characters around equipment bonuses
+
+### 7. Bug Resolution Process
+- **Problem Identification**: User reported amulet health bonus not working
+- **Root Cause Analysis**: Traced through equipment system to find stat overwriting
+- **System Architecture Review**: Identified inconsistent approaches between different stats
+- **Unified Solution**: Implemented consistent calculation-based approach for all equipment bonuses
+- **Quality Assurance**: Updated UI to provide visual confirmation of fixes
+
+### 8. Player Experience Improvements
+- **Equipment Reliability**: All equipment bonuses now work as described
+- **Character Building**: Health and mana equipment now viable for different builds
+- **Visual Clarity**: Equipment bonuses clearly displayed in character screen
+- **Trust**: Players can rely on equipment tooltips matching actual effects
+- **Progression**: Equipment upgrades provide meaningful character advancement
+
+### 9. Code Quality Enhancements
+- **Consistent Architecture**: All equipment bonuses follow same calculation pattern
+- **Maintainable Code**: Clear separation between base stats and equipment effects
+- **Error Prevention**: Defensive programming prevents future stat calculation bugs
+- **Documentation**: Clear comments explain equipment bonus calculation approach
+
+This comprehensive equipment system fix resolves a fundamental game mechanic and significantly improves the reliability and value of equipment-based character progression.
+
+---
+
 ## 2025-07-05 - Critical Health Potion System Fixes & Inventory UI Improvements
 
 ### 1. Player Entity Initialization Bug

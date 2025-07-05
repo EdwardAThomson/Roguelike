@@ -238,6 +238,54 @@ export class Player extends Character {
         
         return baseDefense + equipmentBonus;
     }
+
+    // Override maxHealth method to include equipment bonuses
+    calculateMaxHealth() {
+        const baseHealth = super.calculateMaxHealth();
+        
+        // Check if inventory exists before using it
+        if (!this.inventory) return baseHealth;
+        
+        // Get health bonus from all equipped items
+        let equipmentBonus = 0;
+        try {
+            const equippedItems = this.inventory.getAllEquipped();
+            
+            for (const item of equippedItems) {
+                if (item.stats && item.stats.maxHealth) {
+                    equipmentBonus += item.stats.maxHealth;
+                }
+            }
+        } catch (error) {
+            console.error("Error calculating max health:", error);
+        }
+        
+        return baseHealth + equipmentBonus;
+    }
+
+    // Override maxMana method to include equipment bonuses
+    calculateMaxMana() {
+        const baseMana = super.calculateMaxMana();
+        
+        // Check if inventory exists before using it
+        if (!this.inventory) return baseMana;
+        
+        // Get mana bonus from all equipped items
+        let equipmentBonus = 0;
+        try {
+            const equippedItems = this.inventory.getAllEquipped();
+            
+            for (const item of equippedItems) {
+                if (item.stats && item.stats.maxMana) {
+                    equipmentBonus += item.stats.maxMana;
+                }
+            }
+        } catch (error) {
+            console.error("Error calculating max mana:", error);
+        }
+        
+        return baseMana + equipmentBonus;
+    }
     
     // Override getSummary to include equipment
     getSummary() {

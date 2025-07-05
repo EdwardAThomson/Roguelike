@@ -31,11 +31,11 @@ export class Equipment extends Item {
         for (const [stat, value] of Object.entries(this.stats)) {
             // Some stats need to be handled differently
             if (stat === 'maxHealth') {
-                entity.maxHealth += value;
-                // Don't increase current health
+                // Don't directly modify maxHealth - let calculateMaxHealth handle it
+                // This prevents the bonus from being overwritten by updateStats()
             } else if (stat === 'maxMana') {
-                entity.maxMana += value;
-                // Don't increase current mana
+                // Don't directly modify maxMana - let calculateMaxMana handle it
+                // This prevents the bonus from being overwritten by updateStats()
             } else if (entity.hasOwnProperty(stat)) {
                 entity[stat] += value;
             }
@@ -49,13 +49,11 @@ export class Equipment extends Item {
         // Remove stat bonuses from entity
         for (const [stat, value] of Object.entries(this.stats)) {
             if (stat === 'maxHealth') {
-                entity.maxHealth -= value;
-                // Make sure health doesn't exceed new max
-                entity.health = Math.min(entity.health, entity.maxHealth);
+                // Don't directly modify maxHealth - let calculateMaxHealth handle it
+                // Just update stats to recalculate properly
             } else if (stat === 'maxMana') {
-                entity.maxMana -= value;
-                // Make sure mana doesn't exceed new max
-                entity.mana = Math.min(entity.mana, entity.maxMana);
+                // Don't directly modify maxMana - let calculateMaxMana handle it
+                // Just update stats to recalculate properly
             } else if (entity.hasOwnProperty(stat)) {
                 entity[stat] -= value;
             }
@@ -63,6 +61,14 @@ export class Equipment extends Item {
         
         // Recalculate derived stats
         entity.updateStats();
+        
+        // After recalculating stats, make sure current health/mana don't exceed new maximums
+        if (entity.health > entity.maxHealth) {
+            entity.health = entity.maxHealth;
+        }
+        if (entity.mana > entity.maxMana) {
+            entity.mana = entity.maxMana;
+        }
     }
 }
 

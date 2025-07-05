@@ -318,14 +318,14 @@ export class GameUI {
                 <h3>Derived Stats</h3>
                 <div class="stat-row">
                     <div class="stat-label">Health:</div>
-                    <div>${stats.health} / ${stats.maxHealth}</div>
+                    <div>${stats.health} / ${stats.maxHealth} ${stats.maxHealth_bonus ? `<span style="color: #5f5">(+${stats.maxHealth_bonus})</span>` : ''}</div>
                 </div>
                 <div class="progress-bar health-bar">
                     <div class="progress-fill" style="width: ${(stats.health / stats.maxHealth) * 100}%"></div>
                 </div>
                 <div class="stat-row">
                     <div class="stat-label">Mana:</div>
-                    <div>${stats.mana} / ${stats.maxMana}</div>
+                    <div>${stats.mana} / ${stats.maxMana} ${stats.maxMana_bonus ? `<span style="color: #5f5">(+${stats.maxMana_bonus})</span>` : ''}</div>
                 </div>
                 <div class="progress-bar mana-bar">
                     <div class="progress-fill" style="width: ${(stats.mana / stats.maxMana) * 100}%"></div>
