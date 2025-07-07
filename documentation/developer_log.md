@@ -24,7 +24,7 @@ This log tracks updates, fixes, and development decisions made during the game's
 - **Player Feedback**: Equipment progression feels more natural and rewarding
 
 ### 4. Balance Philosophy
-- **Combat Accessibility**: Tough monsters remain challenging but beatable
+- **Combat Accessibility**: Tough monsters remain beatable (bit too easy)
 - **Equipment Value**: Each upgrade provides meaningful character improvement
 - **Player Agency**: Multiple viable strategies for handling difficult encounters
 

@@ -46,6 +46,10 @@ export class Player extends Character {
         healthPotion.quantity = 3; // Give 3 potions in one stack
         this.inventory.addItem(healthPotion);
         
+        // ADD STAFF FOR TESTING - TEMPORARY
+        const testStaff = this.itemDatabase.getItem('staff');
+        this.inventory.addItem(testStaff);
+        
         // Add some gold
         this.inventory.gold = 50;
     }
