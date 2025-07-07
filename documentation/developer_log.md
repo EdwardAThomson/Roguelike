@@ -2,6 +2,36 @@
 
 This log tracks updates, fixes, and development decisions made during the game's development.
 
+
+
+## 2025-07-07 - Combat Balance & Equipment Progression Improvements
+
+### 1. Combat Mechanics Fix
+- **Minimum Damage Rule**: Fixed issue where high-defense monsters (like Minotaur) could be completely invulnerable
+- **Result**: All attacks now deal at least 1 damage, preventing impossible encounters
+- **Impact**: Players can now defeat tough monsters with persistence and strategy
+
+### 2. Equipment Progression Enhancement
+- **New Intermediate Gear**: Added better equipment tiers between starter and high-end gear
+- **Weapons**: Iron Sword (+7 attack), Steel Sword (+9 attack), Enchanted Blade (+11 attack)
+- **Armor**: Studded Leather (+3 defense), Scale Mail (+5 defense), Reinforced Boots
+- **Accessories**: Iron Shield (+3 defense), Amulet of Vitality (+10 health, +1 constitution)
+- **Impact**: Smoother character progression with meaningful equipment upgrades
+
+### 3. Loot System Updates
+- **Smart Loot Distribution**: Equipment drops now scale better with monster difficulty
+- **Elite Monster Rewards**: Higher-level monsters more likely to drop useful gear
+- **Player Feedback**: Equipment progression feels more natural and rewarding
+
+### 4. Balance Philosophy
+- **Combat Accessibility**: Tough monsters remain challenging but beatable
+- **Equipment Value**: Each upgrade provides meaningful character improvement
+- **Player Agency**: Multiple viable strategies for handling difficult encounters
+
+This update resolves the "impossible minotaur" issue while creating a more satisfying equipment progression system.
+
+---
+
 ## 2025-07-06 - Equipment Bonus System Overhaul & Amulet Health Fix
 
 ### 1. Critical Equipment Bonus Bug Discovery

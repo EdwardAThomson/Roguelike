@@ -11,7 +11,7 @@ export class MonsterDatabase {
                 color: '#b94',
                 baseStats: {
                     level: 1,
-                    maxHealth: 8,
+                    maxHealth: 24,
                     attackPower: 5,
                     defense: 10,
                     criticalChance: 3
@@ -29,7 +29,7 @@ export class MonsterDatabase {
                 color: '#52a',
                 baseStats: {
                     level: 1,
-                    maxHealth: 6,
+                    maxHealth: 24,
                     attackPower: 7,
                     defense: 12,
                     criticalChance: 5
@@ -47,7 +47,7 @@ export class MonsterDatabase {
                 color: '#654',
                 baseStats: {
                     level: 1,
-                    maxHealth: 5,
+                    maxHealth: 15,
                     attackPower: 8,
                     defense: 11,
                     criticalChance: 12
@@ -66,7 +66,7 @@ export class MonsterDatabase {
                 color: '#5d5',
                 baseStats: {
                     level: 2,
-                    maxHealth: 15,
+                    maxHealth: 30,
                     attackPower: 8,
                     defense: 14,
                     criticalChance: 6
@@ -87,7 +87,7 @@ export class MonsterDatabase {
                 color: '#fff',
                 baseStats: {
                     level: 2,
-                    maxHealth: 12,
+                    maxHealth: 40,
                     attackPower: 10,
                     defense: 13,
                     criticalChance: 8
@@ -105,7 +105,7 @@ export class MonsterDatabase {
                 color: '#a85',
                 baseStats: {
                     level: 2,
-                    maxHealth: 13,
+                    maxHealth: 45,
                     attackPower: 9,
                     defense: 12,
                     criticalChance: 7
@@ -123,7 +123,7 @@ export class MonsterDatabase {
                 color: '#777',
                 baseStats: {
                     level: 2,
-                    maxHealth: 16,
+                    maxHealth: 40,
                     attackPower: 10,
                     defense: 11,
                     criticalChance: 9
@@ -142,7 +142,7 @@ export class MonsterDatabase {
                 color: '#8c5',
                 baseStats: {
                     level: 3,
-                    maxHealth: 25,
+                    maxHealth: 65,
                     attackPower: 12,
                     defense: 16,
                     criticalChance: 7
@@ -160,7 +160,7 @@ export class MonsterDatabase {
                 color: '#adf',
                 baseStats: {
                     level: 3,
-                    maxHealth: 18,
+                    maxHealth: 60,
                     attackPower: 15,
                     defense: 15,
                     criticalChance: 12
@@ -178,7 +178,7 @@ export class MonsterDatabase {
                 color: '#d83',
                 baseStats: {
                     level: 3,
-                    maxHealth: 22,
+                    maxHealth: 65,
                     attackPower: 14,
                     defense: 17,
                     criticalChance: 8
@@ -196,7 +196,7 @@ export class MonsterDatabase {
                 color: '#c63',
                 baseStats: {
                     level: 4,
-                    maxHealth: 35,
+                    maxHealth: 85,
                     attackPower: 16,
                     defense: 18,
                     criticalChance: 6
@@ -204,7 +204,7 @@ export class MonsterDatabase {
                 moveDelay: 450,
                 attackDelay: 1400,
                 detectionRange: 5,
-                xpValue: 65
+                xpValue: 75
             }
         };
     }

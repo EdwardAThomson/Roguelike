@@ -139,7 +139,7 @@ export class WorldManager {
             this.game.itemManager.itemsOnGround = [];
             
             // Spawn monsters with appropriate difficulty
-            const monsterCount = 11 // + difficulty * 2; // should the difficulty be 0, 1 or 2? Maybe 0.
+            const monsterCount = 13 // + difficulty * 2; // should the difficulty be 0, 1 or 2? Maybe 0.
             this.spawnMonstersForSection(monsterCount, difficulty);
             
             // Place items

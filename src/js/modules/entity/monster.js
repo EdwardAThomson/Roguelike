@@ -314,18 +314,47 @@ export class Monster extends Character {
             }
             
         } else {
-            // Equipment (5% of drops, more likely for elite monsters)
-            const equipmentChance = isElite ? 0.75 : 0.5;
+            // Equipment (10% of drops for normal monsters, 25% for elite monsters)
+            const equipmentChance = isElite ? 0.25 : 0.10;
             if (Math.random() < equipmentChance) {
-                // Try to get a random equipment item
-                const equipment = game.itemManager.itemDB.getRandomEquipment();
+                // Get level-appropriate equipment
+                let equipment = null;
+                
+                // Try to get equipment appropriate for the monster's level
+                if (monsterLevel <= 1) {
+                    // Level 1 monsters: basic equipment
+                    const basicItems = ['dagger', 'short_sword', 'leather_armor', 'leather_boots', 'wooden_shield'];
+                    const randomItem = basicItems[Math.floor(Math.random() * basicItems.length)];
+                    equipment = game.itemManager.itemDB.getItem(randomItem);
+                } else if (monsterLevel <= 2) {
+                    // Level 2 monsters: mix of basic and intermediate equipment
+                    const intermediateItems = ['iron_sword', 'scimitar', 'studded_leather', 'reinforced_boots', 'reinforced_shield', 'silver_ring'];
+                    const randomItem = intermediateItems[Math.floor(Math.random() * intermediateItems.length)];
+                    equipment = game.itemManager.itemDB.getItem(randomItem);
+                } else if (monsterLevel <= 3) {
+                    // Level 3 monsters: intermediate and good equipment
+                    const goodItems = ['long_sword', 'mace', 'scale_mail', 'chainmail', 'iron_shield', 'bone_necklace', 'ring_of_protection'];
+                    const randomItem = goodItems[Math.floor(Math.random() * goodItems.length)];
+                    equipment = game.itemManager.itemDB.getItem(randomItem);
+                } else {
+                    // Level 4+ monsters: best equipment
+                    const bestItems = ['battle_axe', 'plate_armor', 'tower_shield', 'amulet_of_health', 'ring_of_strength'];
+                    const randomItem = bestItems[Math.floor(Math.random() * bestItems.length)];
+                    equipment = game.itemManager.itemDB.getItem(randomItem);
+                }
+                
                 if (equipment) {
                     game.itemManager.addItemToGround(equipment, this.x, this.y);
                     game.ui.addMessage(`${this.name} dropped ${equipment.name}!`, '#ff5');
+                } else {
+                    // Fallback to gold if equipment not found
+                    const goldAmount = Math.floor(Math.random() * 15) + 5;
+                    const gold = game.itemManager.createGoldPile(goldAmount);
+                    game.itemManager.addItemToGround(gold, this.x, this.y);
                 }
             } else {
-                // Fallback to gold if no equipment available
-                const goldAmount = Math.floor(Math.random() * 15) + 5;
+                // Fallback to gold if no equipment drop
+                const goldAmount = Math.floor(Math.random() * 15) + 5 + (monsterLevel * 2);
                 const gold = game.itemManager.createGoldPile(goldAmount);
                 game.itemManager.addItemToGround(gold, this.x, this.y);
             }

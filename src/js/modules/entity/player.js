@@ -18,7 +18,7 @@ export class Player extends Character {
         this.x = x;
         this.y = y;
         this.lastMove = 0;
-        this.moveDelay = 115; // ms between moves (slowed by 15%)
+        this.moveDelay = 125; // ms between moves (slowed by 15%)
         
         // Assign the pre-initialized inventory
         this.inventory = inventory;

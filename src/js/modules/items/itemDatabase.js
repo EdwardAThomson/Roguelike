@@ -58,6 +58,34 @@ export class ItemDatabase {
             stats: { attackPower: 4, intelligence: 2, maxMana: 10 }
         }));
         
+        // INTERMEDIATE WEAPONS - Better progression
+        this.registerItem(new Weapon({
+            id: 'iron_sword',
+            name: 'Iron Sword',
+            description: 'A reliable iron sword with decent edge retention.',
+            icon: '⚔️',
+            value: 35,
+            stats: { attackPower: 6, strength: 1 }
+        }));
+        
+        this.registerItem(new Weapon({
+            id: 'scimitar',
+            name: 'Scimitar',
+            description: 'A curved sword that favors speed over power.',
+            icon: '🗡️',
+            value: 38,
+            stats: { attackPower: 7, dexterity: 1 }
+        }));
+        
+        this.registerItem(new Weapon({
+            id: 'mace',
+            name: 'Iron Mace',
+            description: 'A heavy mace designed to crush armor.',
+            icon: '🔨',
+            value: 42,
+            stats: { attackPower: 7, strength: 1, constitution: 1 }
+        }));
+        
         // ARMOR
         this.registerItem(new Armor({
             id: 'leather_cap',
@@ -131,6 +159,37 @@ export class ItemDatabase {
             value: 35,
             rarity: 'uncommon',
             stats: { defense: 2, constitution: 1, dexterity: -1 }
+        }));
+        
+        // INTERMEDIATE ARMOR - Better progression
+        this.registerItem(new Armor({
+            id: 'studded_leather',
+            name: 'Studded Leather Armor',
+            description: 'Leather armor reinforced with metal studs.',
+            slot: 'body',
+            icon: '👕',
+            value: 40,
+            stats: { defense: 3, dexterity: 1 }
+        }));
+        
+        this.registerItem(new Armor({
+            id: 'scale_mail',
+            name: 'Scale Mail',
+            description: 'Armor made from overlapping metal scales.',
+            slot: 'body',
+            icon: '🥋',
+            value: 50,
+            stats: { defense: 5, constitution: 1 }
+        }));
+        
+        this.registerItem(new Armor({
+            id: 'reinforced_boots',
+            name: 'Reinforced Boots',
+            description: 'Leather boots with metal reinforcements.',
+            slot: 'feet',
+            icon: '👢',
+            value: 28,
+            stats: { defense: 1, dexterity: 1, constitution: 1 }
         }));
         
         // ACCESSORIES
@@ -211,6 +270,37 @@ export class ItemDatabase {
             value: 85,
             rarity: 'uncommon',
             stats: { intelligence: 3, maxMana: 15 }
+        }));
+        
+        // INTERMEDIATE SHIELDS AND ACCESSORIES
+        this.registerItem(new Armor({
+            id: 'reinforced_shield',
+            name: 'Reinforced Shield',
+            description: 'A wooden shield reinforced with metal bands.',
+            slot: 'offhand',
+            icon: '🛡️',
+            value: 40,
+            stats: { defense: 3, constitution: 1 }
+        }));
+        
+        this.registerItem(new Accessory({
+            id: 'silver_ring',
+            name: 'Silver Ring',
+            description: 'A simple silver ring with minor enchantments.',
+            slot: 'ring',
+            icon: '💍',
+            value: 45,
+            stats: { strength: 3, defense: 2, dexterity: 1 }
+        }));
+        
+        this.registerItem(new Accessory({
+            id: 'bone_necklace',
+            name: 'Bone Necklace',
+            description: 'A primitive necklace that grants courage.',
+            slot: 'amulet',
+            icon: '📿',
+            value: 35,
+            stats: { attackPower: 2, strength: 1 }
         }));
         
         // POTIONS

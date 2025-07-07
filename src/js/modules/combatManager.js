@@ -43,26 +43,20 @@ export class CombatManager {
         const variance = 0.8 + Math.random() * 0.4;
         console.log(`CombatManager: Variance: ${variance}`);
 
-        // Calculate final damage - can now be 0 if defense is high enough
+        // Calculate final damage - minimum 1 damage to prevent invulnerability
         const rawDamage = Math.floor(baseDamage * variance * criticalMultiplier);
-        const finalDamage = Math.max(0, rawDamage - monster.defense);
+        const finalDamage = Math.max(1, rawDamage - monster.defense);
         
         // Display attack message
-        if (finalDamage > 0) {
-            this.game.ui.addMessage(`You attack the ${monster.name} for ${finalDamage} damage!`, '#fff');
-        } else {
-            this.game.ui.addMessage(`Your attack bounces off the ${monster.name}'s armor!`, '#aaa');
-        }
+        this.game.ui.addMessage(`You attack the ${monster.name} for ${finalDamage} damage!`, '#fff');
         
         // Display critical hit message
-        if (criticalHit && finalDamage > 0) {
+        if (criticalHit) {
             this.game.ui.addMessage(`Critical hit!`, '#ff0');
         }
         
-        // Apply damage to monster only if damage > 0
-        if (finalDamage > 0) {
-            monster.takeDamageFromPlayer(finalDamage, this.game);
-        }
+        // Apply damage to monster
+        monster.takeDamageFromPlayer(finalDamage, this.game);
         
         return true;
     }
