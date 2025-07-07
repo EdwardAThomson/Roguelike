@@ -233,6 +233,8 @@ export class Character {
         if (this.inventory && typeof this.inventory.getAllEquipped === 'function') {
             const equipped = this.inventory.getAllEquipped();
             
+            console.log(`Character: getSummary: checking ${equipped.length} equipped items for bonuses`);
+            
             for (const item of equipped) {
                 if (item.stats) {
                     // Primary attributes
@@ -243,18 +245,20 @@ export class Character {
                     
                     // Secondary stats
                     if (item.stats.maxHealth) equipmentBonuses.maxHealth_bonus += item.stats.maxHealth;
-                    if (item.stats.maxMana) equipmentBonuses.maxMana_bonus += item.stats.maxMana;
+                    if (item.stats.maxMana) {
+                        console.log(`Character: getSummary: ${item.name} provides +${item.stats.maxMana} mana bonus`);
+                        equipmentBonuses.maxMana_bonus += item.stats.maxMana;
+                    }
                     if (item.stats.attackPower) equipmentBonuses.attackPower_bonus += item.stats.attackPower;
                     if (item.stats.defense) equipmentBonuses.defense_bonus += item.stats.defense;
                     if (item.stats.criticalChance) equipmentBonuses.criticalChance_bonus += item.stats.criticalChance;
                 }
             }
             
-            // Log to console for debugging
-            // console.log("Equipment bonuses:", equipmentBonuses);
+            console.log("Character: getSummary: Equipment bonuses calculated:", equipmentBonuses);
         }
         
-        return {
+        const summary = {
             level: this.level,
             experience: this.experience,
             experienceToNextLevel: this.experienceToNextLevel,
@@ -273,5 +277,9 @@ export class Character {
             // Add equipment bonuses
             ...equipmentBonuses
         };
+        
+        console.log(`Character: getSummary: Final summary - maxMana: ${summary.maxMana}, maxMana_bonus: ${summary.maxMana_bonus}`);
+        
+        return summary;
     }
 }

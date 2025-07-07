@@ -275,8 +275,11 @@ export class Player extends Character {
         try {
             const equippedItems = this.inventory.getAllEquipped();
             
+            console.log(`Player: calculateMaxMana: checking ${equippedItems.length} equipped items`);
+            
             for (const item of equippedItems) {
                 if (item.stats && item.stats.maxMana) {
+                    console.log(`Player: calculateMaxMana: ${item.name} provides +${item.stats.maxMana} mana`);
                     equipmentBonus += item.stats.maxMana;
                 }
             }
@@ -284,7 +287,10 @@ export class Player extends Character {
             console.error("Error calculating max mana:", error);
         }
         
-        return baseMana + equipmentBonus;
+        const totalMana = baseMana + equipmentBonus;
+        console.log(`Player: calculateMaxMana: base=${baseMana}, bonus=${equipmentBonus}, total=${totalMana}`);
+        
+        return totalMana;
     }
     
     // Override getSummary to include equipment
