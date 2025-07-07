@@ -27,6 +27,9 @@ export class Equipment extends Item {
     }
     
     applyStats(entity) {
+        console.log(`Equipment: applyStats: ${this.name} being applied to ${entity.name}`);
+        console.log(`Equipment: applyStats: Item stats:`, this.stats);
+        
         // Apply stat bonuses to entity
         for (const [stat, value] of Object.entries(this.stats)) {
             // Some stats need to be handled differently
@@ -41,11 +44,15 @@ export class Equipment extends Item {
             }
         }
         
+        console.log(`Equipment: applyStats: calling updateStats() for ${entity.name}`);
         // Recalculate derived stats
         entity.updateStats();
     }
     
     removeStats(entity) {
+        console.log(`Equipment: removeStats: ${this.name} being removed from ${entity.name}`);
+        console.log(`Equipment: removeStats: Item stats:`, this.stats);
+        
         // Remove stat bonuses from entity
         for (const [stat, value] of Object.entries(this.stats)) {
             if (stat === 'maxHealth') {
@@ -59,6 +66,7 @@ export class Equipment extends Item {
             }
         }
         
+        console.log(`Equipment: removeStats: calling updateStats() for ${entity.name}`);
         // Recalculate derived stats
         entity.updateStats();
         
