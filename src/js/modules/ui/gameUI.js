@@ -243,6 +243,22 @@ export class GameUI {
         
         const stats = this.game.player.getSummary();
         
+        // Debug logging for mana values specifically
+        const now = Date.now();
+        if (!this.lastManaDebugLog || now - this.lastManaDebugLog > 3000) {
+            console.log(`🎮 GameUI: updateStats: mana=${stats.mana}, maxMana=${stats.maxMana}, maxMana_bonus=${stats.maxMana_bonus}`);
+            this.lastManaDebugLog = now;
+        }
+        
+        // ALWAYS log this for debugging
+        console.log(`🎮 GameUI: updateStats: mana=${stats.mana}, maxMana=${stats.maxMana}, maxMana_bonus=${stats.maxMana_bonus}`);
+        
+        // Test direct calculation
+        const testMaxMana = this.game.player.calculateMaxMana();
+        console.log(`🎮 GameUI: updateStats: direct calculateMaxMana() = ${testMaxMana}`);
+        console.log(`🎮 GameUI: updateStats: cached this.maxMana = ${this.game.player.maxMana}`);
+        
+        
         // Update the basic stats display
         this.statsElement.innerHTML = `
             <div>Level: ${stats.level}</div>

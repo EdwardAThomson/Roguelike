@@ -46,12 +46,13 @@ export class Player extends Character {
         healthPotion.quantity = 3; // Give 3 potions in one stack
         this.inventory.addItem(healthPotion);
         
-        // ADD STAFF FOR TESTING - TEMPORARY
-        const testStaff = this.itemDatabase.getItem('staff');
-        this.inventory.addItem(testStaff);
+        // Add staff for testing (but don't equip it automatically)
+        const staff = this.itemDatabase.getItem('staff');
+        this.inventory.addItem(staff);
         
-        // Add some gold
-        this.inventory.gold = 50;
+        // **TEST: Set mana to partial amount to see bar changes clearly**
+        this.mana = Math.floor(this.maxMana * 0.6); // 60% mana
+        console.log(`TEST: Player mana set to ${this.mana}/${this.maxMana} (60%) for testing`);
     }
     
     update(game, deltaTime) {
@@ -128,9 +129,23 @@ export class Player extends Character {
         const item = this.inventory.getItem(index);
         if (!item) return false;
         
+        console.log(`🎯 Player: equipItemFromInventory: attempting to equip ${item.name}`);
+        
         const success = this.inventory.equipItem(index, this);
         if (success) {
+            console.log(`🎯 Player: equipItemFromInventory: successfully equipped ${item.name}`);
+            console.log(`🎯 Player: equipItemFromInventory: calling calculateMaxMana() to test...`);
+            const testMana = this.calculateMaxMana();
+            console.log(`🎯 Player: equipItemFromInventory: calculateMaxMana() returned ${testMana}`);
+            
             game.ui.addMessage(`Equipped ${item.name}`, '#5f5');
+            
+            // Force immediate UI refresh for stats bars
+            if (game.ui && game.ui.gameUI) {
+                console.log(`🎯 Player: equipItemFromInventory: calling updateStats() for immediate UI refresh`);
+                game.ui.gameUI.updateStats();
+            }
+            
             return true;
         }
         return false;
@@ -142,9 +157,23 @@ export class Player extends Character {
         const item = this.inventory.equipment[slot];
         if (!item) return false;
         
+        console.log(`🎯 Player: unequipItem: attempting to unequip ${item.name} from ${slot}`);
+        
         const success = this.inventory.unequipItem(slot, this);
         if (success) {
+            console.log(`🎯 Player: unequipItem: successfully unequipped ${item.name}`);
+            console.log(`🎯 Player: unequipItem: calling calculateMaxMana() to test...`);
+            const testMana = this.calculateMaxMana();
+            console.log(`🎯 Player: unequipItem: calculateMaxMana() returned ${testMana}`);
+            
             game.ui.addMessage(`Unequipped ${item.name}`, '#fff');
+            
+            // Force immediate UI refresh for stats bars
+            if (game.ui && game.ui.gameUI) {
+                console.log(`🎯 Player: unequipItem: calling updateStats() for immediate UI refresh`);
+                game.ui.gameUI.updateStats();
+            }
+            
             return true;
         } else {
             game.ui.addMessage(`Inventory full, can't unequip!`, '#f55');
@@ -215,7 +244,6 @@ export class Player extends Character {
             console.error("Error calculating attack power:", error);
         }
         
-        console.log(`Player: calculateAttackPower: baseAttack: ${baseAttack}, equipmentBonus: ${equipmentBonus}`);
         return baseAttack + equipmentBonus;
     }
     
@@ -245,54 +273,23 @@ export class Player extends Character {
 
     // Override maxHealth method to include equipment bonuses
     calculateMaxHealth() {
-        const baseHealth = super.calculateMaxHealth();
-        
-        // Check if inventory exists before using it
-        if (!this.inventory) return baseHealth;
-        
-        // Get health bonus from all equipped items
-        let equipmentBonus = 0;
-        try {
-            const equippedItems = this.inventory.getAllEquipped();
-            
-            for (const item of equippedItems) {
-                if (item.stats && item.stats.maxHealth) {
-                    equipmentBonus += item.stats.maxHealth;
-                }
-            }
-        } catch (error) {
-            console.error("Error calculating max health:", error);
-        }
-        
-        return baseHealth + equipmentBonus;
+        // Call parent method - it already includes equipment bonuses
+        return super.calculateMaxHealth();
     }
 
     // Override maxMana method to include equipment bonuses
     calculateMaxMana() {
-        const baseMana = super.calculateMaxMana();
+        const now = Date.now();
+        const shouldLog = now - this.lastDebugLog > this.debugThrottleMs;
         
-        // Check if inventory exists before using it
-        if (!this.inventory) return baseMana;
+        // Call parent method - it already includes equipment bonuses
+        const totalMana = super.calculateMaxMana();
         
-        // Get mana bonus from all equipped items
-        let equipmentBonus = 0;
-        try {
-            const equippedItems = this.inventory.getAllEquipped();
-            
-            console.log(`Player: calculateMaxMana: checking ${equippedItems.length} equipped items`);
-            
-            for (const item of equippedItems) {
-                if (item.stats && item.stats.maxMana) {
-                    console.log(`Player: calculateMaxMana: ${item.name} provides +${item.stats.maxMana} mana`);
-                    equipmentBonus += item.stats.maxMana;
-                }
-            }
-        } catch (error) {
-            console.error("Error calculating max mana:", error);
+        console.log(`🔥 Player: calculateMaxMana: total=${totalMana} (equipment bonuses included by parent method)`);
+        
+        if (shouldLog) {
+            this.lastDebugLog = now;
         }
-        
-        const totalMana = baseMana + equipmentBonus;
-        console.log(`Player: calculateMaxMana: base=${baseMana}, bonus=${equipmentBonus}, total=${totalMana}`);
         
         return totalMana;
     }
