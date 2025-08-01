@@ -12,6 +12,8 @@ A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features
 - **Modular Architecture**: Clean, extensible codebase with separated concerns
 - **Rich UI**: Intuitive interface with inventory, character screen, and help system
 
+![Gameplay](screenshots/screenshot.png)
+
 ## 🚀 Getting Started
 
 ### Prerequisites
