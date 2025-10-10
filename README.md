@@ -134,6 +134,10 @@ Additional documentation can be found in the `documentation/` folder:
 - `developer_log.md` - Development notes and progress
 - `player_guide.md` - Comprehensive player guide
 
+## 🎥 YouTube Dev Log
+
+- [I vibe coded a Roguelike game with Claude Code](https://youtu.be/y9RRpOgV9yg)
+
 ## 🎵 Acknowledgments
 
 - Built with vanilla JavaScript for maximum compatibility
