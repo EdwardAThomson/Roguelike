@@ -112,6 +112,134 @@ export class ItemDatabase {
             stats: { attackPower: 7, strength: 1, constitution: 1 }
         }));
         
+        // RANGED WEAPONS
+        this.registerItem(new Weapon({
+            id: 'short_bow',
+            name: 'Short Bow',
+            description: 'A simple wooden bow for hunting. Requires 8 Dexterity.',
+            icon: '🏹',
+            value: 30,
+            weaponType: 'ranged',
+            range: 6,
+            stats: { attackPower: 4 },
+            damageType: 'physical',
+            twoHanded: true,
+            projectile: {
+                symbol: '→',
+                color: '#8B4513',
+                speed: 2,
+                piercing: false
+            }
+        }));
+        
+        this.registerItem(new Weapon({
+            id: 'long_bow',
+            name: 'Long Bow',
+            description: 'A powerful longbow with extended range. Requires 12 Dexterity.',
+            icon: '🏹',
+            value: 80,
+            rarity: 'uncommon',
+            weaponType: 'ranged',
+            range: 10,
+            stats: { attackPower: 7 },
+            damageType: 'physical',
+            twoHanded: true,
+            projectile: {
+                symbol: '→',
+                color: '#654321',
+                speed: 2,
+                piercing: false
+            }
+        }));
+        
+        this.registerItem(new Weapon({
+            id: 'light_crossbow',
+            name: 'Light Crossbow',
+            description: 'A mechanical crossbow with good accuracy. Requires 8 Strength.',
+            icon: '🎯',
+            value: 60,
+            weaponType: 'ranged',
+            range: 8,
+            stats: { attackPower: 8 },
+            damageType: 'physical',
+            twoHanded: true,
+            projectile: {
+                symbol: '▸',
+                color: '#A0A0A0',
+                speed: 1,
+                piercing: false
+            }
+        }));
+        
+        this.registerItem(new Weapon({
+            id: 'heavy_crossbow',
+            name: 'Heavy Crossbow',
+            description: 'A powerful crossbow that hits hard. Requires 12 Strength.',
+            icon: '🎯',
+            value: 120,
+            rarity: 'uncommon',
+            weaponType: 'ranged',
+            range: 10,
+            stats: { attackPower: 12 },
+            damageType: 'physical',
+            twoHanded: true,
+            projectile: {
+                symbol: '▸',
+                color: '#606060',
+                speed: 1,
+                piercing: false
+            }
+        }));
+        
+        this.registerItem(new Weapon({
+            id: 'throwing_knives',
+            name: 'Throwing Knives',
+            description: 'Balanced knives for throwing. Can be used in melee as backup.',
+            icon: '🗡️',
+            value: 25,
+            weaponType: 'ranged',
+            range: 4,
+            stats: { attackPower: 5 },
+            damageType: 'physical',
+            meleeAttack: 3,
+            projectile: {
+                symbol: '✦',
+                color: '#C0C0C0',
+                speed: 3,
+                piercing: false
+            }
+        }));
+        
+        this.registerItem(new Weapon({
+            id: 'blowgun',
+            name: 'Blowgun',
+            description: 'Silent weapon that fires poisoned darts. Requires 8 Dexterity.',
+            icon: '🎋',
+            value: 75,
+            rarity: 'uncommon',
+            weaponType: 'ranged',
+            range: 6,
+            stats: { attackPower: 2 },
+            damageType: 'physical',
+            projectile: {
+                symbol: '·',
+                color: '#00FF00',
+                speed: 3,
+                piercing: false,
+                effects: [{
+                    type: 'dot',
+                    name: 'Poisoned',
+                    duration: 3,
+                    power: 2,
+                    damageType: 'poison',
+                    icon: '☠️',
+                    color: '#00FF00',
+                    message: '{target} is poisoned!',
+                    tickMessage: '{target} takes poison damage!'
+                }]
+            }
+        }));
+        
         // ARMOR
         this.registerItem(new Armor({
             id: 'leather_cap',

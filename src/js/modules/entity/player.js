@@ -55,6 +55,12 @@ export class Player extends Character {
         const staff = this.itemDatabase.getItem('staff');
         this.inventory.addItem(staff);
         
+        // Add Short Bow for testing ranged combat
+        const shortBow = this.itemDatabase.getItem('short_bow');
+        if (shortBow) {
+            this.inventory.addItem(shortBow);
+        }
+        
         // Add test magic scrolls
         // Magic Dart - basic cantrip for testing (give 3)
         const scrollMagicDart = this.itemDatabase.getItem('scroll_magic_dart');

@@ -4,6 +4,168 @@ This log tracks updates, fixes, and development decisions made during the game's
 
 ---
 
+## 2025-10-23 - Ranged Combat System Implementation
+
+### 1. Ranged Weapon System Added
+- **Feature**: Complete ranged combat system with bows, crossbows, and throwing weapons
+- **Implementation**:
+  - Extended `Weapon` class with ranged properties: `weaponType`, `range`, `projectile`, `meleeAttack`
+  - Added `isRanged()` and `canAttackAt(distance)` helper methods
+  - All existing melee weapons continue to work (default `weaponType: 'melee'`)
+- **Six New Ranged Weapons**:
+  1. **Short Bow** 🏹 - Range 6, +4 attack, common
+  2. **Long Bow** 🏹 - Range 10, +7 attack, uncommon
+  3. **Light Crossbow** 🎯 - Range 8, +8 attack, common
+  4. **Heavy Crossbow** 🎯 - Range 10, +12 attack, uncommon
+  5. **Throwing Knives** 🗡️ - Range 4, +5 attack, melee backup +3
+  6. **Blowgun** 🎋 - Range 6, +2 attack, **poisons target** (3 turns, 2 dmg/turn), uncommon
+- **Files Modified**: `/src/js/modules/items/equipment.js`, `/src/js/modules/items/itemDatabase.js`
+
+### 2. Space Bar Combat Controls
+- **Keybind**: Space bar fires equipped ranged weapon
+- **Design Decision**: Separate key prevents overpowered auto-shooting while moving
+- **Balance**: Infinite ammo balanced by requiring deliberate action (can't move and shoot simultaneously)
+- **Edge Detection**: Added key state tracking to prevent spam when Space held down
+- **Error Messages**:
+  - "No weapon equipped!" - No weapon in weapon slot
+  - "You need a ranged weapon equipped! (Bow, Crossbow, etc.)" - Melee weapon equipped
+  - "No targets in range! (Short Bow range: 6 tiles)" - No monsters in range
+  - "Target out of range! (Max: 10 tiles)" - Monster too far
+  - "Cannot see target!" - No line of sight
+- **Files Modified**: `/src/js/modules/inputManager.js`
+
+### 3. Combat Manager Integration
+- **Ranged Attack Logic**: New `handleRangedAttack()` method in CombatManager
+  - Calculates distance to target using Euclidean distance
+  - Checks weapon range (4-10 tiles depending on weapon)
+  - Validates line of sight using `fov.isTileVisible()`
+  - Creates projectile using existing projectile system
+  - Reuses spell projectile rendering and collision detection
+- **Melee Attack Preserved**: Existing `handleMeleeAttack()` method unchanged
+- **Smart Routing**: `handlePlayerAttack()` checks weapon type and routes appropriately
+- **Visual Projectiles**:
+  - Arrows: `→` (brown, speed 2)
+  - Bolts: `▸` (gray, speed 1)
+  - Knives: `✦` (silver, speed 3)
+  - Darts: `·` (green, speed 3, poison effect)
+- **Files Modified**: `/src/js/modules/combatManager.js`
+
+### 4. Equipment Class Clone Methods
+- **Bug**: Items lost class methods when cloned from database
+- **Cause**: `Item.clone()` created base `Item` instances, stripping away subclass methods
+- **Solution**: Added proper `clone()` methods to equipment subclasses:
+  - `Weapon.clone()` - Preserves `weaponType`, `range`, `projectile`, `meleeAttack`
+  - `Armor.clone()` - Preserves `armorType`
+  - `Accessory.clone()` - Preserves accessory properties
+- **Result**: Cloned weapons maintain `isRanged()` and `canAttackAt()` methods
+- **Files Modified**: `/src/js/modules/items/equipment.js`
+
+### 5. Inventory Helper Methods
+- **Added**: `getEquippedWeapon()` method to Inventory class
+- **Purpose**: Returns currently equipped weapon (or null)
+- **Usage**: Ranged combat system checks weapon type before attacking
+- **Files Modified**: `/src/js/modules/items/inventory.js`
+
+### 6. Loot System Integration
+- **Automatic Spawning**: Ranged weapons automatically included in loot pool
+- **No Code Changes Needed**: `getRandomItemByLevel()` pulls from all registered items
+- **Monster Drops**: Ranged weapons can drop from monsters via `getRandomEquipment()`
+- **Starting Equipment**: Added Short Bow to player starting inventory for testing
+- **Spawn Rates**:
+  - Common (70%): Short Bow, Throwing Knives
+  - Uncommon (20%, level 3+): Long Bow, Crossbows, Blowgun
+- **Files Modified**: `/src/js/modules/entity/player.js`
+
+### 7. Help Screen Documentation
+- **Added**: Combat Controls section with Space bar documentation
+- **Content**:
+  - Melee Attack: Walk into enemy
+  - Fire Ranged Weapon: Space bar
+  - Tip about equipping bows/crossbows
+- **Files Modified**: `/src/js/modules/ui/helpScreen.js`
+
+### 8. Status Effects Integration
+- **Blowgun Poison**: Uses existing DoT (Damage over Time) system from spells
+- **Effect Configuration**:
+  ```javascript
+  {
+    type: 'dot',
+    name: 'Poisoned',
+    duration: 3,
+    power: 2,
+    damageType: 'poison',
+    icon: '☠️',
+    color: '#00FF00'
+  }
+  ```
+- **System Reuse**: Leverages spell effect system for weapon status effects
+
+### 9. Balance Considerations
+- **Range vs Damage**: Longer range = lower base damage (safety vs DPS trade-off)
+- **Action Economy**: Can't move and shoot (prevents kiting abuse)
+- **Infinite Ammo**: Balanced by requiring Space press (no auto-fire)
+- **Line of Sight**: Can't shoot through walls
+- **Melee Backup**: Throwing weapons can be used in melee combat
+- **Stat Scaling**: Currently uses same attack power calculation as melee (future: scale with Dex)
+
+### 10. Technical Architecture
+- **Projectile System Reuse**: Ranged weapons use same projectile system as spells
+  - Same rendering pipeline
+  - Same collision detection
+  - Same animation system (Bresenham's algorithm)
+  - Same status effect application
+- **Benefits**:
+  - No duplicate code
+  - Consistent visual experience
+  - Easy to add new ranged weapons
+  - Status effects work automatically
+
+### 11. Player Experience Impact
+- **Build Diversity**: Enables archer/ranger character builds alongside warrior/mage
+- **Tactical Depth**: Range management adds strategic layer to combat
+- **Visual Appeal**: Animated projectiles make ranged combat satisfying
+- **Safety**: Attack from distance without taking melee damage
+- **Accessibility**: Space bar is large and easy to press
+
+### 12. Documentation Created
+- `RANGED_COMBAT_IMPLEMENTATION.md` - Complete implementation guide
+- `RANGED_COMBAT_COMPLETE.md` - Testing checklist and status
+- `RANGED_WEAPONS_SPAWN.md` - Loot spawning documentation
+- `documentation/ranged_combat_design.md` - Full design document with future phases
+
+### Files Modified Summary
+1. `/src/js/modules/items/equipment.js` - Weapon class extensions and clone methods
+2. `/src/js/modules/items/itemDatabase.js` - 6 ranged weapon definitions
+3. `/src/js/modules/combatManager.js` - Ranged attack logic
+4. `/src/js/modules/inputManager.js` - Space bar handler with edge detection
+5. `/src/js/modules/items/inventory.js` - getEquippedWeapon() helper
+6. `/src/js/modules/entity/player.js` - Starting Short Bow
+7. `/src/js/modules/ui/helpScreen.js` - Combat controls documentation
+
+### Bug Fixes
+1. **Missing getEquippedWeapon()**: Added method to Inventory class
+2. **Missing isRanged()**: Fixed by adding proper clone() methods to Weapon class
+3. **Wrong FOV method**: Changed `isVisible()` to `isTileVisible()`
+4. **Space bar spam**: Added edge detection to prevent message spam when held
+
+### Testing Status
+- ✅ Space bar fires ranged weapons
+- ✅ Error messages display correctly
+- ✅ Projectiles animate properly
+- ✅ Range checking works
+- ✅ Line of sight checking works
+- ✅ Damage applies on hit
+- ✅ Blowgun poison effect works
+- ✅ Can switch between melee and ranged
+- ✅ Melee combat still works
+- ✅ Ranged weapons spawn in loot
+
+### Next Steps (Future Enhancements)
+- **Phase 2**: Manual targeting with Tab key, range indicators, hit chance by distance
+- **Phase 3**: Ranged monsters (Goblin Archers), cover system, weapon enchantments
+
+---
+
 ## 2025-10-22 - Spellbook Modal, Visual Effects, & Stat System Overhaul
 
 ### 1. Spellbook Separated into Dedicated Modal

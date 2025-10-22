@@ -154,6 +154,11 @@ export class Inventory {
         return Object.values(this.equipment).filter(item => item !== null);
     }
     
+    // Get equipped weapon
+    getEquippedWeapon() {
+        return this.equipment.weapon;
+    }
+    
     // Sort inventory by type
     sortInventory() {
         this.items.sort((a, b) => {

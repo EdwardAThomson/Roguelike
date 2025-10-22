@@ -89,6 +89,40 @@ export class Weapon extends Equipment {
         });
         this.damageType = options.damageType || 'physical'; // physical, fire, ice, etc.
         this.twoHanded = options.twoHanded || false;
+        
+        // Ranged weapon properties
+        this.weaponType = options.weaponType || 'melee'; // 'melee' or 'ranged'
+        this.range = options.range || 1; // 1 for melee, 4-12 for ranged
+        this.projectile = options.projectile || null; // Projectile config for ranged weapons
+        this.meleeAttack = options.meleeAttack || null; // Backup melee damage for throwing weapons
+    }
+    
+    isRanged() {
+        return this.weaponType === 'ranged';
+    }
+    
+    canAttackAt(distance) {
+        return distance <= this.range;
+    }
+    
+    clone() {
+        return new Weapon({
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            icon: this.icon,
+            type: this.type,
+            slot: this.slot,
+            rarity: this.rarity,
+            value: this.value,
+            stats: {...this.stats},
+            damageType: this.damageType,
+            twoHanded: this.twoHanded,
+            weaponType: this.weaponType,
+            range: this.range,
+            projectile: this.projectile ? {...this.projectile} : null,
+            meleeAttack: this.meleeAttack
+        });
     }
 }
 
@@ -100,6 +134,21 @@ export class Armor extends Equipment {
         });
         this.armorType = options.armorType || 'light'; // light, medium, heavy
     }
+    
+    clone() {
+        return new Armor({
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            icon: this.icon,
+            type: this.type,
+            slot: this.slot,
+            rarity: this.rarity,
+            value: this.value,
+            stats: {...this.stats},
+            armorType: this.armorType
+        });
+    }
 }
 
 export class Accessory extends Equipment {
@@ -107,6 +156,20 @@ export class Accessory extends Equipment {
         super({
             type: 'accessory',
             ...options
+        });
+    }
+    
+    clone() {
+        return new Accessory({
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            icon: this.icon,
+            type: this.type,
+            slot: this.slot,
+            rarity: this.rarity,
+            value: this.value,
+            stats: {...this.stats}
         });
     }
 }

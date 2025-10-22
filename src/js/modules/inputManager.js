@@ -14,6 +14,9 @@ export class InputManager {
             u: false,
             z: false  // Z for drop (D conflicts with movement)
         };
+        
+        // Track Space bar state for ranged weapon firing
+        this.spaceKeyState = false;
     }
 
     handleInput() {
@@ -44,6 +47,16 @@ export class InputManager {
                     return;
                 }
             }
+        }
+        
+        // SPACE BAR - Fire ranged weapon (with edge detection)
+        const spaceDown = this.input.isKeyDown(' ');
+        const spacePressed = spaceDown && !this.spaceKeyState;
+        this.spaceKeyState = spaceDown;
+        
+        if (spacePressed) {
+            this.handleRangedWeaponFire();
+            return;
         }
         
         this.handleMovement();
@@ -515,5 +528,31 @@ export class InputManager {
                 this.game.ui.spellbookUI.toggleSpellbook();
             }
         }
+    }
+    
+    handleRangedWeaponFire() {
+        // Check if player has a ranged weapon equipped
+        const weapon = this.game.player.inventory?.getEquippedWeapon();
+        
+        if (!weapon) {
+            this.game.ui.addMessage('No weapon equipped!', '#f55');
+            return;
+        }
+        
+        if (!weapon.isRanged()) {
+            this.game.ui.addMessage('You need a ranged weapon equipped! (Bow, Crossbow, etc.)', '#f55');
+            return;
+        }
+        
+        // Find nearest monster in range
+        const nearestMonster = this.findNearestMonster(weapon.range);
+        
+        if (!nearestMonster) {
+            this.game.ui.addMessage(`No targets in range! (${weapon.name} range: ${weapon.range} tiles)`, '#f55');
+            return;
+        }
+        
+        // Fire at nearest monster
+        this.handlePlayerAttack(nearestMonster.x, nearestMonster.y);
     }
 } 

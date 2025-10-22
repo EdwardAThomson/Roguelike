@@ -371,6 +371,30 @@ export class HelpScreen {
             </div>
             
             <div class="help-section">
+                <div class="help-section-title">Combat Controls</div>
+                <table class="help-controls-table">
+                    <tr>
+                        <th>Action</th>
+                        <th>Key</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>Melee Attack</td>
+                        <td><span class="help-key">Move into enemy</span></td>
+                        <td>Walk into adjacent monster to attack</td>
+                    </tr>
+                    <tr>
+                        <td>Fire Ranged Weapon</td>
+                        <td><span class="help-key">Space</span></td>
+                        <td>Fire equipped bow/crossbow at nearest target</td>
+                    </tr>
+                </table>
+                <p style="margin-top: 10px; color: #aaa; font-size: 0.9em;">
+                    💡 Tip: Equip a bow or crossbow, then press Space to fire at enemies from a distance!
+                </p>
+            </div>
+            
+            <div class="help-section">
                 <div class="help-section-title">Inventory Shortcuts</div>
                 <table class="help-controls-table">
                     <tr>

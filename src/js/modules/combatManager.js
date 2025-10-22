@@ -20,6 +20,65 @@ export class CombatManager {
             return false;
         }
         
+        // Check if player has a ranged weapon equipped
+        const weapon = this.game.player.inventory?.getEquippedWeapon();
+        
+        if (weapon && weapon.isRanged()) {
+            // Use ranged attack
+            return this.handleRangedAttack(weapon, targetX, targetY);
+        } else {
+            // Use melee attack
+            return this.handleMeleeAttack(monster);
+        }
+    }
+    
+    handleRangedAttack(weapon, targetX, targetY) {
+        // Calculate distance
+        const dx = targetX - this.game.player.x;
+        const dy = targetY - this.game.player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Check range
+        if (distance > weapon.range) {
+            this.game.ui.addMessage(`Target out of range! (Max: ${weapon.range} tiles)`, '#f55');
+            return false;
+        }
+        
+        // Check line of sight
+        if (!this.game.fov.isTileVisible(targetX, targetY)) {
+            this.game.ui.addMessage('Cannot see target!', '#f55');
+            return false;
+        }
+        
+        // Calculate damage
+        const damage = this.game.player.calculateAttackPower();
+        
+        // Create projectile using existing projectile system
+        const projectileConfig = {
+            sourceX: this.game.player.x,
+            sourceY: this.game.player.y,
+            targetX: targetX,
+            targetY: targetY,
+            damage: damage,
+            damageType: weapon.damageType,
+            symbol: weapon.projectile.symbol,
+            color: weapon.projectile.color,
+            speed: weapon.projectile.speed,
+            piercing: weapon.projectile.piercing || false,
+            effects: weapon.projectile.effects || [],
+            name: weapon.name,
+            caster: this.game.player
+        };
+        
+        this.game.projectileManager.createProjectile(projectileConfig);
+        
+        // Message
+        this.game.ui.addMessage(`You fire ${weapon.name}!`, '#ff0');
+        
+        return true;
+    }
+    
+    handleMeleeAttack(monster) {
         // Calculate base damage
         const baseDamage = this.game.player.calculateAttackPower();
         
@@ -41,7 +100,6 @@ export class CombatManager {
         
         // Random variance (80% to 120% of base damage)
         const variance = 0.8 + Math.random() * 0.4;
-        // console.log(`CombatManager: Variance: ${variance}`);
 
         // Calculate final damage - minimum 1 damage to prevent invulnerability
         const rawDamage = Math.floor(baseDamage * variance * criticalMultiplier);
