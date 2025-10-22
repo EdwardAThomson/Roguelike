@@ -23,8 +23,14 @@ export class Renderer {
         // Draw monsters
         this.renderMonsters();
         
+        // Draw projectiles (after monsters, before player)
+        this.renderProjectiles();
+        
         // Draw player
         this.renderPlayer();
+        
+        // Draw targeting cursor (after player, so it's on top)
+        this.renderTargetingCursor();
         
         // Draw gate indicators (when map is revealed or debug mode is on)
         if (this.game.stateManager.mapRevealed) {
@@ -421,6 +427,61 @@ export class Renderer {
         }
     }
 
+    renderProjectiles() {
+        if (!this.game.projectileManager) return;
+        
+        const projectiles = this.game.projectileManager.getActiveProjectiles();
+        
+        projectiles.forEach(proj => {
+            const pos = proj.getPosition();
+            
+            // Convert to screen coordinates
+            const screenX = (pos.x - this.game.camera.x) * this.game.tileSize;
+            const screenY = (pos.y - this.game.camera.y) * this.game.tileSize;
+            
+            // Only render if on screen
+            if (screenX >= 0 && screenX < this.game.canvas.width &&
+                screenY >= 0 && screenY < this.game.canvas.height) {
+                
+                this.ctx.fillStyle = proj.color;
+                this.ctx.font = `${this.game.tileSize}px monospace`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText(
+                    proj.symbol,
+                    screenX + this.game.tileSize / 2,
+                    screenY + this.game.tileSize / 2
+                );
+            }
+        });
+    }
+
+    renderTargetingCursor() {
+        if (!this.game.targetingSystem) return;
+        
+        const cursor = this.game.targetingSystem.getTargetingCursor();
+        if (!cursor) return;
+        
+        const screenX = (cursor.x - this.game.camera.x) * this.game.tileSize;
+        const screenY = (cursor.y - this.game.camera.y) * this.game.tileSize;
+        
+        // Draw targeting box
+        this.ctx.strokeStyle = cursor.color;
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(screenX, screenY, this.game.tileSize, this.game.tileSize);
+        
+        // Draw X symbol
+        this.ctx.fillStyle = cursor.color;
+        this.ctx.font = `${this.game.tileSize}px monospace`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(
+            cursor.symbol,
+            screenX + this.game.tileSize / 2,
+            screenY + this.game.tileSize / 2
+        );
+    }
+
     renderGateIndicators() {
         if (!this.game.dungeon || !this.game.dungeon.gates || !this.game.player) return;
         
@@ -479,13 +540,6 @@ export class Renderer {
                 indicatorY + Math.sin(angle) * indicatorSize
             );
             this.ctx.stroke();
-            
-            // Draw the gate direction as text
-            this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.font = '10px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'middle';
-            this.ctx.fillText(gate.direction.charAt(0).toUpperCase(), indicatorX, indicatorY);
         }
     }
 

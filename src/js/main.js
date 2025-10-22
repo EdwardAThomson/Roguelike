@@ -15,6 +15,13 @@ import { CombatManager } from './modules/combatManager.js';
 import { Renderer } from './modules/renderer.js';
 import { InputManager } from './modules/inputManager.js';
 
+// Magic system imports
+import { ProjectileManager } from './modules/magic/projectileManager.js';
+import { StatusEffectManager } from './modules/magic/statusEffectManager.js';
+import { TargetingSystem } from './modules/magic/targetingSystem.js';
+import { SpellDatabase } from './modules/magic/spellDatabase.js';
+import { Version } from './version.js';
+
 
 // Export a function to start the game
 window.startGame = startGame;
@@ -67,9 +74,18 @@ class RogueGame {
         this.stateManager = new GameStateManager(this);
         this.camera = new CameraManager(this);
         this.fov = new FOVManager(this);
+        
+        // Magic system managers
+        this.projectileManager = new ProjectileManager(this);
+        this.statusEffectManager = new StatusEffectManager(this);
+        this.targetingSystem = new TargetingSystem(this);
+        this.spellDatabase = new SpellDatabase();
     }
 
     async init() {
+        // Log version
+        Version.logVersion();
+        
         // Resize canvas
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -119,48 +135,18 @@ class RogueGame {
         console.log('- Renderer:', !!this.renderer);
         console.log('- CombatManager:', !!this.combat);
         console.log('- WorldManager:', !!this.worldManager);
+        console.log('- ProjectileManager:', !!this.projectileManager);
+        console.log('- StatusEffectManager:', !!this.statusEffectManager);
+        console.log('- TargetingSystem:', !!this.targetingSystem);
+        console.log('- SpellDatabase:', !!this.spellDatabase);
     }
 
     setupKeyListeners() {
         document.addEventListener('keydown', (e) => {
-            // Inventory toggle
-            if (e.key === 'i' || e.key === 'I') {
-                if (this.ui && this.ui.inventoryUI) {
-                    this.ui.inventoryUI.toggleInventory();
-                }
-            }
+            // Most input is now handled through InputManager and UI.update()
+            // This listener only handles special debug/cheat keys
             
-            // Character screen toggle
-            if (e.key === 'c' || e.key === 'C') {
-                if (this.ui && this.ui.gameUI) {
-                    this.ui.gameUI.toggleCharacterScreen();
-                }
-            }
-            
-            // Help screen toggle
-            if (e.key === 'h' || e.key === 'H') {
-                if (this.ui && this.ui.helpScreen) {
-                    this.ui.helpScreen.toggleHelpScreen();
-                }
-            }
-            
-            // Pick up item
-            if ((e.key === 'g' || e.key === 'G') && this.stateManager.isPlaying() && this.player) {
-                const itemsAtPosition = this.itemManager.getItemsAt(this.player.x, this.player.y);
-                
-                if (itemsAtPosition && itemsAtPosition.length > 0) {
-                    this.itemManager.playerPickupItem(this.player.x, this.player.y);
-                } else {
-                    this.ui.addMessage('There is nothing here to pick up.', '#aaa');
-                }
-            }
-            
-            // Pick up and equip item
-            if ((e.key === 'p' || e.key === 'P') && this.stateManager.isPlaying() && this.player) {
-                this.inputManager.handleEquipItem();
-            }
-            
-            // Map reveal toggle
+            // Map reveal toggle (cheat)
             if (e.key === 'm' || e.key === 'M') {
                 const revealed = this.stateManager.toggleMapReveal();
                 this.ui.addMessage(revealed ? 
@@ -169,7 +155,7 @@ class RogueGame {
                     revealed ? '#ff0' : '#aaa');
             }
             
-            // Gate debug info (Shift+G)
+            // Gate debug info (Shift+G) - debug only
             if (e.key === 'G' && e.shiftKey) {
                 if (this.worldManager && typeof this.worldManager.showGateDebugInfo === 'function') {
                     this.worldManager.showGateDebugInfo();
@@ -230,10 +216,15 @@ class RogueGame {
         }
         
         // Only process gameplay if in playing state and player exists
-        if (this.stateManager.isPlaying() && this.player) {
+        const isPlaying = this.stateManager.isPlaying();
+        const hasPlayer = !!this.player;
+        
+        if (isPlaying && hasPlayer) {
             // Process gameplay input
             if (this.inputManager && typeof this.inputManager.handleInput === 'function') {
                 this.inputManager.handleInput();
+            } else {
+                console.warn('⚠️ InputManager.handleInput not available!');
             }
             
             // Update player
@@ -243,6 +234,17 @@ class RogueGame {
             for (let i = 0; i < this.monsters.length; i++) {
                 this.monsters[i].update(this, deltaTime);
             }
+        }
+        
+        // Update projectiles (always, even when paused for visual continuity)
+        if (this.projectileManager) {
+            this.projectileManager.update(deltaTime);
+        }
+        
+        // Process status effects each turn (only when playing)
+        if (this.stateManager.isPlaying() && this.statusEffectManager) {
+            this.statusEffectManager.processTurn();
+            this.statusEffectManager.cleanupDeadEntities();
         }
         
         // Always update UI (needed for menus regardless of game state)

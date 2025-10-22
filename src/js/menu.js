@@ -1,5 +1,13 @@
 // Menu handling functionality
+import { Version } from './version.js';
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Update version display dynamically
+    const versionElement = document.querySelector('.game-version');
+    if (versionElement) {
+        versionElement.textContent = `v${Version.version} "${Version.CODENAME}"`;
+    }
+    
     // Get UI elements
     const landingPage = document.getElementById('landing-page');
     const mainContainer = document.getElementById('main-container');

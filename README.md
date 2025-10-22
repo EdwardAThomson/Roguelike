@@ -1,11 +1,17 @@
 # Modern Roguelike
 
-A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features procedurally generated dungeons, tactical combat, and an immersive exploration experience.
+**Version 0.4.0 "Arcane Awakening"** | October 2025
+
+A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features procedurally generated dungeons, tactical combat, magic system, and an immersive exploration experience.
 
 ## 🎮 Features
 
-- **Procedural Generation**: Dynamically generated dungeons with varied layouts and challenges
+- **Magic System**: 10 spells across offensive, healing, and utility categories with projectile-based combat
+- **Spell Scaling**: Intelligence-based damage scaling with level bonuses for character progression
+- **Status Effects**: Damage over time, healing over time, buffs, debuffs, stun, and slow effects
 - **Tactical Combat**: Strategic turn-based combat system with various monsters and weapons
+- **Character Progression**: Stat point allocation system enabling wizard, warrior, and hybrid builds
+- **Procedural Generation**: Dynamically generated dungeons with varied layouts and challenges
 - **Inventory System**: Comprehensive item management with equipment, consumables, and loot
 - **Field of View**: Realistic line-of-sight and fog of war mechanics
 - **World Management**: Multi-section world with seamless transitions
@@ -130,9 +136,15 @@ Additional documentation can be found in the `documentation/` folder:
 
 - `functionality_documentation.md` - Core game mechanics
 - `dungeon_generation.md` - Dungeon generation algorithms
+- `magic_system.md` - Magic system reference and spell database
+- `spell_scaling_implementation.md` - Spell scaling and progression system
+- `versioning.md` - Version management and release workflow
 - `multiplayer_roadmap.md` - Future multiplayer features
 - `developer_log.md` - Development notes and progress
 - `player_guide.md` - Comprehensive player guide
+
+See also:
+- `CHANGELOG.md` - Complete version history and roadmap
 
 ## 🎥 YouTube Dev Log
 

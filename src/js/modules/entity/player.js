@@ -1,6 +1,7 @@
 import { Character } from './character.js';
 import { Inventory } from '../items/inventory.js';
 import { ItemDatabase } from '../items/itemDatabase.js';
+import { Spellbook } from '../magic/spellbook.js';
 
 export class Player extends Character {
     constructor(x, y) {
@@ -23,6 +24,10 @@ export class Player extends Character {
         // Assign the pre-initialized inventory
         this.inventory = inventory;
         this.itemDatabase = itemDatabase;
+        
+        // Initialize spellbook with Magic Dart unlocked
+        this.spellbook = new Spellbook();
+        console.log('📖 Player: Spellbook initialized');
         
         // Add starting equipment
         this.giveStartingItems();
@@ -49,6 +54,29 @@ export class Player extends Character {
         // Add staff for testing (but don't equip it automatically)
         const staff = this.itemDatabase.getItem('staff');
         this.inventory.addItem(staff);
+        
+        // Add test magic scrolls
+        // Magic Dart - basic cantrip for testing (give 3)
+        const scrollMagicDart = this.itemDatabase.getItem('scroll_magic_dart');
+        if (scrollMagicDart) {
+            scrollMagicDart.quantity = 3;
+            this.inventory.addItem(scrollMagicDart);
+        }
+        
+        const scrollMagicMissile = this.itemDatabase.getItem('scroll_magic_missile');
+        if (scrollMagicMissile) {
+            this.inventory.addItem(scrollMagicMissile);
+        }
+        
+        const scrollFireball = this.itemDatabase.getItem('scroll_fireball');
+        if (scrollFireball) {
+            this.inventory.addItem(scrollFireball);
+        }
+        
+        const scrollHeal = this.itemDatabase.getItem('scroll_heal');
+        if (scrollHeal) {
+            this.inventory.addItem(scrollHeal);
+        }
         
         // **TEST: Set mana to partial amount to see bar changes clearly**
         this.mana = Math.floor(this.maxMana * 0.6); // 60% mana
@@ -133,10 +161,10 @@ export class Player extends Character {
         
         const success = this.inventory.equipItem(index, this);
         if (success) {
-            console.log(`🎯 Player: equipItemFromInventory: successfully equipped ${item.name}`);
-            console.log(`🎯 Player: equipItemFromInventory: calling calculateMaxMana() to test...`);
-            const testMana = this.calculateMaxMana();
-            console.log(`🎯 Player: equipItemFromInventory: calculateMaxMana() returned ${testMana}`);
+            // console.log(`🎯 Player: equipItemFromInventory: successfully equipped ${item.name}`);
+            // console.log(`🎯 Player: equipItemFromInventory: calling calculateMaxMana() to test...`);
+            // const testMana = this.calculateMaxMana();
+            // console.log(`🎯 Player: equipItemFromInventory: calculateMaxMana() returned ${testMana}`);
             
             game.ui.addMessage(`Equipped ${item.name}`, '#5f5');
             
@@ -161,10 +189,10 @@ export class Player extends Character {
         
         const success = this.inventory.unequipItem(slot, this);
         if (success) {
-            console.log(`🎯 Player: unequipItem: successfully unequipped ${item.name}`);
-            console.log(`🎯 Player: unequipItem: calling calculateMaxMana() to test...`);
-            const testMana = this.calculateMaxMana();
-            console.log(`🎯 Player: unequipItem: calculateMaxMana() returned ${testMana}`);
+            // console.log(`🎯 Player: unequipItem: successfully unequipped ${item.name}`);
+            // console.log(`🎯 Player: unequipItem: calling calculateMaxMana() to test...`);
+            // const testMana = this.calculateMaxMana();
+            // console.log(`🎯 Player: unequipItem: calculateMaxMana() returned ${testMana}`);
             
             game.ui.addMessage(`Unequipped ${item.name}`, '#fff');
             
@@ -192,7 +220,8 @@ export class Player extends Character {
             return false;
         }
         
-        const success = this.inventory.useItem(index, this);
+        // Pass game object to useItem for spell scrolls
+        const success = this.inventory.useItem(index, this, game);
         if (success) {
             game.ui.addMessage(`Used ${item.name}`, '#5f5');
             
@@ -208,14 +237,8 @@ export class Player extends Character {
                 this.mana = Math.min(this.mana + item.stats.manaRestore, this.maxMana); // restored.
             }
             
-            // Handle item consumption (since inheritance isn't working properly)
-            if (item.stackable && item.quantity > 1) {
-                // Reduce quantity for stackable items
-                item.quantity--;
-            } else {
-                // Remove item completely if quantity is 1 or item isn't stackable
-                this.inventory.removeItem(index);
-            }
+            // Note: Item consumption is handled by inventory.useItem() method
+            // No need to manually decrement or remove items here
             
             return true;
         }
@@ -285,7 +308,7 @@ export class Player extends Character {
         // Call parent method - it already includes equipment bonuses
         const totalMana = super.calculateMaxMana();
         
-        console.log(`🔥 Player: calculateMaxMana: total=${totalMana} (equipment bonuses included by parent method)`);
+        // console.log(`🔥 Player: calculateMaxMana: total=${totalMana} (equipment bonuses included by parent method)`);
         
         if (shouldLog) {
             this.lastDebugLog = now;

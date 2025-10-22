@@ -4,9 +4,35 @@ import { HealthPotion, ManaPotion, Scroll } from './consumable.js';
 
 // Item database - centralized location for all item definitions
 export class ItemDatabase {
-    constructor() {
+    constructor(game = null) {
         this.items = {};
+        this.game = game; // Optional: for accessing spellDatabase
         this.initializeItems();
+    }
+    
+    // Helper to create spell scroll with description from spellDatabase
+    createSpellScroll(spellId, scrollId = null, options = {}) {
+        // Try to get spell data from game's spellDatabase
+        let spellData = null;
+        if (this.game && this.game.spellDatabase) {
+            spellData = this.game.spellDatabase.getSpell(spellId);
+        }
+        
+        // Generate description from spell data or use fallback
+        const spellName = spellData ? spellData.name : spellId.replace(/_/g, ' ');
+        const spellDesc = spellData ? spellData.description : 'A magical spell';
+        const description = `Learn the ${spellName} spell permanently. ${spellDesc}`;
+        
+        return new Scroll({
+            id: scrollId || `scroll_${spellId}`,
+            name: `Scroll of ${spellName}`,
+            description: description,
+            spellId: spellId,
+            stackable: false, // Spell scrolls should NOT stack - each is unique
+            value: options.value || 50,
+            rarity: options.rarity || 'common',
+            ...options
+        });
     }
     
     initializeItems() {
@@ -332,12 +358,13 @@ export class ItemDatabase {
             value: 40
         }));
         
-        // SCROLLS
+        // SCROLLS (utility scrolls can stack)
         this.registerItem(new Scroll({
             id: 'scroll_of_identify',
             name: 'Scroll of Identify',
             description: 'Reveals the properties of an unidentified item.',
             effect: 'identify',
+            stackable: true,
             value: 25
         }));
         
@@ -346,7 +373,40 @@ export class ItemDatabase {
             name: 'Scroll of Teleport',
             description: 'Teleports you to a random location in the dungeon.',
             effect: 'teleport',
+            stackable: true,
             value: 30
+        }));
+        
+        // MAGIC SCROLLS (Spell Scrolls) - Permanently unlock spells
+        // Descriptions are auto-generated from spellDatabase to avoid duplication
+        this.registerItem(this.createSpellScroll('magic_dart', 'scroll_magic_dart', {
+            value: 10,
+            rarity: 'common'
+        }));
+        
+        this.registerItem(this.createSpellScroll('magic_missile', 'scroll_magic_missile', {
+            value: 25,
+            rarity: 'common'
+        }));
+        
+        this.registerItem(this.createSpellScroll('fireball', 'scroll_fireball', {
+            value: 75,
+            rarity: 'uncommon'
+        }));
+        
+        this.registerItem(this.createSpellScroll('lightning_bolt', 'scroll_lightning_bolt', {
+            value: 80,
+            rarity: 'uncommon'
+        }));
+        
+        this.registerItem(this.createSpellScroll('ice_shard', 'scroll_ice_shard', {
+            value: 70,
+            rarity: 'uncommon'
+        }));
+        
+        this.registerItem(this.createSpellScroll('heal', 'scroll_heal', {
+            value: 50,
+            rarity: 'common'
         }));
         
         // MISCELLANEOUS

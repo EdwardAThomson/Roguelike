@@ -42,6 +42,17 @@ export class WorldManager {
         // Place player in a random floor tile
         const startPos = this.game.dungeon.getRandomFloorPosition();
         this.game.player = new Player(startPos.x, startPos.y);
+        
+        // Connect player's spellbook to game's spell database
+        if (this.game.player.spellbook && this.game.spellDatabase) {
+            this.game.player.spellbook.setSpellDatabase(this.game.spellDatabase);
+            console.log('📖 Connected player spellbook to spell database');
+            
+            // Unlock Magic Dart as starting spell
+            this.game.player.spellbook.unlockSpell('magic_dart', 0); // Q key
+            console.log('📖 Unlocked Magic Dart as starting spell');
+        }
+        
         console.log(`Player placed at (${startPos.x}, ${startPos.y})`);
         
         // Populate the dungeon with items

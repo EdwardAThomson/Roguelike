@@ -101,8 +101,8 @@ export class GameUI {
                 padding: 20px;
                 border-radius: 10px;
                 font-family: monospace;
-                width: 80%;
-                max-width: 600px;
+                width: 90%;
+                max-width: 900px;
                 max-height: 80vh;
                 overflow-y: auto;
                 border: 2px solid #444;
@@ -234,6 +234,23 @@ export class GameUI {
             .exp-bar .progress-fill {
                 background-color: #cc0;
             }
+            
+            .stat-button {
+                background-color: #0a5;
+                border: 1px solid #0f0;
+                color: #fff;
+                padding: 2px 8px;
+                border-radius: 3px;
+                cursor: pointer;
+                font-family: monospace;
+                font-size: 14px;
+                font-weight: bold;
+                transition: background-color 0.2s;
+            }
+            
+            .stat-button:hover {
+                background-color: #0c7;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -244,19 +261,19 @@ export class GameUI {
         const stats = this.game.player.getSummary();
         
         // Debug logging for mana values specifically
-        const now = Date.now();
-        if (!this.lastManaDebugLog || now - this.lastManaDebugLog > 3000) {
-            console.log(`🎮 GameUI: updateStats: mana=${stats.mana}, maxMana=${stats.maxMana}, maxMana_bonus=${stats.maxMana_bonus}`);
-            this.lastManaDebugLog = now;
-        }
+        // const now = Date.now();
+        // if (!this.lastManaDebugLog || now - this.lastManaDebugLog > 3000) {
+        //    console.log(`🎮 GameUI: updateStats: mana=${stats.mana}, maxMana=${stats.maxMana}, maxMana_bonus=${stats.maxMana_bonus}`);
+        //    this.lastManaDebugLog = now;
+        //}
         
         // ALWAYS log this for debugging
-        console.log(`🎮 GameUI: updateStats: mana=${stats.mana}, maxMana=${stats.maxMana}, maxMana_bonus=${stats.maxMana_bonus}`);
+        // console.log(`🎮 GameUI: updateStats: mana=${stats.mana}, maxMana=${stats.maxMana}, maxMana_bonus=${stats.maxMana_bonus}`);
         
         // Test direct calculation
-        const testMaxMana = this.game.player.calculateMaxMana();
-        console.log(`🎮 GameUI: updateStats: direct calculateMaxMana() = ${testMaxMana}`);
-        console.log(`🎮 GameUI: updateStats: cached this.maxMana = ${this.game.player.maxMana}`);
+        // const testMaxMana = this.game.player.calculateMaxMana();
+        // console.log(`🎮 GameUI: updateStats: direct calculateMaxMana() = ${testMaxMana}`);
+        // console.log(`🎮 GameUI: updateStats: cached this.maxMana = ${this.game.player.maxMana}`);
         
         
         // Update the basic stats display
@@ -274,7 +291,7 @@ export class GameUI {
             <div class="progress-bar exp-bar">
                 <div class="progress-fill" style="width: ${(stats.experience / stats.experienceToNextLevel) * 100}%"></div>
             </div>
-            <div style="margin-top: 5px; font-size: 0.8em; color: #aaa;">Press 'C' for character sheet</div>
+            <div style="margin-top: 5px; font-size: 0.8em; color: #aaa;">Press 'C' for character | 'B' for spellbook</div>
         `;
     }
     
@@ -284,7 +301,9 @@ export class GameUI {
         const tabs = document.querySelectorAll('.tab');
         tabs.forEach(t => {
             t.classList.remove('active');
-            if (t.textContent.toLowerCase() === tab) {
+            // Match by tab name (handle emoji in spellbook tab)
+            const tabText = t.textContent.toLowerCase().replace(/[^\w\s]/g, '').trim();
+            if (tabText === tab || t.textContent.toLowerCase().includes(tab)) {
                 t.classList.add('active');
             }
         });
@@ -315,20 +334,36 @@ export class GameUI {
                 
                 <h3>Attributes</h3>
                 <div class="stat-row">
+                    <div class="stat-label">Stat Points Available:</div>
+                    <div style="color: #0ff; font-weight: bold;">${stats.statPoints || 0}</div>
+                </div>
+                <div class="stat-row">
                     <div class="stat-label">Strength:</div>
-                    <div>${stats.strength} ${stats.strength_bonus ? `<span style="color: #5f5">(+${stats.strength_bonus})</span>` : ''}</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span>${stats.strength} ${stats.strength_bonus ? `<span style="color: #5f5">(+${stats.strength_bonus})</span>` : ''}</span>
+                        ${stats.statPoints > 0 ? `<button class="stat-button" data-stat="strength">+</button>` : ''}
+                    </div>
                 </div>
                 <div class="stat-row">
                     <div class="stat-label">Dexterity:</div>
-                    <div>${stats.dexterity} ${stats.dexterity_bonus ? `<span style="color: #5f5">(+${stats.dexterity_bonus})</span>` : ''}</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span>${stats.dexterity} ${stats.dexterity_bonus ? `<span style="color: #5f5">(+${stats.dexterity_bonus})</span>` : ''}</span>
+                        ${stats.statPoints > 0 ? `<button class="stat-button" data-stat="dexterity">+</button>` : ''}
+                    </div>
                 </div>
                 <div class="stat-row">
                     <div class="stat-label">Constitution:</div>
-                    <div>${stats.constitution} ${stats.constitution_bonus ? `<span style="color: #5f5">(+${stats.constitution_bonus})</span>` : ''}</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span>${stats.constitution} ${stats.constitution_bonus ? `<span style="color: #5f5">(+${stats.constitution_bonus})</span>` : ''}</span>
+                        ${stats.statPoints > 0 ? `<button class="stat-button" data-stat="constitution">+</button>` : ''}
+                    </div>
                 </div>
                 <div class="stat-row">
                     <div class="stat-label">Intelligence:</div>
-                    <div>${stats.intelligence} ${stats.intelligence_bonus ? `<span style="color: #5f5">(+${stats.intelligence_bonus})</span>` : ''}</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span>${stats.intelligence} ${stats.intelligence_bonus ? `<span style="color: #5f5">(+${stats.intelligence_bonus})</span>` : ''}</span>
+                        ${stats.statPoints > 0 ? `<button class="stat-button" data-stat="intelligence">+</button>` : ''}
+                    </div>
                 </div>
                 
                 <h3>Derived Stats</h3>
@@ -359,6 +394,16 @@ export class GameUI {
                     <div>${stats.criticalChance}% ${stats.criticalChance_bonus ? `<span style="color: #5f5">(+${stats.criticalChance_bonus}%)</span>` : ''}</div>
                 </div>
             `;
+            
+            // Add event listeners to stat buttons
+            this.characterContent.innerHTML = this.characterContent.innerHTML;
+            const statButtons = this.characterContent.querySelectorAll('.stat-button');
+            statButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const stat = button.getAttribute('data-stat');
+                    this.allocateStat(stat);
+                });
+            });
         } else if (this.selectedStatTab === 'skills') {
             // Get skills from player
             const skills = this.game.player.availableSkills;
@@ -406,6 +451,109 @@ export class GameUI {
                     });
                 }
             });
+        }
+    }
+    
+    // Removed renderSpellbookTab() - spellbook now has its own modal
+    
+    renderSpellbookTab_DEPRECATED() {
+        if (!this.game.player || !this.game.player.spellbook) {
+            this.characterContent.innerHTML = '<p style="color: #f55;">No spellbook available!</p>';
+            return;
+        }
+        
+        const spellbook = this.game.player.spellbook;
+        const summary = spellbook.getSummary();
+        
+        // Build HTML (similar to SpellbookUI but adapted for character screen)
+        let html = '<h2>📖 Spellbook</h2>';
+        html += '<div style="display: flex; gap: 20px;">';
+        
+        // Left panel: Spell slots
+        html += '<div style="flex: 0 0 200px;">';
+        html += '<h3 style="color: #0af; font-size: 14px; margin-bottom: 10px;">Spell Hotbar</h3>';
+        
+        for (const slot of summary.spellSlots) {
+            if (slot.spell) {
+                html += `
+                    <div style="background: rgba(40,40,40,0.9); border: 2px solid #555; border-radius: 6px; padding: 8px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                        <div style="font-size: 16px; font-weight: bold; color: #0af; background: rgba(0,170,255,0.2); border: 1px solid #0af; border-radius: 4px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">${slot.key}</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 12px;">${slot.spell.icon} ${slot.spell.name}</div>
+                            <div style="font-size: 10px; color: #0af;">💧 ${slot.spell.manaCost}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="background: rgba(40,40,40,0.9); border: 2px dashed #333; border-radius: 6px; padding: 8px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: #666;">
+                        <div style="font-size: 16px; font-weight: bold; color: #0af; background: rgba(0,170,255,0.2); border: 1px solid #0af; border-radius: 4px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">${slot.key}</div>
+                        <div>Empty</div>
+                    </div>
+                `;
+            }
+        }
+        
+        html += '</div>';
+        
+        // Right panel: All spells
+        html += '<div style="flex: 1; max-height: 400px; overflow-y: auto;">';
+        html += `<h3 style="color: #0af; font-size: 14px; margin-bottom: 10px;">Known Spells (${summary.knownSpellCount})</h3>`;
+        
+        // Get all possible spells
+        const allSpells = this.getAllSpellDefinitions(spellbook);
+        
+        for (const spell of allSpells) {
+            const isUnlocked = spellbook.isSpellUnlocked(spell.id);
+            
+            html += `
+                <div style="background: rgba(40,40,40,0.9); border: 2px solid ${isUnlocked ? '#555' : '#333'}; border-radius: 6px; padding: 10px; margin-bottom: 8px; opacity: ${isUnlocked ? '1' : '0.5'};">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <div style="font-size: 20px;">${spell.icon}</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 13px;">${spell.name}</div>
+                            <div style="font-size: 11px; color: #0af;">💧 ${spell.manaCost} mana</div>
+                        </div>
+                        ${!isUnlocked ? '<div style="color: #f55; font-size: 16px;">🔒</div>' : ''}
+                    </div>
+                    <div style="color: #aaa; font-size: 11px; margin-bottom: 6px;">${spell.description}</div>
+                    <div style="display: flex; gap: 12px; font-size: 10px; color: #888;">
+                        ${spell.damage ? `<div>⚔️ ${spell.damage.min}-${spell.damage.max}</div>` : ''}
+                        ${spell.healing ? `<div>💚 ${spell.healing.min}-${spell.healing.max}</div>` : ''}
+                        <div>📏 ${spell.range}</div>
+                        ${spell.element ? `<div>🔮 ${spell.element}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        html += '</div>';
+        
+        this.characterContent.innerHTML = html;
+    }
+    
+    // Deprecated - spellbook now has its own modal
+    getAllSpellDefinitions_DEPRECATED(spellbook) {
+        return [
+            spellbook.getSpellData('magic_dart'),
+            spellbook.getSpellData('magic_missile'),
+            spellbook.getSpellData('fireball'),
+            spellbook.getSpellData('ice_shard'),
+            spellbook.getSpellData('heal'),
+            spellbook.getSpellData('lightning_bolt')
+        ].filter(spell => spell !== null);
+    }
+    
+    allocateStat(stat) {
+        // Call the player's allocateStatPoint method
+        const success = this.game.player.allocateStatPoint(stat);
+        
+        if (success) {
+            // Update UI
+            this.updateStats();
+            this.updateCharacterScreen();
+            this.addMessage(`Increased ${stat}!`, '#0ff');
         }
     }
     

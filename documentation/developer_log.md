@@ -2,7 +2,228 @@
 
 This log tracks updates, fixes, and development decisions made during the game's development.
 
+---
 
+## 2025-10-22 - Spellbook Modal, Visual Effects, & Stat System Overhaul
+
+### 1. Spellbook Separated into Dedicated Modal
+- **Problem**: Spellbook was integrated into Character Sheet, making spell management cluttered
+- **Solution**: Created standalone Spellbook modal accessible via B key
+- **Implementation**:
+  - Converted `SpellbookUI` to full-screen modal (like Inventory)
+  - Added header with title and close button
+  - Manages own open/close state and game pause
+  - Auto-initializes in constructor
+- **Character Sheet Changes**: Removed Spellbook tab, kept only Attributes and Skills
+- **UI Integration**: Added emergency "📖 Spellbook" button, updated help screen
+- **Benefits**: Better UX with dedicated space, cleaner Character Sheet, scalable for future features
+
+### 2. Spell Visual Effects System Fixed
+- **Critical Bug**: Spells were doing instant damage without any visual projectiles
+- **Root Cause**: `inputManager.js` was bypassing the `Spell.cast()` method entirely
+- **Solution**: Modified spell casting to use proper `Spell.cast()` method which:
+  - Creates visual projectiles with symbols and colors
+  - Animates them traveling across screen using Bresenham's algorithm
+  - Handles collision detection during travel
+  - Supports AoE explosions (Fireball)
+  - Applies status effects (burning, freezing, etc.)
+- **Visual Effects Now Working**:
+  - Magic Dart: Cyan arrow `→` at speed 2
+  - Magic Missile: Purple dot `•` at speed 1
+  - Fireball: Red-orange circle `●` with AoE explosion
+  - Ice Shard: Cyan diamond `◆` at speed 1
+  - Lightning Bolt: Yellow zigzag `~` at speed 3
+- **System Architecture**: ProjectileManager → Projectile → Renderer → Collision Detection
+- **Files Modified**: `/src/js/modules/inputManager.js`
+
+### 3. Projectile System Bug Fixes
+- **Monster Death Error**: `entity.die is not a function`
+  - **Cause**: ProjectileManager tried calling non-existent `die()` method
+  - **Fix**: Use `takeDamage()` method which returns `{damage, isDead}` result
+  - **Added**: Proper XP gain, loot drops, and monster removal on spell kills
+- **Healing Spell Error**: `Cannot read properties of undefined (reading 'max')`
+  - **Cause**: Old format used `spell.healing.min/max`, new format uses `baseDamage`
+  - **Fix**: Updated to use `spell.calculateDamage()` for new Spell class instances
+  - **Result**: Healing now scales with intelligence and level properly
+
+### 4. Stat System Overhaul
+- **Equipment Bonus Bug**: Staff +2 intelligence not counting for spell requirements
+  - **Problem**: `Spell.canCast()` only checked base intelligence, ignored equipment
+  - **Fix**: Modified to use `getSummary()` for total intelligence (base + bonuses)
+  - **Impact**: Equipment bonuses now properly count for spell requirements
+- **Stat Point Allocation UI Added**:
+  - **Problem**: Players gained stat points on level up but had no way to spend them
+  - **Solution**: Added stat allocation UI to Character Sheet Attributes tab
+  - **Features**:
+    - Shows "Stat Points Available" counter
+    - Green `+` buttons next to each attribute
+    - Click to increase stat permanently
+    - Visual confirmation messages
+  - **Implementation**: Added `allocateStat()` method and `.stat-button` CSS styling
+- **Stat Effects**:
+  - Strength: Attack power, carrying capacity
+  - Dexterity: Hit chance, dodge chance
+  - Constitution: Max health, resistance
+  - Intelligence: Spell damage, mana pool, spell requirements
+
+### 5. Scroll System Improvements
+- **Utility Scrolls Now Stackable**:
+  - Scroll of Identify: `stackable: true`
+  - Scroll of Teleport: `stackable: true`
+- **Spell Scrolls Remain Non-Stackable**:
+  - Teach permanent spells (Magic Dart, Fireball, Heal, etc.)
+  - Each is unique, consumed on use
+  - Stacking doesn't make sense for one-time unlocks
+- **Inventory Display**: Shows quantity for stacked items (e.g., "Scroll of Identify x3")
+
+### 6. Visual Polish
+- **Gate Labels Removed**:
+  - Removed "→ section (x, y)" text from gate tiles
+  - Removed direction letters (N, S, E, W) from off-screen indicators
+  - Kept: ⍟ gate symbol and golden arrow indicators
+  - **Result**: Much cleaner, professional look without debug-style text
+
+### 7. Code Cleanup
+- **PreparedSpellManager Removed**:
+  - **Status**: Dead code from old spell system
+  - **Old System**: Players "prepared" one spell and cast with Z key
+  - **Current System**: Spellbook with 5 hotkey slots (Q, R, F, V, X)
+  - **Action**: Removed import and instantiation from `main.js`
+  - **File**: `/src/js/modules/magic/preparedSpellManager.js` can be safely deleted
+
+### 8. Technical Implementation
+- **Files Modified**:
+  - `/src/js/modules/ui/spellbookUI.js` - Converted to standalone modal
+  - `/src/js/modules/inputManager.js` - B key handling, spell casting fixes
+  - `/src/js/modules/ui/gameUI.js` - Removed spellbook tab, added stat allocation UI
+  - `/src/js/modules/ui/index.js` - Updated spellbook initialization
+  - `/src/js/modules/ui/helpScreen.js` - Added B key and spell casting documentation
+  - `/src/js/modules/magic/spell.js` - Fixed intelligence check for equipment bonuses
+  - `/src/js/modules/magic/projectileManager.js` - Fixed monster death handling
+  - `/src/js/modules/items/itemDatabase.js` - Enabled scroll stacking
+  - `/src/js/modules/sprites.js` - Removed gate text labels
+  - `/src/js/modules/renderer.js` - Removed gate direction letters
+  - `/src/js/main.js` - Removed PreparedSpellManager
+
+### 9. Player Experience Impact
+- **Spell Casting**: Now visually engaging with animated projectiles
+- **Character Progression**: Stats actually increase with levels via allocation
+- **Equipment Value**: Bonuses properly count toward spell requirements
+- **Inventory Management**: Utility scrolls stack, reducing clutter
+- **Visual Clarity**: Cleaner UI without debug text on gates
+- **Spell Management**: Dedicated spellbook modal provides better UX
+
+### 10. Documentation Created
+- `SPELL_VISUAL_EFFECTS_FIX.md` - Spell projectile system explanation
+- `STAT_SYSTEM_FIXES.md` - Equipment bonuses and stat allocation
+- `SCROLL_AND_GATE_FIXES.md` - Scroll stacking and gate label removal
+- `CLEANUP_NOTES.md` - Dead code identification and removal
+
+This session represents a major quality-of-life improvement, fixing critical spell system bugs while enhancing the UI/UX and character progression systems.
+
+---
+
+## 2025-10-17 - Magic System Implementation & Spell Scaling
+
+### 1. Complete Magic System Added
+- **Projectile System**: Unified handling for spells and ranged attacks
+  - Bresenham's line algorithm for trajectory calculation
+  - Collision detection (walls, monsters, player)
+  - AoE explosion handling with radius damage
+  - Piercing projectiles support
+- **Spell Database**: 10 pre-defined spells across 3 categories
+  - Offensive: Magic Missile, Fireball, Lightning Bolt, Ice Shard, Poison Cloud
+  - Healing: Heal, Regeneration
+  - Utility: Teleport, Magic Shield
+- **Status Effect System**: Buffs, debuffs, DoT, HoT
+  - Burning (fire DoT), Poisoned (poison DoT)
+  - Stunned (prevents actions), Slowed (50% speed)
+  - Shielded (+5 defense buff)
+  - Turn-based tick processing
+- **Targeting System**: Tab-based enemy cycling
+  - Line-of-sight validation
+  - FOV-aware target selection
+  - Range checking
+  - Distance-sorted targets (closest first)
+
+### 2. Spell Balance Calibration
+- **Damage Analysis**: Calibrated all spells against monster HP values
+  - Target efficiency: ~2.5 damage per mana for single-target
+  - AoE premium: ~2.1-2.3 damage per mana
+- **Spell Adjustments**:
+  - Ice Shard: 12 → 15 base damage (reward for slow debuff)
+  - Fireball: 15 → 12 base damage (AoE too strong)
+  - Poison Cloud: 5 → 8 base damage, 15 → 12 mana (was too expensive)
+  - Heal: 8 → 12 mana cost (too cheap for healing amount)
+  - Teleport: 15 → 10 mana cost (utility shouldn't drain mana)
+- **Mana Pool Increase**: Base mana 10 → 20
+  - Starting mana (Int 10): 40 → 50 (+25%)
+  - Better sustainability for 3-5 spell casts
+
+### 3. Stat Point Progression System
+- **Problem Identified**: Magic damage didn't scale with player level
+  - Intelligence fixed at 10, no automatic growth
+  - Monster HP scales +40% per difficulty level
+  - Spells became increasingly ineffective
+- **Solution Implemented**: Dual scaling system
+  - **Stat Points**: Players gain 1 stat point per level
+    - Can allocate to Strength, Dexterity, Constitution, or Intelligence
+    - Enables build diversity (wizard, warrior, hybrid)
+    - Added `allocateStatPoint(stat)` method to Character class
+  - **Level Bonus**: Spells gain +5% damage per caster level
+    - Ensures spells remain viable without Int investment
+    - Matches monster HP scaling
+    - Automatic scaling for all casters
+- **Projected Scaling**: Level 10 wizard build
+  - Intelligence: 10 → 19 (+9 stat points)
+  - Magic Missile: 13 → 26 damage (+100%)
+  - Maintains 2-3 hits to kill across difficulty levels
+
+### 4. Build Diversity Enabled
+- **Wizard Build**: All points in Intelligence
+  - Maximum spell damage and mana pool
+  - Relies on magic for combat
+- **Warrior Build**: Str/Con focus
+  - Melee-focused with utility spells
+  - Spells still scale via level bonus
+- **Balanced Build**: Split allocation
+  - Hybrid combat style
+  - Versatile playstyle
+
+### 5. Technical Implementation
+- **Files Created** (9 new files):
+  - `src/js/modules/magic/projectile.js`
+  - `src/js/modules/magic/projectileManager.js`
+  - `src/js/modules/magic/spell.js`
+  - `src/js/modules/magic/spellDatabase.js`
+  - `src/js/modules/magic/statusEffect.js`
+  - `src/js/modules/magic/statusEffectManager.js`
+  - `src/js/modules/magic/targetingSystem.js`
+  - `documentation/magic_system.md`
+  - `documentation/spell_scaling_implementation.md`
+- **Files Modified**:
+  - `src/js/modules/entity/character.js` - Added stat points, allocation method
+  - `src/js/modules/magic/spell.js` - Added level-based damage bonus
+- **Integration Required**: See `MAGIC_SYSTEM_IMPLEMENTATION.md` for steps
+
+### 6. Design Philosophy
+- **Modular**: Each system independent and extensible
+- **Turn-Based**: All effects respect turn-based combat
+- **Balanced**: Mana costs prevent spam, damage scales appropriately
+- **Player Agency**: Meaningful choices on level up
+- **Future-Proof**: Monsters can use magic later (modular design)
+
+### 7. Next Steps
+- Integrate magic systems into main game loop
+- Add UI for stat point allocation
+- Add targeting controls (Tab, Enter, Escape)
+- Make scrolls/staves/wands castable
+- Add projectile rendering
+- Test all spell types and builds
+
+This represents a major feature addition that significantly expands gameplay depth and player progression options.
+
+---
 
 ## 2025-07-07 - Combat Balance & Equipment Progression Improvements
 

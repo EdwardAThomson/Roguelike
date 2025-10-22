@@ -453,19 +453,7 @@ export class SpriteRenderer {
                 this.ctx.fillText('⍟', screenX + this.tileSize/2, screenY + this.tileSize/2);
             }
             
-            // Find the gate object
-            const gate = this.game.dungeon.gates.find(g => g.x === x && g.y === y);
-            
-            if (gate) {
-                // Add gate destination text
-                this.ctx.fillStyle = '#FFF';
-                this.ctx.font = `bold ${this.tileSize/3}px Arial`;
-                this.ctx.textAlign = 'center';
-                this.ctx.textBaseline = 'middle';
-                // this.ctx.fillText(`→ section (${gate.targetWorldSectionId.x}, ${gate.targetWorldSectionId.y})`, screenX + this.tileSize / 2, screenY + this.tileSize * 0.75);
-                this.ctx.fillText(`→ section (${gate.sections[1].x}, ${gate.sections[1].y})`, screenX + this.tileSize / 2, screenY + this.tileSize * 0.75);
-            }
-            
+            // Gates no longer show text labels
             return; // Skip the normal rendering for gates
         }
         

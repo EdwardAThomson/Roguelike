@@ -1,10 +1,13 @@
 {
   "name": "modern-rogue",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "A modern browser-based roguelike game inspired by the original Rogue",
   "scripts": {
     "start": "npx http-server . -p 8080 -o",
-    "dev": "npx vite"
+    "dev": "npx vite",
+    "bump:patch": "node scripts/bump-version.js patch",
+    "bump:minor": "node scripts/bump-version.js minor",
+    "bump:major": "node scripts/bump-version.js major"
   },
   "devDependencies": {
     "vite": "^5.0.0",

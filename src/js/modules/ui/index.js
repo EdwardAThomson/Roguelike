@@ -2,6 +2,7 @@ import { GameUI } from './gameUI.js';
 import { InventoryUI } from './inventoryUI.js';
 import { EquipmentDisplay } from './equipmentDisplay.js';
 import { HelpScreen } from './helpScreen.js';
+import { SpellbookUI } from './spellbookUI.js';
 
 export class UI {
     constructor(game) {
@@ -12,6 +13,7 @@ export class UI {
         this.inventoryUI = new InventoryUI(game);
         this.equipmentDisplay = new EquipmentDisplay(game);
         this.helpScreen = new HelpScreen(game);
+        this.spellbookUI = new SpellbookUI(game);
         
         // Create backup UI buttons
         this.createEmergencyButtons();
@@ -19,6 +21,7 @@ export class UI {
     
     initialize() {
         this.gameUI.initialize();
+        // SpellbookUI now initializes itself in constructor
     }
     
     createEmergencyButtons() {
@@ -49,6 +52,16 @@ export class UI {
             this.gameUI.toggleCharacterScreen();
         };
         buttonContainer.appendChild(charButton);
+        
+        // Create spellbook button
+        const spellbookButton = document.createElement('button');
+        spellbookButton.textContent = '📖 Spellbook';
+        spellbookButton.style.cssText = 'padding: 8px 16px; background: #0af; color: white; border: none; border-radius: 4px; cursor: pointer;';
+        spellbookButton.onclick = () => {
+            console.log('Emergency spellbook button clicked');
+            this.toggleSpellbook();
+        };
+        buttonContainer.appendChild(spellbookButton);
         
         // Create pickup button
         const pickupButton = document.createElement('button');
@@ -119,39 +132,18 @@ export class UI {
         this.gameUI.update();
         this.equipmentDisplay.update();
         
-        // Process key presses for UI elements
-        if (this.game.input) {
-            // this console log spams the console with a lot of messages.
-            // console.log("UI update checking for key presses");
-            
-            // Get key states directly
-            const iPressed = this.game.input.isKeyPressed('i');
-            const cPressed = this.game.input.isKeyPressed('c');
-            const hPressed = this.game.input.isKeyPressed('h');
-            
-            // Handle each key separately
-            if (iPressed) {
-                console.log('I key pressed, toggling inventory');
-                this.inventoryUI.toggleInventory();
-                this.game.input.resetKey('i');
-            }
-            
-            if (cPressed) {
-                console.log('C key pressed, toggling character screen');
-                this.gameUI.toggleCharacterScreen();
-                this.game.input.resetKey('c');
-            }
-            
-            if (hPressed) {
-                console.log('H key pressed, toggling help screen');
-                this.helpScreen.toggleHelpScreen();
-                this.game.input.resetKey('h');
-            }
-        }
+        // UI input is now handled in InputManager.handleUIInput()
+        // This keeps all input logic centralized in one place
     }
     
     toggleInventory() {
         this.inventoryUI.toggleInventory();
+    }
+    
+    toggleSpellbook() {
+        if (this.spellbookUI) {
+            this.spellbookUI.toggleSpellbook();
+        }
     }
     
     get showCharacterScreen() {

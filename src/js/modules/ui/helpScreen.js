@@ -353,6 +353,11 @@ export class HelpScreen {
                         <td>Open character sheet with stats and skills</td>
                     </tr>
                     <tr>
+                        <td>Spellbook</td>
+                        <td><span class="help-key">B</span></td>
+                        <td>Open spellbook to manage spells</td>
+                    </tr>
+                    <tr>
                         <td>Help Screen</td>
                         <td><span class="help-key">H</span></td>
                         <td>Open this help screen</td>
@@ -399,6 +404,45 @@ export class HelpScreen {
                         <td>Use the currently selected item</td>
                     </tr>
                 </table>
+            </div>
+            
+            <div class="help-section">
+                <div class="help-section-title">Spell Casting</div>
+                <table class="help-controls-table">
+                    <tr>
+                        <th>Action</th>
+                        <th>Keys</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>Cast Spell Slot 1</td>
+                        <td><span class="help-key">Q</span></td>
+                        <td>Cast spell assigned to slot 1</td>
+                    </tr>
+                    <tr>
+                        <td>Cast Spell Slot 2</td>
+                        <td><span class="help-key">R</span></td>
+                        <td>Cast spell assigned to slot 2</td>
+                    </tr>
+                    <tr>
+                        <td>Cast Spell Slot 3</td>
+                        <td><span class="help-key">F</span></td>
+                        <td>Cast spell assigned to slot 3</td>
+                    </tr>
+                    <tr>
+                        <td>Cast Spell Slot 4</td>
+                        <td><span class="help-key">V</span></td>
+                        <td>Cast spell assigned to slot 4</td>
+                    </tr>
+                    <tr>
+                        <td>Cast Spell Slot 5</td>
+                        <td><span class="help-key">X</span></td>
+                        <td>Cast spell assigned to slot 5</td>
+                    </tr>
+                </table>
+                <p style="margin-top: 10px; color: #aaa; font-size: 0.9em;">
+                    💡 Tip: Open the Spellbook (B) to assign spells to hotkeys and manage your spell collection.
+                </p>
             </div>
         `;
     }

@@ -839,8 +839,8 @@ export class InventoryUI {
     
     // Handler for keyboard events in drop mode
     handleDropModeKeys(e) {
-        // Exit drop mode if D is pressed again
-        if (e.key === 'd' || e.key === 'D' || e.key === 'Escape') {
+        // Exit drop mode if Z is pressed again or Escape
+        if (e.key === 'z' || e.key === 'Z' || e.key === 'Escape') {
             this.closeInventory();
         }
         

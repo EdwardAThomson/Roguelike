@@ -22,6 +22,7 @@ export class Character {
         
         // Skills and progression
         this.skillPoints = 0;
+        this.statPoints = 0; // Stat points for attribute allocation
         this.availableSkills = [
             { id: 'power_strike', name: 'Power Strike', level: 0, maxLevel: 3, description: 'Deal 20% extra damage' },
             { id: 'toughness', name: 'Toughness', level: 0, maxLevel: 3, description: 'Increase max health by 10%' },
@@ -52,22 +53,22 @@ export class Character {
     }
     
     calculateMaxMana() {
-        let base = 10 + (this.intelligence * 3) + ((this.level - 1) * 5);
+        let base = 20 + (this.intelligence * 3) + ((this.level - 1) * 5);
         
         // Add equipment bonuses if any
         let bonus = 0;
         if (this.inventory && typeof this.inventory.getAllEquipped === 'function') {
             const equipped = this.inventory.getAllEquipped();
-            console.log(`⚡ Character: calculateMaxMana: checking ${equipped.length} equipped items`);
+            // console.log(`⚡ Character: calculateMaxMana: checking ${equipped.length} equipped items`);
             for (const item of equipped) {
                 if (item.stats && item.stats.maxMana) {
-                    console.log(`⚡ Character: calculateMaxMana: ${item.name} provides +${item.stats.maxMana} mana`);
+                    // console.log(`⚡ Character: calculateMaxMana: ${item.name} provides +${item.stats.maxMana} mana`);
                     bonus += item.stats.maxMana;
                 }
             }
         }
         const total = base + bonus;
-        console.log(`⚡ Character: calculateMaxMana: base=${base}, bonus=${bonus}, total=${total}`);
+        // console.log(`⚡ Character: calculateMaxMana: base=${base}, bonus=${bonus}, total=${total}`);
         return total;
     }
     
@@ -101,8 +102,9 @@ export class Character {
         this.experience -= this.experienceToNextLevel;
         this.experienceToNextLevel = this.calculateExperienceForLevel(this.level + 1);
         
-        // Grant skill points on level up
+        // Grant skill points AND stat points on level up
         this.skillPoints++;
+        this.statPoints++;
         
         // Recalculate stats
         this.updateStats();
@@ -203,6 +205,34 @@ export class Character {
         return skill ? skill.level : 0;
     }
     
+    /**
+     * Allocate a stat point to a specific attribute
+     * @param {string} stat - 'strength', 'dexterity', 'constitution', or 'intelligence'
+     * @returns {boolean} - Success or failure
+     */
+    allocateStatPoint(stat) {
+        if (this.statPoints <= 0) {
+            console.log("No stat points available");
+            return false;
+        }
+        
+        const validStats = ['strength', 'dexterity', 'constitution', 'intelligence'];
+        if (!validStats.includes(stat)) {
+            console.log("Invalid stat");
+            return false;
+        }
+        
+        // Increase the stat
+        this[stat]++;
+        this.statPoints--;
+        
+        // Update derived stats
+        this.updateStats();
+        
+        console.log(`Increased ${stat} to ${this[stat]}`);
+        return true;
+    }
+    
     // Health and damage methods
     heal(amount) {
         console.log(`HEAL METHOD: ${this.name} healing ${amount} HP`);
@@ -228,7 +258,7 @@ export class Character {
         // Apply defense reduction
         const effectiveDamage = Math.max(1, amount - this.defense);
 
-        console.log(`${this.name} defense: ${this.defense}, effectiveDamage: ${effectiveDamage}`);
+        // console.log(`${this.name} defense: ${this.defense}, effectiveDamage: ${effectiveDamage}`);
             
         // Show defense message if significant reduction occurred - handled by game UI instead
         // if (amount - effectiveDamage > 5) {
@@ -276,9 +306,9 @@ export class Character {
         if (this.inventory && typeof this.inventory.getAllEquipped === 'function') {
             const equipped = this.inventory.getAllEquipped();
             
-            if (shouldLog) {
-                console.log(`Character: getSummary: checking ${equipped.length} equipped items for bonuses`);
-            }
+           // if (shouldLog) {
+           //     console.log(`Character: getSummary: checking ${equipped.length} equipped items for bonuses`);
+           // }
             
             for (const item of equipped) {
                 if (item.stats) {
@@ -291,9 +321,9 @@ export class Character {
                     // Secondary stats
                     if (item.stats.maxHealth) equipmentBonuses.maxHealth_bonus += item.stats.maxHealth;
                     if (item.stats.maxMana) {
-                        if (shouldLog) {
-                            console.log(`Character: getSummary: ${item.name} provides +${item.stats.maxMana} mana bonus`);
-                        }
+                        // if (shouldLog) {
+                        //     console.log(`Character: getSummary: ${item.name} provides +${item.stats.maxMana} mana bonus`);
+                        // }
                         equipmentBonuses.maxMana_bonus += item.stats.maxMana;
                     }
                     if (item.stats.attackPower) equipmentBonuses.attackPower_bonus += item.stats.attackPower;
@@ -302,9 +332,9 @@ export class Character {
                 }
             }
             
-            if (shouldLog) {
-                console.log("Character: getSummary: Equipment bonuses calculated:", equipmentBonuses);
-            }
+            // if (shouldLog) {
+            //     console.log("Character: getSummary: Equipment bonuses calculated:", equipmentBonuses);
+            // }
         }
         
         const summary = {
@@ -323,14 +353,15 @@ export class Character {
             defense: this.calculateDefense(),          // Use calculated value
             criticalChance: this.calculateCriticalChance(),  // Use calculated value
             skillPoints: this.skillPoints,
+            statPoints: this.statPoints,
             // Add equipment bonuses
             ...equipmentBonuses
         };
         
-        if (shouldLog) {
-            console.log(`Character: getSummary: Final summary - maxMana: ${summary.maxMana}, maxMana_bonus: ${summary.maxMana_bonus}`);
-            this.lastDebugLog = now;
-        }
+        // if (shouldLog) {
+        //    console.log(`Character: getSummary: Final summary - maxMana: ${summary.maxMana}, maxMana_bonus: ${summary.maxMana_bonus}`);
+        //    this.lastDebugLog = now;
+        // }
         
         return summary;
     }

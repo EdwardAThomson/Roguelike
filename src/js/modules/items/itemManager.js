@@ -5,7 +5,7 @@ export class ItemManager {
     constructor(game) {
         this.game = game;
         this.itemsOnGround = []; // Items in the dungeon
-        this.itemDB = new ItemDatabase();
+        this.itemDB = new ItemDatabase(game); // Pass game for spell data access
         
         // Debug output about the item database
         if (this.itemDB && this.itemDB.items) {

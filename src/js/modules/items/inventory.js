@@ -55,7 +55,7 @@ export class Inventory {
     }
     
     // Use an item at a specific index
-    useItem(index, entity) {
+    useItem(index, entity, game) {
         const item = this.getItem(index);
         if (!item) return false;
         
@@ -64,7 +64,8 @@ export class Inventory {
             return false;
         }
         
-        const used = item.use(entity);
+        // Pass game object for spell scrolls that need targeting
+        const used = item.use(entity, game);
         
         // If item was used and quantity is now 0, remove it
         if (used && item.quantity <= 0) {

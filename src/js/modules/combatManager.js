@@ -41,7 +41,7 @@ export class CombatManager {
         
         // Random variance (80% to 120% of base damage)
         const variance = 0.8 + Math.random() * 0.4;
-        console.log(`CombatManager: Variance: ${variance}`);
+        // console.log(`CombatManager: Variance: ${variance}`);
 
         // Calculate final damage - minimum 1 damage to prevent invulnerability
         const rawDamage = Math.floor(baseDamage * variance * criticalMultiplier);
