@@ -18,6 +18,9 @@ export class Monster extends Character {
         this.aggressive = true; // Whether monster will pursue player
         this.awareOfPlayer = false; // Whether monster has seen player
         this.detectionRange = 5; // How far monster can see
+        this.lastKnownPlayerPos = null; // Pursue here after losing line of sight
+        this.turnsSincePlayerSeen = 0; // Move-ticks since the player was last visible
+        this.loseInterestTurns = 8; // Give up the chase after this many ticks unseen
         this.xpValue = 10; // XP given when defeated
         
         // Apply type-specific properties
@@ -39,25 +42,43 @@ export class Monster extends Character {
         
         // Check if player is in detection range
         const distance = this.getDistanceToPlayer(game.player);
-        
+
         // Check if player is visible
-        const key = `${this.x},${this.y}`;
         const playerKey = `${game.player.x},${game.player.y}`;
         const canSeePlayer = game.fov.visible.has(playerKey);
-        
-        // Become aware of player if in range and visible
+
+        // Become aware of player (and refresh last-known position) when in sight
         if (distance <= this.detectionRange && canSeePlayer) {
             this.awareOfPlayer = true;
+            this.turnsSincePlayerSeen = 0;
+            this.lastKnownPlayerPos = { x: game.player.x, y: game.player.y };
         }
-        
-        // If aware of player and aggressive, attempt to move toward player
+
+        // If aware of player and aggressive, attempt to pursue
         if (this.awareOfPlayer && this.aggressive) {
             // Only move if enough time has passed
             if (this.lastMove >= this.moveDelay) {
-                this.moveTowardPlayer(game);
+                if (canSeePlayer) {
+                    // In sight: chase the player directly
+                    this.moveToward(game, game.player.x, game.player.y);
+                } else {
+                    // Lost sight: head for the last-known position, then give up
+                    this.turnsSincePlayerSeen++;
+                    const reachedLastKnown = this.lastKnownPlayerPos &&
+                        this.x === this.lastKnownPlayerPos.x &&
+                        this.y === this.lastKnownPlayerPos.y;
+                    if (!this.lastKnownPlayerPos || reachedLastKnown ||
+                        this.turnsSincePlayerSeen > this.loseInterestTurns) {
+                        this.awareOfPlayer = false;
+                        this.lastKnownPlayerPos = null;
+                        this.moveRandomly(game);
+                    } else {
+                        this.moveToward(game, this.lastKnownPlayerPos.x, this.lastKnownPlayerPos.y);
+                    }
+                }
                 this.lastMove = 0;
             }
-            
+
             // Try to attack player if adjacent
             if (this.isAdjacentToPlayer(game.player) && this.lastAttack >= this.attackDelay) {
                 this.attackPlayer(game);
@@ -71,8 +92,8 @@ export class Monster extends Character {
     }
     
     getDistanceToPlayer(player) {
-        // Manhattan distance
-        return Math.abs(this.x - player.x) + Math.abs(this.y - player.y);
+        // Chebyshev distance — matches 8-directional movement (diagonals cost 1)
+        return Math.max(Math.abs(this.x - player.x), Math.abs(this.y - player.y));
     }
     
     isAdjacentToPlayer(player) {
@@ -82,29 +103,39 @@ export class Monster extends Character {
         return dx <= 1 && dy <= 1 && !(dx === 0 && dy === 0);
     }
     
-    moveTowardPlayer(game) {
-        // Simple A* pathfinding toward player
-        const player = game.player;
-        
-        // Determine best direction to move
+    moveToward(game, targetX, targetY) {
+        // Prefer a real path so we can route around walls and out of dead ends.
+        const path = this.findPath(this.x, this.y, targetX, targetY, game);
+        if (path && path.length >= 2) {
+            const next = path[1];
+            if (this.canMoveTo(next.x, next.y, game)) {
+                this.x = next.x;
+                this.y = next.y;
+                return;
+            }
+            // Next step is blocked by another entity — fall through to a greedy
+            // sidestep so we don't stall behind a fellow monster.
+        }
+
+        this.stepGreedyToward(game, targetX, targetY);
+    }
+
+    stepGreedyToward(game, targetX, targetY) {
+        // Single best-distance step; used as a fallback when no path is available
+        // or the planned tile is temporarily occupied.
         let bestX = this.x;
         let bestY = this.y;
-        let bestDistance = this.getDistanceToPlayer(player);
-        
-        // Check all adjacent tiles
+        let bestDistance = Math.max(Math.abs(this.x - targetX), Math.abs(this.y - targetY));
+
         for (let dy = -1; dy <= 1; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
-                if (dx === 0 && dy === 0) continue; // Skip current position
-                
+                if (dx === 0 && dy === 0) continue;
+
                 const newX = this.x + dx;
                 const newY = this.y + dy;
-                
-                // Check if tile is walkable
+
                 if (this.canMoveTo(newX, newY, game)) {
-                    // Calculate new distance to player
-                    const newDistance = Math.abs(newX - player.x) + Math.abs(newY - player.y);
-                    
-                    // Choose this tile if it gets us closer to the player
+                    const newDistance = Math.max(Math.abs(newX - targetX), Math.abs(newY - targetY));
                     if (newDistance < bestDistance) {
                         bestX = newX;
                         bestY = newY;
@@ -113,12 +144,82 @@ export class Monster extends Character {
                 }
             }
         }
-        
-        // Move to the best position if it's not our current position
+
         if (bestX !== this.x || bestY !== this.y) {
             this.x = bestX;
             this.y = bestY;
         }
+    }
+
+    findPath(startX, startY, goalX, goalY, game) {
+        // A* over the floor grid with a Chebyshev heuristic (8-directional moves).
+        // Other monsters and the player are dynamic, so they are NOT treated as
+        // obstacles here; moveToward() only commits a step if the tile is free.
+        const isWalkable = (x, y) => {
+            if (x < 0 || x >= game.gridWidth || y < 0 || y >= game.gridHeight) return false;
+            return game.map[y][x] === 'floor';
+        };
+
+        if (!isWalkable(goalX, goalY)) return null;
+
+        const key = (x, y) => `${x},${y}`;
+        const startKey = key(startX, startY);
+        const goalKey = key(goalX, goalY);
+        const heuristic = (x, y) => Math.max(Math.abs(x - goalX), Math.abs(y - goalY));
+
+        const open = [{ x: startX, y: startY, f: heuristic(startX, startY) }];
+        const cameFrom = new Map();
+        const gScore = new Map([[startKey, 0]]);
+        const closed = new Set();
+
+        let iterations = 0;
+        const maxIterations = game.gridWidth * game.gridHeight;
+
+        while (open.length > 0 && iterations++ < maxIterations) {
+            // Small grids — a linear scan for the lowest-f node is fine.
+            let bestIdx = 0;
+            for (let i = 1; i < open.length; i++) {
+                if (open[i].f < open[bestIdx].f) bestIdx = i;
+            }
+            const current = open.splice(bestIdx, 1)[0];
+            const currentKey = key(current.x, current.y);
+
+            if (currentKey === goalKey) {
+                const path = [{ x: current.x, y: current.y }];
+                let ck = currentKey;
+                while (cameFrom.has(ck)) {
+                    const prev = cameFrom.get(ck);
+                    path.unshift({ x: prev.x, y: prev.y });
+                    ck = key(prev.x, prev.y);
+                }
+                return path;
+            }
+
+            if (closed.has(currentKey)) continue;
+            closed.add(currentKey);
+
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+
+                    const nx = current.x + dx;
+                    const ny = current.y + dy;
+                    if (!isWalkable(nx, ny)) continue;
+
+                    const nKey = key(nx, ny);
+                    if (closed.has(nKey)) continue;
+
+                    const tentativeG = (gScore.get(currentKey) ?? Infinity) + 1;
+                    if (tentativeG < (gScore.get(nKey) ?? Infinity)) {
+                        cameFrom.set(nKey, { x: current.x, y: current.y });
+                        gScore.set(nKey, tentativeG);
+                        open.push({ x: nx, y: ny, f: tentativeG + heuristic(nx, ny) });
+                    }
+                }
+            }
+        }
+
+        return null;
     }
     
     moveRandomly(game) {

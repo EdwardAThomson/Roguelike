@@ -12,7 +12,7 @@ This document outlines the planned features and enhancements for the Modern Rogu
 - Allow players to load a saved game from the main menu.
 
 ## 2. Enhanced Monster AI and Pathfinding `[PARTIAL]`
-<!-- Greedy distance-based pursuit + detection range exist (monster.js); no A*/Dijkstra, limited per-type behavior. -->
+<!-- A* pathfinding around walls, Chebyshev distance, and lose-aggro-after-losing-sight implemented (monster.js). Still no distinct per-type behaviors/attack patterns. -->
 - Improve monster AI to make them more challenging and engaging.
 - Implement pathfinding algorithms (e.g., A* or Dijkstra's) to enable monsters to intelligently navigate the dungeon.
 - Make monsters aware of the player's presence and pursue them when in range.
@@ -79,7 +79,7 @@ The roadmap can be prioritized and adjusted based on feedback, resources, and de
 - Mana potions should be consumable and should restore mana when used. `[DONE]`
 - Monsters should drop items. `[DONE]` (monster.js `dropLoot()` — gold, potions, scrolls, equipment)
 - Monsters should be stronger. `[TODO]`
-- Monsters need to be more intelligent (better pathfinding, more aware of the player). `[PARTIAL]` (greedy pursuit + detection range; no A*/Dijkstra)
+- Monsters need to be more intelligent (better pathfinding, more aware of the player). `[PARTIAL]` (A* pathfinding + pursue last-known position + lose interest after losing sight; per-type behaviors still pending)
 
 ### Nice to have
 - Staves should be usable and should cast a spell when used. `[TODO]` (staff exists as a weapon with an Intelligence bonus, but has no spell-cast-on-use)
