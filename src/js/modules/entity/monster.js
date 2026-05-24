@@ -22,6 +22,18 @@ export class Monster extends Character {
         this.turnsSincePlayerSeen = 0; // Move-ticks since the player was last visible
         this.loseInterestTurns = 8; // Give up the chase after this many ticks unseen
         this.xpValue = 10; // XP given when defeated
+
+        // Behavior archetype + tuning (overridable from the monster database)
+        this.behavior = 'melee'; // 'melee' | 'skittish' | 'erratic' | 'ranged' | 'pack'
+        this.fleeHealthThreshold = 0.25; // skittish: flee below this fraction of max HP
+        this.erraticChance = 0.4; // erratic: chance per tick to dart randomly while engaged
+        this.attackRange = 1; // ranged: max tiles to fire from (melee leaves this at 1)
+        this.preferredDistance = 0; // ranged: back away if the player is closer than this
+        this.packRallyRange = 6; // pack: rally to an aware packmate within this many tiles
+        this.rangedDamageType = 'physical'; // flavor/color of ranged hits
+        this.rangedProjectileSymbol = '•';
+        this.rangedProjectileColor = null; // null -> use the monster's own color
+        this.rangedVerb = 'attacks from afar';
         
         // Apply type-specific properties
         if (type) {
@@ -40,55 +52,206 @@ export class Monster extends Character {
         
         if (!game.player) return;
         
-        // Check if player is in detection range
+        // The monster can see the player when within detection range AND there is
+        // a clear line of sight. (Short-circuit keeps the LoS trace cheap — at most
+        // detectionRange tiles long.) Note: fov.visible is the *player's* FOV, so it
+        // can't answer "does this monster see the player"; we trace LoS ourselves.
         const distance = this.getDistanceToPlayer(game.player);
+        const canSeePlayer = distance <= this.detectionRange &&
+            game.fov.hasLineOfSight(this.x, this.y, game.player.x, game.player.y);
 
-        // Check if player is visible
-        const playerKey = `${game.player.x},${game.player.y}`;
-        const canSeePlayer = game.fov.visible.has(playerKey);
-
-        // Become aware of player (and refresh last-known position) when in sight
-        if (distance <= this.detectionRange && canSeePlayer) {
-            this.awareOfPlayer = true;
-            this.turnsSincePlayerSeen = 0;
-            this.lastKnownPlayerPos = { x: game.player.x, y: game.player.y };
+        // Become aware of the player (and refresh last-known position) when in sight
+        if (canSeePlayer) {
+            this.becomeAware(game);
+        } else if (!this.awareOfPlayer && this.behavior === 'pack') {
+            // Pack hunters rally to a packmate that has already found the player
+            this.tryRallyToPack(game);
         }
 
-        // If aware of player and aggressive, attempt to pursue
+        // Dispatch to behavior-specific logic when actively hunting
         if (this.awareOfPlayer && this.aggressive) {
-            // Only move if enough time has passed
-            if (this.lastMove >= this.moveDelay) {
-                if (canSeePlayer) {
-                    // In sight: chase the player directly
-                    this.moveToward(game, game.player.x, game.player.y);
-                } else {
-                    // Lost sight: head for the last-known position, then give up
-                    this.turnsSincePlayerSeen++;
-                    const reachedLastKnown = this.lastKnownPlayerPos &&
-                        this.x === this.lastKnownPlayerPos.x &&
-                        this.y === this.lastKnownPlayerPos.y;
-                    if (!this.lastKnownPlayerPos || reachedLastKnown ||
-                        this.turnsSincePlayerSeen > this.loseInterestTurns) {
-                        this.awareOfPlayer = false;
-                        this.lastKnownPlayerPos = null;
-                        this.moveRandomly(game);
-                    } else {
-                        this.moveToward(game, this.lastKnownPlayerPos.x, this.lastKnownPlayerPos.y);
-                    }
-                }
-                this.lastMove = 0;
-            }
-
-            // Try to attack player if adjacent
-            if (this.isAdjacentToPlayer(game.player) && this.lastAttack >= this.attackDelay) {
-                this.attackPlayer(game);
-                this.lastAttack = 0;
-            }
+            this.act(game, canSeePlayer);
         } else if (this.lastMove >= this.moveDelay) {
-            // Random movement when not pursuing
+            // Idle wandering when not pursuing
             this.moveRandomly(game);
             this.lastMove = 0;
         }
+    }
+
+    becomeAware(game) {
+        this.awareOfPlayer = true;
+        this.turnsSincePlayerSeen = 0;
+        this.lastKnownPlayerPos = { x: game.player.x, y: game.player.y };
+    }
+
+    tryRallyToPack(game) {
+        const ally = game.monsters.find(m =>
+            m !== this &&
+            m.behavior === 'pack' &&
+            m.awareOfPlayer &&
+            m.lastKnownPlayerPos &&
+            Math.max(Math.abs(m.x - this.x), Math.abs(m.y - this.y)) <= this.packRallyRange
+        );
+        if (ally) {
+            this.awareOfPlayer = true;
+            this.turnsSincePlayerSeen = 0;
+            this.lastKnownPlayerPos = { ...ally.lastKnownPlayerPos };
+        }
+    }
+
+    act(game, canSeePlayer) {
+        switch (this.behavior) {
+            case 'ranged':   this.actRanged(game, canSeePlayer); break;
+            case 'skittish': this.actSkittish(game, canSeePlayer); break;
+            case 'erratic':  this.actErratic(game, canSeePlayer); break;
+            default:         this.actMelee(game, canSeePlayer); break; // melee + pack
+        }
+    }
+
+    actMelee(game, canSeePlayer) {
+        if (this.lastMove >= this.moveDelay) {
+            this.pursueMovement(game, canSeePlayer);
+            this.lastMove = 0;
+        }
+        this.tryMeleeAttack(game);
+    }
+
+    actErratic(game, canSeePlayer) {
+        if (this.lastMove >= this.moveDelay) {
+            // Dart unpredictably while engaged, but home in once sight is lost so
+            // the give-up logic can still run.
+            if (canSeePlayer && Math.random() < this.erraticChance) {
+                this.moveRandomly(game);
+            } else {
+                this.pursueMovement(game, canSeePlayer);
+            }
+            this.lastMove = 0;
+        }
+        this.tryMeleeAttack(game);
+    }
+
+    actSkittish(game, canSeePlayer) {
+        const lowHealth = this.health <= this.maxHealth * this.fleeHealthThreshold;
+        if (lowHealth && canSeePlayer) {
+            if (this.lastMove >= this.moveDelay) {
+                this.fleeFrom(game, game.player.x, game.player.y);
+                this.lastMove = 0;
+            }
+            // Still bite back if the player corners it
+            this.tryMeleeAttack(game);
+            return;
+        }
+        this.actMelee(game, canSeePlayer);
+    }
+
+    actRanged(game, canSeePlayer) {
+        if (this.lastMove >= this.moveDelay) {
+            if (canSeePlayer) {
+                const distance = this.getDistanceToPlayer(game.player);
+                if (distance < this.preferredDistance) {
+                    this.fleeFrom(game, game.player.x, game.player.y); // kite back
+                } else if (distance > this.attackRange) {
+                    this.moveToward(game, game.player.x, game.player.y); // close to firing range
+                }
+                // otherwise hold position and shoot
+            } else {
+                this.pursueMovement(game, canSeePlayer);
+            }
+            this.lastMove = 0;
+        }
+
+        if (canSeePlayer &&
+            this.lastAttack >= this.attackDelay &&
+            this.getDistanceToPlayer(game.player) <= this.attackRange) {
+            this.fireRangedAttack(game);
+            this.lastAttack = 0;
+        }
+    }
+
+    tryMeleeAttack(game) {
+        if (this.isAdjacentToPlayer(game.player) && this.lastAttack >= this.attackDelay) {
+            this.attackPlayer(game);
+            this.lastAttack = 0;
+        }
+    }
+
+    pursueMovement(game, canSeePlayer) {
+        if (canSeePlayer) {
+            // In sight: chase the player directly
+            this.moveToward(game, game.player.x, game.player.y);
+            return;
+        }
+
+        // Lost sight: head for the last-known position, then give up
+        this.turnsSincePlayerSeen++;
+        const reachedLastKnown = this.lastKnownPlayerPos &&
+            this.x === this.lastKnownPlayerPos.x &&
+            this.y === this.lastKnownPlayerPos.y;
+        if (!this.lastKnownPlayerPos || reachedLastKnown ||
+            this.turnsSincePlayerSeen > this.loseInterestTurns) {
+            this.awareOfPlayer = false;
+            this.lastKnownPlayerPos = null;
+            this.moveRandomly(game);
+        } else {
+            this.moveToward(game, this.lastKnownPlayerPos.x, this.lastKnownPlayerPos.y);
+        }
+    }
+
+    fleeFrom(game, threatX, threatY) {
+        // Step to the adjacent walkable tile that maximizes Chebyshev distance from the threat
+        let bestX = this.x;
+        let bestY = this.y;
+        let bestDistance = Math.max(Math.abs(this.x - threatX), Math.abs(this.y - threatY));
+
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue;
+
+                const newX = this.x + dx;
+                const newY = this.y + dy;
+
+                if (this.canMoveTo(newX, newY, game)) {
+                    const newDistance = Math.max(Math.abs(newX - threatX), Math.abs(newY - threatY));
+                    if (newDistance > bestDistance) {
+                        bestX = newX;
+                        bestY = newY;
+                        bestDistance = newDistance;
+                    }
+                }
+            }
+        }
+
+        if (bestX !== this.x || bestY !== this.y) {
+            this.x = bestX;
+            this.y = bestY;
+        }
+    }
+
+    fireRangedAttack(game) {
+        if (!game.projectileManager) {
+            // No projectile system available — fall back to a melee swing if adjacent
+            this.tryMeleeAttack(game);
+            return;
+        }
+
+        game.projectileManager.createProjectile({
+            sourceX: this.x,
+            sourceY: this.y,
+            targetX: game.player.x,
+            targetY: game.player.y,
+            damage: this.calculateDamage(),
+            // 'magical' avoids the physical double-defense path in applyDamage;
+            // the player's defense is still applied once via takeDamage.
+            type: 'magical',
+            damageType: this.rangedDamageType,
+            symbol: this.rangedProjectileSymbol,
+            color: this.rangedProjectileColor || this.color,
+            speed: 1,
+            source: this,
+            name: `${this.name}'s attack`
+        });
+
+        game.ui.addMessage(`The ${this.name} ${this.rangedVerb}!`, '#f80');
     }
     
     getDistanceToPlayer(player) {
