@@ -13,13 +13,17 @@ npm start            # Serve at http://localhost:8080 via http-server
 npm run dev          # Alternative dev server via vite
 npx http-server . -p 8080 -c-1 -o   # Dev with caching disabled (recommended when iterating)
 
+npm test             # Run the Vitest unit tests once
+npm run test:watch   # Run Vitest in watch mode
+npx vitest run test/monsterPathfinding.test.js   # Run a single test file
+
 # Version management (updates package.json AND src/js/version.js together)
 npm run bump:patch   # 0.4.0 -> 0.4.1
 npm run bump:minor   # 0.4.0 -> 0.5.0
 npm run bump:major   # 0.4.0 -> 1.0.0
 ```
 
-There is no test suite, no linter, and no build step. Changes are validated by loading the game in a browser.
+There is no linter and no build step in the runtime path. Vitest covers the **pure logic** that is decoupled from the DOM/canvas (pathfinding, combat math, the monster database, distance/geometry) — tests live in `test/`. Most managers are deeply coupled to `game`, the DOM, and the canvas, so they are not unit-tested; gameplay and UI changes must still be validated by loading the game in a browser.
 
 `src/js/version.js` is the single source of truth for the in-game version string; `package.json` mirrors it. The `bump-version.js` script keeps them in sync — don't edit version numbers by hand in only one place. `CODENAME` and `RELEASE_DATE` in `version.js` must be updated manually after a bump.
 
@@ -53,6 +57,14 @@ A small set of debug/cheat keys (M for map reveal, Shift+G for gate debug) is wi
 The world is a grid of sections keyed by `"<worldX>_<worldY>"` (starting at `"0_0"`). `WorldManager` tracks `visitedSections`, `sectionDifficulty`, `sectionStates`, `sectionHistory`, and per-section `explorationMemory` (so FOV "explored" state persists when re-entering a section). `transitionToSection(x, y, fromDirection)` is the entry point for moving between sections; `main.js#transitionToWorldSection` is a thin shim that delegates.
 
 Each section gets a fresh `Dungeon` instance with `worldX`/`worldY`/`worldSectionId` set on it. The `Dungeon` class procedurally lays out rooms, connects them with corridors, and places gates/keys. Combat, item, and monster placement is driven by `CombatManager`, `ItemManager`, and `MonsterDatabase` respectively.
+
+### Monster AI
+
+Monster behavior is data-driven: each entry in `monsterDatabase.js` may set a `behavior` field, and `monster.js#act` dispatches to per-archetype logic. Archetypes are `melee` (default), `skittish` (flees below `fleeHealthThreshold`), `erratic` (darts randomly while engaged), `ranged` (kites to `preferredDistance` and fires projectiles within `attackRange`), and `pack` (rallies aware packmates within `packRallyRange`). To add behavior, add a `case` in `act()` plus tunable fields (default them in the `Monster` constructor and copy them through in `MonsterDatabase.createMonster`). Pursuit uses A* (`findPath`) with a greedy fallback and Chebyshev distance (8-directional movement).
+
+**Gotcha:** `fov.visible` is the *player's* field of view, so it always contains the player's own tile — it cannot tell you whether a monster can see the player. For monster→player sight, trace `fov.hasLineOfSight(mx, my, px, py)` instead (this is what gates detection and the lose-aggro timer in `monster.js`).
+
+Ranged monsters reuse the magic projectile system: they call `projectileManager.createProjectile({ source: this, ... })`. `ProjectileManager` skips monster-vs-monster collisions when `source` is a monster (so enemy shots don't friendly-fire), and uses `type: 'magical'` to avoid the physical-damage double defense reduction (`applyDamage` subtracts defense for `type: 'physical'`, and `Character.takeDamage` subtracts it again).
 
 ### Magic system
 
