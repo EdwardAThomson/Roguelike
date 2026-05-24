@@ -70,6 +70,8 @@ Ranged monsters reuse the magic projectile system: they call `projectileManager.
 
 Spells are data-driven via `spellDatabase.js`. The player owns a `spellbook` that maps slot indices (Q, R, F, V, X) to spell IDs. `ProjectileManager` advances projectiles every frame (even when paused, for visual continuity), `StatusEffectManager.processTurn()` ticks effects on each gameplay turn and cleans up dead entities, and `TargetingSystem` handles targeting overlays. Damage scales with Intelligence and character level — see `documentation/magic_system.md` and `documentation/spell_scaling_implementation.md` if changing scaling formulas.
 
+Castable items (`items/magicItem.js`) reuse this path: `Staff` (equippable mage weapon; casts via the Space "fire" key when equipped or the inventory Use action, spending the player's mana) and `Wand` (charge-based, casts for free until depleted). Both resolve their `spellId` against `spellDatabase` and delegate to `InputManager.castSpellForPlayer(spell)`, the shared entry point that auto-targets the nearest visible monster (offensive) or the player (self/healing) — the same logic the Q/R/F/V/X hotkeys use.
+
 Note: `spellbook_backup.js` exists alongside `spellbook.js` — `spellbook.js` is the active module; `spellbook_backup.js` is legacy and not imported.
 
 ### UI

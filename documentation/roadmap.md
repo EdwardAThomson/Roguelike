@@ -82,9 +82,9 @@ The roadmap can be prioritized and adjusted based on feedback, resources, and de
 - Monsters need to be more intelligent (better pathfinding, more aware of the player). `[DONE]` (A* pathfinding, line-of-sight detection, pursue last-known position, lose interest after losing sight, and per-type behaviors)
 
 ### Nice to have
-- Staves should be usable and should cast a spell when used. `[TODO]` (staff exists as a weapon with an Intelligence bonus, but has no spell-cast-on-use)
+- Staves should be usable and should cast a spell when used. `[DONE]` (Staff in magicItem.js — equip + Space, or Use from inventory, casts a bound spell using mana)
 - Scrolls should be usable and should cast a spell when used. `[DONE]` (consumable.js `Scroll.use()` unlocks a spell)
-- Wands should exist, be usable and should cast a spell when used. `[TODO]` (no wand item exists)
+- Wands should exist, be usable and should cast a spell when used. `[DONE]` (Wand in magicItem.js — charge-based, casts a bound spell for free until depleted)
 - Ranged weapons should exist, be usable and should fire a projectile when used. `[DONE]` (bows/crossbows/throwing weapons via combatManager.js + projectileManager.js)
 
 

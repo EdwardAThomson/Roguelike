@@ -1,6 +1,7 @@
 import { Item } from './item.js';
 import { Weapon, Armor, Accessory } from './equipment.js';
 import { HealthPotion, ManaPotion, Scroll } from './consumable.js';
+import { Staff, Wand } from './magicItem.js';
 
 // Item database - centralized location for all item definitions
 export class ItemDatabase {
@@ -75,13 +76,25 @@ export class ItemDatabase {
             stats: { attackPower: 10, strength: 2, dexterity: -1 }
         }));
         
-        this.registerItem(new Weapon({
+        this.registerItem(new Staff({
             id: 'staff',
             name: 'Wooden Staff',
-            description: 'A wooden staff that enhances magical abilities.',
+            description: 'A wooden staff that enhances magical abilities. Equip and press Space (or Use it) to cast Magic Missile with your mana.',
             icon: '🪄',
             value: 40,
-            stats: { attackPower: 4, intelligence: 2, maxMana: 10 }
+            stats: { attackPower: 4, intelligence: 2, maxMana: 10 },
+            spellId: 'magic_missile'
+        }));
+
+        this.registerItem(new Staff({
+            id: 'staff_of_flames',
+            name: 'Staff of Flames',
+            description: 'A smouldering staff. Equip and press Space (or Use it) to hurl a Fireball, drawing on your mana.',
+            icon: '🔥',
+            value: 110,
+            rarity: 'uncommon',
+            stats: { attackPower: 5, intelligence: 3, maxMana: 15 },
+            spellId: 'fireball'
         }));
         
         // INTERMEDIATE WEAPONS - Better progression
@@ -537,6 +550,31 @@ export class ItemDatabase {
             rarity: 'common'
         }));
         
+        // WANDS - usable items with limited charges that cast a spell for free
+        this.registerItem(new Wand({
+            id: 'wand_of_magic_missiles',
+            name: 'Wand of Magic Missiles',
+            description: 'A slender wand. Use it to fire a Magic Missile without spending mana.',
+            icon: '🪄',
+            color: '#9370db',
+            value: 45,
+            rarity: 'common',
+            spellId: 'magic_missile',
+            maxCharges: 7
+        }));
+
+        this.registerItem(new Wand({
+            id: 'wand_of_frost',
+            name: 'Wand of Frost',
+            description: 'A frost-rimed wand. Use it to loose an Ice Shard without spending mana.',
+            icon: '❄️',
+            color: '#00bfff',
+            value: 80,
+            rarity: 'uncommon',
+            spellId: 'ice_shard',
+            maxCharges: 5
+        }));
+
         // MISCELLANEOUS
         this.registerItem(new Item({
             id: 'gold',

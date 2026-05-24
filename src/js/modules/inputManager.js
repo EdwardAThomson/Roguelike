@@ -265,18 +265,18 @@ export class InputManager {
         }
     }
     
-    // Cast spell from spellbook slot (0-8 for keys 1-9)
+    // Cast spell from spellbook slot (0-4 for keys Q,R,F,V,X)
     castSpellFromSlot(slotIndex) {
         console.log(`✨ castSpellFromSlot: Slot ${slotIndex + 1} pressed`);
-        
+
         if (!this.game.player || !this.game.player.spellbook) {
             console.log('❌ castSpellFromSlot: No player or spellbook found!');
             return;
         }
-        
+
         // Get spell from slot
         const spell = this.game.player.spellbook.getSpellInSlot(slotIndex);
-        
+
         if (!spell) {
             console.log(`❌ castSpellFromSlot: No spell in slot ${slotIndex + 1}`);
             if (this.game.ui) {
@@ -284,47 +284,45 @@ export class InputManager {
             }
             return;
         }
-        
-        console.log(`✨ castSpellFromSlot: Casting ${spell.name}`);
-        
-        // Check mana cost
-        if (this.game.player.mana < spell.manaCost) {
-            console.log(`❌ castSpellFromSlot: Not enough mana! Need ${spell.manaCost}, have ${this.game.player.mana}`);
-            if (this.game.ui) {
-                this.game.ui.addMessage(`Not enough mana! (Need ${spell.manaCost})`, '#f55');
-            }
-            return;
+
+        this.castSpellForPlayer(spell);
+    }
+
+    /**
+     * Cast a resolved Spell instance for the player, auto-targeting the nearest
+     * visible monster for offensive spells and the player for self/healing ones.
+     * Shared by the spell hotkeys and castable items (staves/wands).
+     * @returns {boolean} whether the spell was cast
+     */
+    castSpellForPlayer(spell) {
+        if (!spell) return false;
+
+        // Healing / self-targeted spells affect the player directly
+        if (spell.type === 'healing' || spell.targetType === 'self') {
+            return this.castHealingSpell(spell);
         }
-        
-        // Cast based on spell type
-        if (spell.type === 'healing' || (spell.targetType === 'self')) {
-            this.castHealingSpell(spell);
-        } else if (spell.type === 'offensive' || spell.type === 'damage') {
-            // Use proper Spell.cast() method for visual projectiles
+
+        // Offensive spells auto-target the nearest visible monster
+        if (spell.type === 'offensive' || spell.type === 'damage') {
+            const nearestMonster = this.findNearestMonster(spell.range || 10);
+            if (!nearestMonster) {
+                if (this.game.ui) this.game.ui.addMessage('No targets in range!', '#f55');
+                return false;
+            }
+
             if (spell.cast) {
-                // Find nearest monster as target
-                const nearestMonster = this.findNearestMonster(spell.range || 10);
-                
-                if (!nearestMonster) {
-                    console.log('❌ castDamageSpell: No monsters in range!');
-                    if (this.game.ui) {
-                        this.game.ui.addMessage('No targets in range!', '#f55');
-                    }
-                    return;
-                }
-                
-                console.log(`✨ Casting ${spell.name} at ${nearestMonster.name} (${nearestMonster.x}, ${nearestMonster.y})`);
-                spell.cast(this.game.player, nearestMonster.x, nearestMonster.y, this.game);
-            } else {
-                // Fallback to old instant damage method
-                this.castDamageSpell(spell);
+                return spell.cast(this.game.player, nearestMonster.x, nearestMonster.y, this.game) === true;
             }
-        } else {
-            console.warn(`⚠️ Unknown spell type: ${spell.type}`);
-            if (this.game.ui) {
-                this.game.ui.addMessage(`Cannot cast ${spell.name} - unknown spell type!`, '#f55');
-            }
+            // Fallback to legacy instant-damage path
+            this.castDamageSpell(spell);
+            return true;
         }
+
+        console.warn(`⚠️ Unknown spell type: ${spell.type}`);
+        if (this.game.ui) {
+            this.game.ui.addMessage(`Cannot cast ${spell.name} - unknown spell type!`, '#f55');
+        }
+        return false;
     }
     
     // Cast healing spell on self
@@ -336,7 +334,7 @@ export class InputManager {
             if (this.game.ui) {
                 this.game.ui.addMessage(`Not enough mana! (Need ${spell.manaCost})`, '#f55');
             }
-            return;
+            return false;
         }
         
         // Calculate healing amount using Spell's calculateDamage method
@@ -366,6 +364,7 @@ export class InputManager {
         if (this.game.ui) {
             this.game.ui.addMessage(`${spell.icon} ${spell.name} heals you for ${actualHealing} HP!`, '#0f0');
         }
+        return true;
     }
     
     // Cast damage spell at nearest monster
@@ -533,12 +532,21 @@ export class InputManager {
     handleRangedWeaponFire() {
         // Check if player has a ranged weapon equipped
         const weapon = this.game.player.inventory?.getEquippedWeapon();
-        
+
         if (!weapon) {
             this.game.ui.addMessage('No weapon equipped!', '#f55');
             return;
         }
-        
+
+        // A staff channels its bound spell instead of firing a projectile
+        if (weapon.spellId && this.game.spellDatabase) {
+            const spell = this.game.spellDatabase.getSpell(weapon.spellId);
+            if (spell) {
+                this.castSpellForPlayer(spell);
+                return;
+            }
+        }
+
         if (!weapon.isRanged()) {
             this.game.ui.addMessage('You need a ranged weapon equipped! (Bow, Crossbow, etc.)', '#f55');
             return;
