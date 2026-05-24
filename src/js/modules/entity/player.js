@@ -230,22 +230,8 @@ export class Player extends Character {
         const success = this.inventory.useItem(index, this, game);
         if (success) {
             game.ui.addMessage(`Used ${item.name}`, '#5f5');
-            
-            // Handle healing items
-            if (item.stats && item.stats.healAmount) {
-                game.ui.addMessage(`Healed for ${item.stats.healAmount} HP`, '#5f5');
-                this.health = Math.min(this.health + item.stats.healAmount, this.maxHealth); // restored.
-            }
-            
-            // Handle mana restoration items
-            if (item.stats && item.stats.manaRestore) {
-                game.ui.addMessage(`Restored ${item.stats.manaRestore} MP`, '#55f');
-                this.mana = Math.min(this.mana + item.stats.manaRestore, this.maxMana); // restored.
-            }
-            
-            // Note: Item consumption is handled by inventory.useItem() method
-            // No need to manually decrement or remove items here
-            
+            // Effects (healing, mana restore, etc.) and consumption are handled
+            // by the item's own use() via inventory.useItem().
             return true;
         }
         return false;
