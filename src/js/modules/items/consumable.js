@@ -53,14 +53,9 @@ export class HealthPotion extends Consumable {
         }
     }
 
-    use(entity, game) {
+    use(entity) {
         if (super.use(entity)) {
-            const healAmount = this.stats.healAmount || 20;
-            const before = entity.health;
-            entity.heal(healAmount);
-            if (game && game.ui) {
-                game.ui.addMessage(`Healed for ${entity.health - before} HP`, '#5f5');
-            }
+            entity.heal(this.stats.healAmount || 20);
             return true;
         }
         return false;
@@ -101,14 +96,10 @@ export class ManaPotion extends Consumable {
         }
     }
 
-    use(entity, game) {
+    use(entity) {
         if (super.use(entity)) {
             const manaRestore = this.stats.manaRestore || 15;
-            const before = entity.mana;
             entity.mana = Math.min(entity.mana + manaRestore, entity.maxMana);
-            if (game && game.ui) {
-                game.ui.addMessage(`Restored ${entity.mana - before} MP`, '#55f');
-            }
             return true;
         }
         return false;

@@ -226,12 +226,20 @@ export class Player extends Character {
             return false;
         }
         
-        // Pass game object to useItem for spell scrolls
+        // Pass game object to useItem for spell scrolls.
+        // Snapshot HP/MP so we can report what the item actually restored
+        // (the item's own use() applies the effect and consumption).
+        const healthBefore = this.health;
+        const manaBefore = this.mana;
         const success = this.inventory.useItem(index, this, game);
         if (success) {
             game.ui.addMessage(`Used ${item.name}`, '#5f5');
-            // Effects (healing, mana restore, etc.) and consumption are handled
-            // by the item's own use() via inventory.useItem().
+
+            const healed = this.health - healthBefore;
+            if (healed > 0) game.ui.addMessage(`Healed for ${healed} HP`, '#5f5');
+            const restored = this.mana - manaBefore;
+            if (restored > 0) game.ui.addMessage(`Restored ${restored} MP`, '#55f');
+
             return true;
         }
         return false;
