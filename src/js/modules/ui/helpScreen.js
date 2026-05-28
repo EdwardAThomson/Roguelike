@@ -307,19 +307,23 @@ export class HelpScreen {
                     </tr>
                     <tr>
                         <td>Move Up</td>
-                        <td><span class="help-key">↑</span> or <span class="help-key">W</span></td>
+                        <td><span class="help-key">↑</span> or <span class="help-key">W</span> or <span class="help-key">Num 8</span></td>
                     </tr>
                     <tr>
                         <td>Move Down</td>
-                        <td><span class="help-key">↓</span> or <span class="help-key">S</span></td>
+                        <td><span class="help-key">↓</span> or <span class="help-key">S</span> or <span class="help-key">Num 2</span></td>
                     </tr>
                     <tr>
                         <td>Move Left</td>
-                        <td><span class="help-key">←</span> or <span class="help-key">A</span></td>
+                        <td><span class="help-key">←</span> or <span class="help-key">A</span> or <span class="help-key">Num 4</span></td>
                     </tr>
                     <tr>
                         <td>Move Right</td>
-                        <td><span class="help-key">→</span> or <span class="help-key">D</span></td>
+                        <td><span class="help-key">→</span> or <span class="help-key">D</span> or <span class="help-key">Num 6</span></td>
+                    </tr>
+                    <tr>
+                        <td>Move Diagonally</td>
+                        <td><span class="help-key">Num 7</span> / <span class="help-key">Num 9</span> / <span class="help-key">Num 1</span> / <span class="help-key">Num 3</span></td>
                     </tr>
                 </table>
             </div>
@@ -660,7 +664,7 @@ export class HelpScreen {
                 <div class="help-section-title">How to Play</div>
                 <p>Your goal is to explore the dungeon, find valuable items, increase your character's power, and survive as long as possible.</p>
                 <ol>
-                    <li>Move through the dungeon using arrow keys or WASD</li>
+                    <li>Move through the dungeon using arrow keys, WASD, or the numpad (numpad supports diagonals)</li>
                     <li>Collect items by pressing G while standing on them</li>
                     <li>Equip better gear to increase your stats</li>
                     <li>Gain experience to level up and become stronger</li>

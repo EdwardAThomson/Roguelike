@@ -18,7 +18,25 @@ export class Monster extends Character {
         this.aggressive = true; // Whether monster will pursue player
         this.awareOfPlayer = false; // Whether monster has seen player
         this.detectionRange = 5; // How far monster can see
+        this.lastKnownPlayerPos = null; // Pursue here after losing line of sight
+        this.turnsSincePlayerSeen = 0; // Move-ticks since the player was last visible
+        this.loseInterestTurns = 8; // Give up the chase after this many ticks unseen
         this.xpValue = 10; // XP given when defeated
+
+        // Behavior archetype + tuning (overridable from the monster database)
+        this.behavior = 'melee'; // 'melee' | 'skittish' | 'erratic' | 'ranged' | 'pack'
+        this.fleeHealthThreshold = 0.25; // skittish: flee below this fraction of max HP
+        this.panicMovesRemaining = 0; // skittish: move-ticks of committed retreat after a wound
+        this.panicDuration = 4; // skittish: how many move-ticks a single panic lasts
+        this.panicMoveSlowdown = 1.5; // skittish: moveDelay multiplier while panicking (exhausted gait)
+        this.erraticChance = 0.4; // erratic: chance per tick to dart randomly while engaged
+        this.attackRange = 1; // ranged: max tiles to fire from (melee leaves this at 1)
+        this.preferredDistance = 0; // ranged: back away if the player is closer than this
+        this.packRallyRange = 6; // pack: rally to an aware packmate within this many tiles
+        this.rangedDamageType = 'physical'; // flavor/color of ranged hits
+        this.rangedProjectileSymbol = '•';
+        this.rangedProjectileColor = null; // null -> use the monster's own color
+        this.rangedVerb = 'attacks from afar';
         
         // Apply type-specific properties
         if (type) {
@@ -37,42 +55,223 @@ export class Monster extends Character {
         
         if (!game.player) return;
         
-        // Check if player is in detection range
+        // The monster can see the player when within detection range AND there is
+        // a clear line of sight. (Short-circuit keeps the LoS trace cheap — at most
+        // detectionRange tiles long.) Note: fov.visible is the *player's* FOV, so it
+        // can't answer "does this monster see the player"; we trace LoS ourselves.
         const distance = this.getDistanceToPlayer(game.player);
-        
-        // Check if player is visible
-        const key = `${this.x},${this.y}`;
-        const playerKey = `${game.player.x},${game.player.y}`;
-        const canSeePlayer = game.fov.visible.has(playerKey);
-        
-        // Become aware of player if in range and visible
-        if (distance <= this.detectionRange && canSeePlayer) {
-            this.awareOfPlayer = true;
+        const canSeePlayer = distance <= this.detectionRange &&
+            game.fov.hasLineOfSight(this.x, this.y, game.player.x, game.player.y);
+
+        // Become aware of the player (and refresh last-known position) when in sight
+        if (canSeePlayer) {
+            this.becomeAware(game);
+        } else if (!this.awareOfPlayer && this.behavior === 'pack') {
+            // Pack hunters rally to a packmate that has already found the player
+            this.tryRallyToPack(game);
         }
-        
-        // If aware of player and aggressive, attempt to move toward player
+
+        // Dispatch to behavior-specific logic when actively hunting
         if (this.awareOfPlayer && this.aggressive) {
-            // Only move if enough time has passed
-            if (this.lastMove >= this.moveDelay) {
-                this.moveTowardPlayer(game);
-                this.lastMove = 0;
-            }
-            
-            // Try to attack player if adjacent
-            if (this.isAdjacentToPlayer(game.player) && this.lastAttack >= this.attackDelay) {
-                this.attackPlayer(game);
-                this.lastAttack = 0;
-            }
+            this.act(game, canSeePlayer);
         } else if (this.lastMove >= this.moveDelay) {
-            // Random movement when not pursuing
+            // Idle wandering when not pursuing
             this.moveRandomly(game);
             this.lastMove = 0;
         }
     }
+
+    becomeAware(game) {
+        this.awareOfPlayer = true;
+        this.turnsSincePlayerSeen = 0;
+        this.lastKnownPlayerPos = { x: game.player.x, y: game.player.y };
+    }
+
+    tryRallyToPack(game) {
+        const ally = game.monsters.find(m =>
+            m !== this &&
+            m.behavior === 'pack' &&
+            m.awareOfPlayer &&
+            m.lastKnownPlayerPos &&
+            Math.max(Math.abs(m.x - this.x), Math.abs(m.y - this.y)) <= this.packRallyRange
+        );
+        if (ally) {
+            this.awareOfPlayer = true;
+            this.turnsSincePlayerSeen = 0;
+            this.lastKnownPlayerPos = { ...ally.lastKnownPlayerPos };
+        }
+    }
+
+    act(game, canSeePlayer) {
+        switch (this.behavior) {
+            case 'ranged':   this.actRanged(game, canSeePlayer); break;
+            case 'skittish': this.actSkittish(game, canSeePlayer); break;
+            case 'erratic':  this.actErratic(game, canSeePlayer); break;
+            default:         this.actMelee(game, canSeePlayer); break; // melee + pack
+        }
+    }
+
+    actMelee(game, canSeePlayer) {
+        if (this.lastMove >= this.moveDelay) {
+            this.pursueMovement(game, canSeePlayer);
+            this.lastMove = 0;
+        }
+        this.tryMeleeAttack(game);
+    }
+
+    actErratic(game, canSeePlayer) {
+        if (this.lastMove >= this.moveDelay) {
+            // Dart unpredictably while engaged, but home in once sight is lost so
+            // the give-up logic can still run.
+            if (canSeePlayer && Math.random() < this.erraticChance) {
+                this.moveRandomly(game);
+            } else {
+                this.pursueMovement(game, canSeePlayer);
+            }
+            this.lastMove = 0;
+        }
+        this.tryMeleeAttack(game);
+    }
+
+    actSkittish(game, canSeePlayer) {
+        // Panic is triggered by a wound (see takeDamageFromPlayer), not by
+        // spotting the player. The latch keeps the monster committed to its
+        // retreat even when line of sight breaks around a corner, so it can't
+        // pivot back into the threat on the next tick.
+        if (this.panicMovesRemaining > 0) {
+            // Panic widens the per-tick gap so cardinal pursuit can close on
+            // the monster's diagonal flee path. fleeFrom always picks the
+            // best Chebyshev step, which at the normal cadence is hard to
+            // catch without numpad diagonals.
+            const panicDelay = this.moveDelay * this.panicMoveSlowdown;
+            if (this.lastMove >= panicDelay) {
+                const threat = canSeePlayer
+                    ? { x: game.player.x, y: game.player.y }
+                    : this.lastKnownPlayerPos;
+                if (threat) this.fleeFrom(game, threat.x, threat.y);
+                this.panicMovesRemaining--;
+                this.lastMove = 0;
+            }
+            // Still bite back if the player corners it
+            this.tryMeleeAttack(game);
+            return;
+        }
+        this.actMelee(game, canSeePlayer);
+    }
+
+    actRanged(game, canSeePlayer) {
+        if (this.lastMove >= this.moveDelay) {
+            if (canSeePlayer) {
+                const distance = this.getDistanceToPlayer(game.player);
+                if (distance < this.preferredDistance) {
+                    this.fleeFrom(game, game.player.x, game.player.y); // kite back
+                } else if (distance > this.attackRange) {
+                    this.moveToward(game, game.player.x, game.player.y); // close to firing range
+                }
+                // otherwise hold position and shoot
+            } else {
+                this.pursueMovement(game, canSeePlayer);
+            }
+            this.lastMove = 0;
+        }
+
+        if (canSeePlayer &&
+            this.lastAttack >= this.attackDelay &&
+            this.getDistanceToPlayer(game.player) <= this.attackRange) {
+            this.fireRangedAttack(game);
+            this.lastAttack = 0;
+        }
+    }
+
+    tryMeleeAttack(game) {
+        if (this.isAdjacentToPlayer(game.player) && this.lastAttack >= this.attackDelay) {
+            this.attackPlayer(game);
+            this.lastAttack = 0;
+        }
+    }
+
+    pursueMovement(game, canSeePlayer) {
+        if (canSeePlayer) {
+            // In sight: chase the player directly
+            this.moveToward(game, game.player.x, game.player.y);
+            return;
+        }
+
+        // Lost sight: head for the last-known position, then give up
+        this.turnsSincePlayerSeen++;
+        const reachedLastKnown = this.lastKnownPlayerPos &&
+            this.x === this.lastKnownPlayerPos.x &&
+            this.y === this.lastKnownPlayerPos.y;
+        if (!this.lastKnownPlayerPos || reachedLastKnown ||
+            this.turnsSincePlayerSeen > this.loseInterestTurns) {
+            this.awareOfPlayer = false;
+            this.lastKnownPlayerPos = null;
+            this.moveRandomly(game);
+        } else {
+            this.moveToward(game, this.lastKnownPlayerPos.x, this.lastKnownPlayerPos.y);
+        }
+    }
+
+    fleeFrom(game, threatX, threatY) {
+        // Step to the adjacent walkable tile that maximizes Chebyshev distance from the threat
+        let bestX = this.x;
+        let bestY = this.y;
+        let bestDistance = Math.max(Math.abs(this.x - threatX), Math.abs(this.y - threatY));
+
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue;
+
+                const newX = this.x + dx;
+                const newY = this.y + dy;
+
+                if (this.canMoveTo(newX, newY, game)) {
+                    const newDistance = Math.max(Math.abs(newX - threatX), Math.abs(newY - threatY));
+                    if (newDistance > bestDistance) {
+                        bestX = newX;
+                        bestY = newY;
+                        bestDistance = newDistance;
+                    }
+                }
+            }
+        }
+
+        if (bestX !== this.x || bestY !== this.y) {
+            this.x = bestX;
+            this.y = bestY;
+        }
+    }
+
+    fireRangedAttack(game) {
+        if (!game.projectileManager) {
+            // No projectile system available — fall back to a melee swing if adjacent
+            this.tryMeleeAttack(game);
+            return;
+        }
+
+        game.projectileManager.createProjectile({
+            sourceX: this.x,
+            sourceY: this.y,
+            targetX: game.player.x,
+            targetY: game.player.y,
+            damage: this.calculateDamage(),
+            // 'magical' avoids the physical double-defense path in applyDamage;
+            // the player's defense is still applied once via takeDamage.
+            type: 'magical',
+            damageType: this.rangedDamageType,
+            symbol: this.rangedProjectileSymbol,
+            color: this.rangedProjectileColor || this.color,
+            speed: 1,
+            source: this,
+            name: `${this.name}'s attack`
+        });
+
+        game.ui.addMessage(`The ${this.name} ${this.rangedVerb}!`, '#f80');
+    }
     
     getDistanceToPlayer(player) {
-        // Manhattan distance
-        return Math.abs(this.x - player.x) + Math.abs(this.y - player.y);
+        // Chebyshev distance — matches 8-directional movement (diagonals cost 1)
+        return Math.max(Math.abs(this.x - player.x), Math.abs(this.y - player.y));
     }
     
     isAdjacentToPlayer(player) {
@@ -82,29 +281,39 @@ export class Monster extends Character {
         return dx <= 1 && dy <= 1 && !(dx === 0 && dy === 0);
     }
     
-    moveTowardPlayer(game) {
-        // Simple A* pathfinding toward player
-        const player = game.player;
-        
-        // Determine best direction to move
+    moveToward(game, targetX, targetY) {
+        // Prefer a real path so we can route around walls and out of dead ends.
+        const path = this.findPath(this.x, this.y, targetX, targetY, game);
+        if (path && path.length >= 2) {
+            const next = path[1];
+            if (this.canMoveTo(next.x, next.y, game)) {
+                this.x = next.x;
+                this.y = next.y;
+                return;
+            }
+            // Next step is blocked by another entity — fall through to a greedy
+            // sidestep so we don't stall behind a fellow monster.
+        }
+
+        this.stepGreedyToward(game, targetX, targetY);
+    }
+
+    stepGreedyToward(game, targetX, targetY) {
+        // Single best-distance step; used as a fallback when no path is available
+        // or the planned tile is temporarily occupied.
         let bestX = this.x;
         let bestY = this.y;
-        let bestDistance = this.getDistanceToPlayer(player);
-        
-        // Check all adjacent tiles
+        let bestDistance = Math.max(Math.abs(this.x - targetX), Math.abs(this.y - targetY));
+
         for (let dy = -1; dy <= 1; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
-                if (dx === 0 && dy === 0) continue; // Skip current position
-                
+                if (dx === 0 && dy === 0) continue;
+
                 const newX = this.x + dx;
                 const newY = this.y + dy;
-                
-                // Check if tile is walkable
+
                 if (this.canMoveTo(newX, newY, game)) {
-                    // Calculate new distance to player
-                    const newDistance = Math.abs(newX - player.x) + Math.abs(newY - player.y);
-                    
-                    // Choose this tile if it gets us closer to the player
+                    const newDistance = Math.max(Math.abs(newX - targetX), Math.abs(newY - targetY));
                     if (newDistance < bestDistance) {
                         bestX = newX;
                         bestY = newY;
@@ -113,12 +322,82 @@ export class Monster extends Character {
                 }
             }
         }
-        
-        // Move to the best position if it's not our current position
+
         if (bestX !== this.x || bestY !== this.y) {
             this.x = bestX;
             this.y = bestY;
         }
+    }
+
+    findPath(startX, startY, goalX, goalY, game) {
+        // A* over the floor grid with a Chebyshev heuristic (8-directional moves).
+        // Other monsters and the player are dynamic, so they are NOT treated as
+        // obstacles here; moveToward() only commits a step if the tile is free.
+        const isWalkable = (x, y) => {
+            if (x < 0 || x >= game.gridWidth || y < 0 || y >= game.gridHeight) return false;
+            return game.map[y][x] === 'floor';
+        };
+
+        if (!isWalkable(goalX, goalY)) return null;
+
+        const key = (x, y) => `${x},${y}`;
+        const startKey = key(startX, startY);
+        const goalKey = key(goalX, goalY);
+        const heuristic = (x, y) => Math.max(Math.abs(x - goalX), Math.abs(y - goalY));
+
+        const open = [{ x: startX, y: startY, f: heuristic(startX, startY) }];
+        const cameFrom = new Map();
+        const gScore = new Map([[startKey, 0]]);
+        const closed = new Set();
+
+        let iterations = 0;
+        const maxIterations = game.gridWidth * game.gridHeight;
+
+        while (open.length > 0 && iterations++ < maxIterations) {
+            // Small grids — a linear scan for the lowest-f node is fine.
+            let bestIdx = 0;
+            for (let i = 1; i < open.length; i++) {
+                if (open[i].f < open[bestIdx].f) bestIdx = i;
+            }
+            const current = open.splice(bestIdx, 1)[0];
+            const currentKey = key(current.x, current.y);
+
+            if (currentKey === goalKey) {
+                const path = [{ x: current.x, y: current.y }];
+                let ck = currentKey;
+                while (cameFrom.has(ck)) {
+                    const prev = cameFrom.get(ck);
+                    path.unshift({ x: prev.x, y: prev.y });
+                    ck = key(prev.x, prev.y);
+                }
+                return path;
+            }
+
+            if (closed.has(currentKey)) continue;
+            closed.add(currentKey);
+
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+
+                    const nx = current.x + dx;
+                    const ny = current.y + dy;
+                    if (!isWalkable(nx, ny)) continue;
+
+                    const nKey = key(nx, ny);
+                    if (closed.has(nKey)) continue;
+
+                    const tentativeG = (gScore.get(currentKey) ?? Infinity) + 1;
+                    if (tentativeG < (gScore.get(nKey) ?? Infinity)) {
+                        cameFrom.set(nKey, { x: current.x, y: current.y });
+                        gScore.set(nKey, tentativeG);
+                        open.push({ x: nx, y: ny, f: tentativeG + heuristic(nx, ny) });
+                    }
+                }
+            }
+        }
+
+        return null;
     }
     
     moveRandomly(game) {
@@ -226,6 +505,16 @@ export class Monster extends Character {
         // Take damage
         const result = this.takeDamage(damage); // this is called from character.js
         // console.log(`Monster: takeDamageFromPlayer: damage: ${damage}, result: ${result}`);
+
+        // A wound — not the sight of the player — is what makes a skittish
+        // creature bolt. Refresh the latch on each hit so repeated blows keep
+        // it running, and reveal the attacker even if the monster couldn't see
+        // them (a ranged spell would otherwise leave it oblivious).
+        if (!result.isDead && this.behavior === 'skittish' &&
+            this.health <= this.maxHealth * this.fleeHealthThreshold) {
+            this.panicMovesRemaining = this.panicDuration;
+            this.becomeAware(game);
+        }
 
         // Check if monster died
         if (result.isDead) {

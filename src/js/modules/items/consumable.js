@@ -8,7 +8,7 @@ export class Consumable extends Item {
             ...options
         });
     }
-    
+
     use(entity) {
         if (super.use(entity)) {
             // Reduce quantity when used
@@ -16,6 +16,22 @@ export class Consumable extends Item {
             return true;
         }
         return false;
+    }
+
+    clone() {
+        return new Consumable({
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            type: this.type,
+            rarity: this.rarity,
+            value: this.value,
+            icon: this.icon,
+            color: this.color,
+            stackable: this.stackable,
+            quantity: this.quantity,
+            stats: { ...this.stats }
+        });
     }
 }
 
@@ -26,27 +42,39 @@ export class HealthPotion extends Consumable {
             name: options.name || 'Health Potion',
             description: options.description || 'Restores health when consumed.',
             type: 'potion',
-            icon: options.icon || '🧪', 
+            icon: options.icon || '🧪',
             color: options.color || '#e74c3c',
             ...options
         });
-        
+
         // Set default heal amount if not provided
         if (!this.stats.healAmount) {
             this.stats.healAmount = options.healAmount || 20;
         }
     }
-    
+
     use(entity) {
         if (super.use(entity)) {
-            const healAmount = this.stats.healAmount || 20;
-            
-            // Apply healing
-            entity.heal(healAmount);
-            
+            entity.heal(this.stats.healAmount || 20);
             return true;
         }
         return false;
+    }
+
+    clone() {
+        return new HealthPotion({
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            rarity: this.rarity,
+            value: this.value,
+            icon: this.icon,
+            color: this.color,
+            stackable: this.stackable,
+            quantity: this.quantity,
+            healAmount: this.stats.healAmount,
+            stats: { ...this.stats }
+        });
     }
 }
 
@@ -57,27 +85,40 @@ export class ManaPotion extends Consumable {
             name: options.name || 'Mana Potion',
             description: options.description || 'Restores mana when consumed.',
             type: 'potion',
-            icon: options.icon || '🧪', 
+            icon: options.icon || '🧪',
             color: options.color || '#3498db',
             ...options
         });
-        
+
         // Set default mana restore if not provided
         if (!this.stats.manaRestore) {
             this.stats.manaRestore = options.manaRestore || 15;
         }
     }
-    
+
     use(entity) {
         if (super.use(entity)) {
             const manaRestore = this.stats.manaRestore || 15;
-            
-            // Apply mana restoration
             entity.mana = Math.min(entity.mana + manaRestore, entity.maxMana);
-            
             return true;
         }
         return false;
+    }
+
+    clone() {
+        return new ManaPotion({
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            rarity: this.rarity,
+            value: this.value,
+            icon: this.icon,
+            color: this.color,
+            stackable: this.stackable,
+            quantity: this.quantity,
+            manaRestore: this.stats.manaRestore,
+            stats: { ...this.stats }
+        });
     }
 }
 

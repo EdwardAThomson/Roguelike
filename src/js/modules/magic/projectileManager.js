@@ -69,9 +69,12 @@ export class ProjectileManager {
             return;
         }
         
-        // Check for monster collision
+        // Check for monster collision. Projectiles fired BY a monster pass
+        // through other monsters (no enemy friendly fire); player-sourced and
+        // spell projectiles still hit monsters as before.
+        const projectileFromMonster = projectile.source && projectile.source !== this.game.player;
         const monster = this.game.monsters.find(m => m.x === pos.x && m.y === pos.y && m.health > 0);
-        if (monster && !projectile.hasHitTarget(monster)) {
+        if (monster && !projectile.hasHitTarget(monster) && !projectileFromMonster) {
             this.handleMonsterHit(projectile, monster);
             return;
         }

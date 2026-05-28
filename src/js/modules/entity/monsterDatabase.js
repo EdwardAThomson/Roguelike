@@ -19,9 +19,10 @@ export class MonsterDatabase {
                 moveDelay: 250,
                 attackDelay: 1200,
                 detectionRange: 4,
-                xpValue: 10
+                xpValue: 10,
+                behavior: 'skittish' // a cornered rat runs when wounded
             },
-            
+
             spider: {
                 name: 'Giant Spider',
                 description: 'A large, venomous arachnid',
@@ -35,9 +36,13 @@ export class MonsterDatabase {
                     criticalChance: 5
                 },
                 moveDelay: 200,
-                attackDelay: 1000,
+                attackDelay: 1400,
                 detectionRange: 5,
-                xpValue: 15
+                xpValue: 15,
+                behavior: 'ranged', // spits venom from a distance
+                attackRange: 5,
+                preferredDistance: 3,
+                ranged: { damageType: 'poison', symbol: '*', color: '#5f5', verb: 'spits venom' }
             },
 
             bat: {
@@ -55,7 +60,9 @@ export class MonsterDatabase {
                 moveDelay: 150,
                 attackDelay: 900,
                 detectionRange: 6,
-                xpValue: 18
+                xpValue: 18,
+                behavior: 'erratic', // darting, unpredictable flight
+                erraticChance: 0.5
             },
             
             // Level 2 monsters
@@ -75,6 +82,7 @@ export class MonsterDatabase {
                 attackDelay: 1100,
                 detectionRange: 6,
                 xpValue: 25,
+                behavior: 'skittish', // cowardly — bolts when badly hurt
                 dropTables: {
                     // We'll implement drop tables later
                 }
@@ -113,7 +121,8 @@ export class MonsterDatabase {
                 moveDelay: 280,
                 attackDelay: 1050,
                 detectionRange: 5,
-                xpValue: 28
+                xpValue: 28,
+                behavior: 'skittish' // cunning — retreats rather than die
             },
 
             wolf: {
@@ -131,7 +140,9 @@ export class MonsterDatabase {
                 moveDelay: 200,
                 attackDelay: 1000,
                 detectionRange: 7,
-                xpValue: 32
+                xpValue: 32,
+                behavior: 'pack', // hunts in packs — rallies allies to the player
+                packRallyRange: 8
             },
             
             // Level 3 monsters
@@ -168,7 +179,9 @@ export class MonsterDatabase {
                 moveDelay: 320,
                 attackDelay: 1200,
                 detectionRange: 8,
-                xpValue: 50
+                xpValue: 50,
+                behavior: 'erratic', // drifts unpredictably as it closes in
+                erraticChance: 0.35
             },
 
             centaur: {
@@ -184,9 +197,13 @@ export class MonsterDatabase {
                     criticalChance: 8
                 },
                 moveDelay: 280,
-                attackDelay: 1100,
+                attackDelay: 1300,
                 detectionRange: 6,
-                xpValue: 55
+                xpValue: 55,
+                behavior: 'ranged', // mounted archer — looses arrows and keeps its distance
+                attackRange: 6,
+                preferredDistance: 4,
+                ranged: { damageType: 'physical', symbol: '»', color: '#fd0', verb: 'looses an arrow' }
             },
 
             minotaur: {
@@ -242,7 +259,21 @@ export class MonsterDatabase {
         if (template.attackDelay) monster.attackDelay = template.attackDelay;
         if (template.detectionRange) monster.detectionRange = template.detectionRange;
         if (template.xpValue) monster.xpValue = template.xpValue;
-        
+
+        // Apply AI archetype + tuning
+        if (template.behavior) monster.behavior = template.behavior;
+        if (template.fleeHealthThreshold != null) monster.fleeHealthThreshold = template.fleeHealthThreshold;
+        if (template.erraticChance != null) monster.erraticChance = template.erraticChance;
+        if (template.attackRange != null) monster.attackRange = template.attackRange;
+        if (template.preferredDistance != null) monster.preferredDistance = template.preferredDistance;
+        if (template.packRallyRange != null) monster.packRallyRange = template.packRallyRange;
+        if (template.ranged) {
+            if (template.ranged.damageType) monster.rangedDamageType = template.ranged.damageType;
+            if (template.ranged.symbol) monster.rangedProjectileSymbol = template.ranged.symbol;
+            if (template.ranged.color) monster.rangedProjectileColor = template.ranged.color;
+            if (template.ranged.verb) monster.rangedVerb = template.ranged.verb;
+        }
+
         return monster;
     }
     

@@ -21,13 +21,21 @@ export class InputHandler {
             't', 'z', 'Escape',
             '1', '2', '3', '4', '5', '6', '7', '8', '9' // Inventory number keys
         ];
-        
-        if (gameKeys.includes(e.key)) {
+        const numpadCodes = [
+            'Numpad1', 'Numpad2', 'Numpad3', 'Numpad4',
+            'Numpad6', 'Numpad7', 'Numpad8', 'Numpad9'
+        ];
+
+        // Numpad keys are tracked under their `code` (e.g. 'numpad7') so they
+        // stay distinct from the top-row digit hotkeys used by the inventory,
+        // and work the same regardless of NumLock state.
+        const isNumpad = typeof e.code === 'string' && numpadCodes.includes(e.code);
+
+        if (isNumpad || gameKeys.includes(e.key)) {
             e.preventDefault();
         }
-        
-        // Store key state
-        const lowerKey = e.key.toLowerCase();
+
+        const lowerKey = isNumpad ? e.code.toLowerCase() : e.key.toLowerCase();
         this.keys[lowerKey] = true;
         
         // Only log F, T, Z keys
@@ -37,7 +45,8 @@ export class InputHandler {
     }
     
     handleKeyUp(e) {
-        const lowerKey = e.key.toLowerCase();
+        const isNumpad = typeof e.code === 'string' && e.code.startsWith('Numpad');
+        const lowerKey = isNumpad ? e.code.toLowerCase() : e.key.toLowerCase();
         this.keys[lowerKey] = false;
         
         // Only log F, T, Z keys
