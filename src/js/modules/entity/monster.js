@@ -26,6 +26,9 @@ export class Monster extends Character {
         // Behavior archetype + tuning (overridable from the monster database)
         this.behavior = 'melee'; // 'melee' | 'skittish' | 'erratic' | 'ranged' | 'pack'
         this.fleeHealthThreshold = 0.25; // skittish: flee below this fraction of max HP
+        this.panicMovesRemaining = 0; // skittish: move-ticks of committed retreat after a wound
+        this.panicDuration = 4; // skittish: how many move-ticks a single panic lasts
+        this.panicMoveSlowdown = 1.5; // skittish: moveDelay multiplier while panicking (exhausted gait)
         this.erraticChance = 0.4; // erratic: chance per tick to dart randomly while engaged
         this.attackRange = 1; // ranged: max tiles to fire from (melee leaves this at 1)
         this.preferredDistance = 0; // ranged: back away if the player is closer than this
@@ -131,10 +134,22 @@ export class Monster extends Character {
     }
 
     actSkittish(game, canSeePlayer) {
-        const lowHealth = this.health <= this.maxHealth * this.fleeHealthThreshold;
-        if (lowHealth && canSeePlayer) {
-            if (this.lastMove >= this.moveDelay) {
-                this.fleeFrom(game, game.player.x, game.player.y);
+        // Panic is triggered by a wound (see takeDamageFromPlayer), not by
+        // spotting the player. The latch keeps the monster committed to its
+        // retreat even when line of sight breaks around a corner, so it can't
+        // pivot back into the threat on the next tick.
+        if (this.panicMovesRemaining > 0) {
+            // Panic widens the per-tick gap so cardinal pursuit can close on
+            // the monster's diagonal flee path. fleeFrom always picks the
+            // best Chebyshev step, which at the normal cadence is hard to
+            // catch without numpad diagonals.
+            const panicDelay = this.moveDelay * this.panicMoveSlowdown;
+            if (this.lastMove >= panicDelay) {
+                const threat = canSeePlayer
+                    ? { x: game.player.x, y: game.player.y }
+                    : this.lastKnownPlayerPos;
+                if (threat) this.fleeFrom(game, threat.x, threat.y);
+                this.panicMovesRemaining--;
                 this.lastMove = 0;
             }
             // Still bite back if the player corners it
@@ -490,6 +505,16 @@ export class Monster extends Character {
         // Take damage
         const result = this.takeDamage(damage); // this is called from character.js
         // console.log(`Monster: takeDamageFromPlayer: damage: ${damage}, result: ${result}`);
+
+        // A wound — not the sight of the player — is what makes a skittish
+        // creature bolt. Refresh the latch on each hit so repeated blows keep
+        // it running, and reveal the attacker even if the monster couldn't see
+        // them (a ranged spell would otherwise leave it oblivious).
+        if (!result.isDead && this.behavior === 'skittish' &&
+            this.health <= this.maxHealth * this.fleeHealthThreshold) {
+            this.panicMovesRemaining = this.panicDuration;
+            this.becomeAware(game);
+        }
 
         // Check if monster died
         if (result.isDead) {
