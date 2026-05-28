@@ -70,19 +70,33 @@ export class InputManager {
         let newY = this.game.player.y;
         let moved = false;
         
-        // Handle movement
-        if (this.input.isKeyDown('ArrowUp') || this.input.isKeyDown('w')) {
-            newY = Math.max(0, this.game.player.y - 1);
+        // Numpad gives 8-direction movement (incl. diagonals); arrows/WASD
+        // stay cardinal-only so we don't have to interpret arrow chords.
+        if (this.input.isKeyDown('numpad7')) { newX--; newY--; moved = true; }
+        else if (this.input.isKeyDown('numpad9')) { newX++; newY--; moved = true; }
+        else if (this.input.isKeyDown('numpad1')) { newX--; newY++; moved = true; }
+        else if (this.input.isKeyDown('numpad3')) { newX++; newY++; moved = true; }
+        else if (this.input.isKeyDown('numpad8')) { newY--; moved = true; }
+        else if (this.input.isKeyDown('numpad2')) { newY++; moved = true; }
+        else if (this.input.isKeyDown('numpad4')) { newX--; moved = true; }
+        else if (this.input.isKeyDown('numpad6')) { newX++; moved = true; }
+        else if (this.input.isKeyDown('ArrowUp') || this.input.isKeyDown('w')) {
+            newY--;
             moved = true;
         } else if (this.input.isKeyDown('ArrowDown') || this.input.isKeyDown('s')) {
-            newY = Math.min(this.game.gridHeight - 1, this.game.player.y + 1);
+            newY++;
             moved = true;
         } else if (this.input.isKeyDown('ArrowLeft') || this.input.isKeyDown('a')) {
-            newX = Math.max(0, this.game.player.x - 1);
+            newX--;
             moved = true;
         } else if (this.input.isKeyDown('ArrowRight') || this.input.isKeyDown('d')) {
-            newX = Math.min(this.game.gridWidth - 1, this.game.player.x + 1);
+            newX++;
             moved = true;
+        }
+
+        if (moved) {
+            newX = Math.max(0, Math.min(this.game.gridWidth - 1, newX));
+            newY = Math.max(0, Math.min(this.game.gridHeight - 1, newY));
         }
         
         // Try to move the player or attack a monster
