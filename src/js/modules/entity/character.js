@@ -1,3 +1,8 @@
+// Defense softening constant for percentage damage mitigation.
+// mitigation = defense / (defense + DEFENSE_K); higher defense gives
+// diminishing returns and never fully negates incoming damage.
+export const DEFENSE_K = 30;
+
 export class Character {
     constructor() {
         // Base stats
@@ -246,35 +251,18 @@ export class Character {
     }
     
     takeDamage(amount) {
-        // Apply defense reduction -- old
-        // const damageReduction = this.defense / (this.defense + 50); // Formula caps at ~50% reduction
-        // console.log(`Character: defense: ${this.defense}, damageReduction: ${damageReduction}`);
-        // const reducedDamage = Math.max(1, Math.floor(amount * (1 - damageReduction)));     
-        // console.log(`Character: takeDamage: amount: ${amount}, reducedDamage: ${reducedDamage}`);
+        // Percentage-based mitigation with diminishing returns. Uses this.defense
+        // directly (monsters store a flat template defense; the player keeps
+        // this.defense in sync with gear via updateStats), NOT calculateDefense(),
+        // which would recompute from attributes and ignore the monster template.
+        const mitigation = this.defense / (this.defense + DEFENSE_K);
+        const effectiveDamage = Math.max(1, Math.round(amount * (1 - mitigation)));
 
-
-        // Amount = amount of damage
-
-        // Apply defense reduction
-        const effectiveDamage = Math.max(1, amount - this.defense);
-
-        // console.log(`${this.name} defense: ${this.defense}, effectiveDamage: ${effectiveDamage}`);
-            
-        // Show defense message if significant reduction occurred - handled by game UI instead
-        // if (amount - effectiveDamage > 5) {
-        //     this.ui.addMessage(`${this.name}'s armor absorbed ${amount - effectiveDamage} damage!`, '#aaa');
-        // }
-
-        
-        const reducedDamage = effectiveDamage;
-
-        // this.health = Math.max(0, this.health - reducedDamage);
         this.health = Math.max(0, this.health - effectiveDamage);
 
-
         return {
-            damage: reducedDamage,
-            blocked: amount - reducedDamage,
+            damage: effectiveDamage,
+            blocked: amount - effectiveDamage,
             isDead: this.health <= 0
         };
     }

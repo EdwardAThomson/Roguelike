@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Character } from '../src/js/modules/entity/character.js';
+import { Character, DEFENSE_K } from '../src/js/modules/entity/character.js';
 
 describe('Character derived stats', () => {
     it('derives health and defense from attributes at level 1', () => {
@@ -12,18 +12,26 @@ describe('Character derived stats', () => {
 });
 
 describe('Character.takeDamage', () => {
-    it('reduces damage by defense', () => {
+    it('mitigates damage by defense/(defense + K)', () => {
         const c = new Character(); // defense 5
+        // round(10 * (1 - 5/35)) = round(8.57) = 9
         const result = c.takeDamage(10);
-        expect(result.damage).toBe(5);
-        expect(result.blocked).toBe(5);
+        expect(result.damage).toBe(9);
+        expect(result.blocked).toBe(1);
         expect(result.isDead).toBe(false);
-        expect(c.health).toBe(c.maxHealth - 5);
+        expect(c.health).toBe(c.maxHealth - 9);
+    });
+
+    it('exactly halves damage when defense equals K', () => {
+        const c = new Character();
+        c.defense = DEFENSE_K;
+        expect(c.takeDamage(40).damage).toBe(20);
     });
 
     it('always deals at least 1 damage even against high defense', () => {
         const c = new Character();
-        const result = c.takeDamage(2); // 2 - 5 would be negative
+        c.defense = 1000; // overwhelming armour
+        const result = c.takeDamage(2);
         expect(result.damage).toBe(1);
     });
 

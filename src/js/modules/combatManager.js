@@ -79,43 +79,28 @@ export class CombatManager {
     }
     
     handleMeleeAttack(monster) {
-        // Calculate base damage
+        // Calculate base damage (includes equipment via the player override)
         const baseDamage = this.game.player.calculateAttackPower();
-        
-        // Add hit chance system - higher defense makes it harder to land effective hits
-        const defenseRatio = monster.defense / (baseDamage + monster.defense);
-        const missChance = Math.min(0.25, defenseRatio * 0.4); // Max 25% miss chance
-        
-        // Check for complete miss
-        if (Math.random() < missChance) {
-            this.game.ui.addMessage(`You swing at the ${monster.name} but can't penetrate its defenses!`, '#aaa');
-            return true; // Attack happened, just didn't connect
-        }
-        
+
         // Critical hit chance
         const criticalHit = Math.random() < this.game.player.criticalChance / 100;
-        
-        // Critical multiplier (1.5x damage)
         const criticalMultiplier = criticalHit ? 1.5 : 1;
-        
+
         // Random variance (80% to 120% of base damage)
         const variance = 0.8 + Math.random() * 0.4;
 
-        // Calculate final damage - minimum 1 damage to prevent invulnerability
-        const rawDamage = Math.floor(baseDamage * variance * criticalMultiplier);
-        const finalDamage = Math.max(1, rawDamage - monster.defense);
-        
-        // Display attack message
-        this.game.ui.addMessage(`You attack the ${monster.name} for ${finalDamage} damage!`, '#fff');
-        
-        // Display critical hit message
+        // Raw damage; the monster's defense is applied once, as percentage
+        // mitigation, inside takeDamage (via takeDamageFromPlayer).
+        const rawDamage = Math.max(1, Math.floor(baseDamage * variance * criticalMultiplier));
+
+        this.game.ui.addMessage(`You attack the ${monster.name}!`, '#fff');
         if (criticalHit) {
             this.game.ui.addMessage(`Critical hit!`, '#ff0');
         }
-        
-        // Apply damage to monster
-        monster.takeDamageFromPlayer(finalDamage, this.game);
-        
+
+        // Applies mitigation and prints the actual damage / defeat message.
+        monster.takeDamageFromPlayer(rawDamage, this.game);
+
         return true;
     }
 
@@ -138,25 +123,35 @@ export class CombatManager {
             
             // Create a random monster at this position with the appropriate difficulty
             const monster = this.game.monsterDB.createRandomMonster(position.x, position.y, difficultyLevel);
-            
-            // Scale monster with difficulty
-            if (difficultyLevel > 1) {
-                monster.health = Math.floor(monster.health * (1 + (difficultyLevel - 1) * 0.4));
-                monster.maxHealth = monster.health;
-                monster.strength = Math.floor(monster.strength * (1 + (difficultyLevel - 1) * 0.3));
-                
-                // Add a visual indicator of stronger monsters
-                monster.name = `${difficultyLevel > 3 ? 'Elite ' : ''}${monster.name}`;
-                
-               // Make the hardest monsters more visually distinct
-               if (difficultyLevel >= 7) {
-                    monster.symbol = '👹'; // Different symbol for elite monsters
-               }
-            }
-            
+
+            this.applyDifficultyScaling(monster, difficultyLevel);
+
             this.game.monsters.push(monster);
         }
-        
+
         console.log(`Spawned ${count} monsters at difficulty level ${difficultyLevel}`);
+    }
+
+    // Scale a monster's combat stats with section difficulty. Boosts the stats
+    // monsters actually use in combat (attackPower for damage, defense for
+    // mitigation, maxHealth for durability) plus its XP reward. Pure aside from
+    // mutating the passed monster, so it can be unit-tested without a game.
+    applyDifficultyScaling(monster, difficultyLevel) {
+        if (difficultyLevel <= 1) return monster;
+
+        const d = difficultyLevel - 1;
+        monster.maxHealth = Math.floor(monster.maxHealth * (1 + d * 0.3));
+        monster.health = monster.maxHealth;
+        monster.attackPower = Math.floor(monster.attackPower * (1 + d * 0.2));
+        monster.defense = monster.defense + d;
+        monster.xpValue = Math.floor(monster.xpValue * (1 + d * 0.25));
+
+        // Visually flag tougher monsters.
+        monster.name = `${difficultyLevel > 3 ? 'Elite ' : ''}${monster.name}`;
+        if (difficultyLevel >= 7) {
+            monster.symbol = '👹';
+        }
+
+        return monster;
     }
 } 

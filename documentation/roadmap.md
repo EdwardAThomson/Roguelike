@@ -78,7 +78,7 @@ The roadmap can be prioritized and adjusted based on feedback, resources, and de
 - Health potions should be consumable and should restore health when used. `[DONE]`
 - Mana potions should be consumable and should restore mana when used. `[DONE]`
 - Monsters should drop items. `[DONE]` (monster.js `dropLoot()` — gold, potions, scrolls, equipment)
-- Monsters should be stronger. `[TODO]`
+- Monsters should be stronger. `[DONE]` (percentage defense mitigation in `character.js`, fixed double-defense + dead `strength` scaling, and `combatManager.applyDifficultyScaling` now ramps attackPower/defense/HP/XP with section difficulty)
 - Monsters need to be more intelligent (better pathfinding, more aware of the player). `[DONE]` (A* pathfinding, line-of-sight detection, pursue last-known position, lose interest after losing sight, and per-type behaviors)
 
 ### Nice to have

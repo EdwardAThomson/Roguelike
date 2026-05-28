@@ -64,7 +64,11 @@ Monster behavior is data-driven: each entry in `monsterDatabase.js` may set a `b
 
 **Gotcha:** `fov.visible` is the *player's* field of view, so it always contains the player's own tile — it cannot tell you whether a monster can see the player. For monster→player sight, trace `fov.hasLineOfSight(mx, my, px, py)` instead (this is what gates detection and the lose-aggro timer in `monster.js`).
 
-Ranged monsters reuse the magic projectile system: they call `projectileManager.createProjectile({ source: this, ... })`. `ProjectileManager` skips monster-vs-monster collisions when `source` is a monster (so enemy shots don't friendly-fire), and uses `type: 'magical'` to avoid the physical-damage double defense reduction (`applyDamage` subtracts defense for `type: 'physical'`, and `Character.takeDamage` subtracts it again).
+Ranged monsters reuse the magic projectile system: they call `projectileManager.createProjectile({ source: this, ... })`. `ProjectileManager` skips monster-vs-monster collisions when `source` is a monster (so enemy shots don't friendly-fire).
+
+### Combat math
+
+Defense is applied **once**, in `Character.takeDamage`, as percentage mitigation: `effective = max(1, round(amount * (1 - defense/(defense + DEFENSE_K))))` with `DEFENSE_K = 30` (exported from `character.js`). Every damage source feeds raw (pre-defense) damage into `takeDamage` — `combatManager.handleMeleeAttack` and `projectileManager.applyDamage` must **not** subtract defense themselves (doing so reintroduces a double-reduction bug that was fixed). `takeDamage` reads `this.defense` directly: monsters store a flat template defense from `monsterDatabase.js`, while the player keeps `this.defense` in sync with gear via `updateStats()`. Note `Character.calculateDefense()` recomputes from attributes and ignores the monster template, so it must not be used in the damage path for monsters. Difficulty scaling lives in `combatManager.applyDifficultyScaling(monster, level)`, which scales `attackPower`, `defense`, `maxHealth`, and `xpValue` (not `strength`, which monsters never read for damage).
 
 ### Magic system
 

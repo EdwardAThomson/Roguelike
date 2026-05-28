@@ -221,13 +221,10 @@ export class ProjectileManager {
      */
     applyDamage(entity, projectile) {
         let damage = projectile.damage;
-        
-        // Apply defense reduction for physical projectiles
-        if (projectile.type === 'physical' && entity.calculateDefense) {
-            const defense = entity.calculateDefense();
-            damage = Math.max(1, damage - defense);
-        }
-        
+
+        // Defense is applied once, as percentage mitigation, inside takeDamage
+        // for every damage source (melee, ranged, magic) — no pre-subtraction here.
+
         // Healing is negative damage
         if (damage < 0) {
             const healAmount = Math.abs(damage);
