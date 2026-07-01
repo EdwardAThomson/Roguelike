@@ -1,6 +1,6 @@
 # Roadmap — Modern Rogue
 
-_Status: active · updated 2026-05-30_
+_Status: active · updated 2026-07-01_
 
 A browser roguelike in vanilla JS + HTML5 Canvas — procedural dungeons,
 turn-based tactical combat, magic, and character progression. See
@@ -14,6 +14,8 @@ turn-based tactical combat, magic, and character progression. See
 - [x] Ranged combat (bows, crossbows, throwing weapons)
 - [x] Turn-based tactical combat (melee + ranged)
 - [x] Monster AI — A* pathfinding, per-type archetypes, ranged attackers
+- [x] Monster behavior refinement — skittish panic triggered by wounds, aggro / lose-aggro on line-of-sight loss
+- [x] Combat balance — percentage-based defense mitigation, difficulty-scaled attackPower / defense / HP / XP
 - [x] Character progression (level-up, stat allocation, wizard/warrior/hybrid builds)
 - [x] Procedural dungeon generation (multi-section, gates/keys, difficulty scaling)
 - [x] Inventory & equipment with loot drops
@@ -28,8 +30,6 @@ turn-based tactical combat, magic, and character progression. See
 
 ## Next
 
-- [ ] Combat balance tuning (percentage-based defense, difficulty scaling)
-- [ ] Monster behavior refinement (skittish panic, aggro memory)
 - [ ] Distinct dungeon themes / layouts (currently partial)
 - [ ] Enhanced UI & accessibility (keybindings, color-blind mode, text size)
 
