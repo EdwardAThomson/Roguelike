@@ -26,7 +26,7 @@ turn-based tactical combat, magic, and character progression. See
 - [x] Multi-section world with persistent state
 - [x] UI — inventory, character sheet, spellbook, help, message log
 - [x] Numpad / controller diagonal movement
-- [x] Vitest test suite (pathfinding, leveling, healing, monsters, magic items)
+- [x] Test suite — Vitest unit + integration harness (fake headless game) + Playwright smoke test
 - [x] Player guide + design docs
 
 ## Next
