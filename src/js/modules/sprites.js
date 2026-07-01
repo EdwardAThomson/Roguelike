@@ -5,23 +5,34 @@ export class SpriteRenderer {
         this.tileSize = game.tileSize;
         this.sprites = {
             player: null,
-            wall: null,
-            floor: null,
+            // wall/floor hold one sprite per theme, keyed by theme name.
+            wall: { castle: null, cave: null, crypt: null },
+            floor: { castle: null, cave: null, crypt: null },
             gate: null,
             key: null
         };
         this.loaded = false;
     }
-    
+
     async loadSprites() {
         // Create simple canvas-based sprites
         this.sprites.player = this.createPlayerSprite();
-        this.sprites.wall = this.createWallSprite();
-        this.sprites.floor = this.createFloorSprite();
+        this.sprites.wall.castle = this.createCastleWallSprite();
+        this.sprites.wall.cave = this.createCaveWallSprite();
+        this.sprites.wall.crypt = this.createCryptWallSprite();
+        this.sprites.floor.castle = this.createCastleFloorSprite();
+        this.sprites.floor.cave = this.createCaveFloorSprite();
+        this.sprites.floor.crypt = this.createCryptFloorSprite();
         this.sprites.gate = this.createGateSprite();
         this.sprites.key = this.createKeySprite();
-        
+
         this.loaded = true;
+    }
+
+    // Which theme the current section is using; falls back to castle for
+    // safety if a dungeon somehow lacks a theme.
+    currentTheme() {
+        return (this.game.dungeon && this.game.dungeon.theme) || 'castle';
     }
     
     createPlayerSprite() {
@@ -56,27 +67,29 @@ export class SpriteRenderer {
         return canvas;
     }
     
-    createWallSprite() {
+    // ========== Castle theme (baseline brick / dark stone) ==========
+
+    createCastleWallSprite() {
         const canvas = document.createElement('canvas');
         canvas.width = this.tileSize;
         canvas.height = this.tileSize;
         const ctx = canvas.getContext('2d');
-        
+
         // Base color
         ctx.fillStyle = '#555';
         ctx.fillRect(0, 0, this.tileSize, this.tileSize);
-        
+
         // Stone pattern
         ctx.fillStyle = '#444';
-        
+
         // Draw brick pattern
         const brickHeight = this.tileSize / 4;
         const brickWidth = this.tileSize / 2;
         const mortar = 1;
-        
+
         for (let y = 0; y < this.tileSize; y += brickHeight) {
             const offset = (Math.floor(y / brickHeight) % 2) * (brickWidth / 2);
-            
+
             for (let x = -brickWidth / 2; x < this.tileSize; x += brickWidth) {
                 ctx.fillRect(
                     x + offset + mortar,
@@ -86,60 +99,191 @@ export class SpriteRenderer {
                 );
             }
         }
-        
-        // Add some random cracks and details
+
+        // Random cracks
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 0.5;
-        
         for (let i = 0; i < 3; i++) {
             const x1 = Math.random() * this.tileSize;
             const y1 = Math.random() * this.tileSize;
             const x2 = x1 + (Math.random() * 10 - 5);
             const y2 = y1 + (Math.random() * 10 - 5);
-            
             ctx.beginPath();
             ctx.moveTo(x1, y1);
             ctx.lineTo(x2, y2);
             ctx.stroke();
         }
-        
+
         return canvas;
     }
-    
-    createFloorSprite() {
+
+    createCastleFloorSprite() {
         const canvas = document.createElement('canvas');
         canvas.width = this.tileSize;
         canvas.height = this.tileSize;
         const ctx = canvas.getContext('2d');
-        
+
         // Base color
         ctx.fillStyle = '#222';
         ctx.fillRect(0, 0, this.tileSize, this.tileSize);
-        
-        // Add some stone texture
+
+        // Stone texture
         ctx.fillStyle = '#272727';
-        
         for (let i = 0; i < 8; i++) {
             const size = Math.random() * 4 + 2;
             const x = Math.random() * (this.tileSize - size);
             const y = Math.random() * (this.tileSize - size);
-            
             ctx.beginPath();
             ctx.arc(x, y, size, 0, Math.PI * 2);
             ctx.fill();
         }
-        
-        // Add some smaller details
+
+        // Small details
         ctx.fillStyle = '#1d1d1d';
-        
         for (let i = 0; i < 10; i++) {
             const x = Math.random() * this.tileSize;
             const y = Math.random() * this.tileSize;
             const size = Math.random() * 2 + 1;
-            
             ctx.fillRect(x, y, size, size);
         }
-        
+
+        return canvas;
+    }
+
+    // ========== Cave theme (rough warm stone / dirt) ==========
+
+    createCaveWallSprite() {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.tileSize;
+        canvas.height = this.tileSize;
+        const ctx = canvas.getContext('2d');
+
+        // Warm gray-brown base
+        ctx.fillStyle = '#5a4a3a';
+        ctx.fillRect(0, 0, this.tileSize, this.tileSize);
+
+        // Irregular rocky lumps rather than bricks
+        const rockColors = ['#6a5a48', '#4a3d30', '#75604a'];
+        for (let i = 0; i < 14; i++) {
+            ctx.fillStyle = rockColors[i % rockColors.length];
+            const cx = Math.random() * this.tileSize;
+            const cy = Math.random() * this.tileSize;
+            const r = 2 + Math.random() * 4;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Faint horizontal strata
+        ctx.strokeStyle = 'rgba(50, 40, 30, 0.35)';
+        ctx.lineWidth = 0.6;
+        for (let y = this.tileSize / 4; y < this.tileSize; y += this.tileSize / 4) {
+            ctx.beginPath();
+            ctx.moveTo(0, y + Math.random() * 2 - 1);
+            ctx.lineTo(this.tileSize, y + Math.random() * 2 - 1);
+            ctx.stroke();
+        }
+
+        return canvas;
+    }
+
+    createCaveFloorSprite() {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.tileSize;
+        canvas.height = this.tileSize;
+        const ctx = canvas.getContext('2d');
+
+        // Dark packed dirt
+        ctx.fillStyle = '#2f2418';
+        ctx.fillRect(0, 0, this.tileSize, this.tileSize);
+
+        // Loose pebbles and dirt clumps
+        for (let i = 0; i < 12; i++) {
+            ctx.fillStyle = i % 2 ? '#3a2d1e' : '#251c12';
+            const size = Math.random() * 3 + 1;
+            const x = Math.random() * (this.tileSize - size);
+            const y = Math.random() * (this.tileSize - size);
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        return canvas;
+    }
+
+    // ========== Crypt theme (dark purple-gray stone, moss & cracks) ==========
+
+    createCryptWallSprite() {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.tileSize;
+        canvas.height = this.tileSize;
+        const ctx = canvas.getContext('2d');
+
+        // Deep purple-gray base
+        ctx.fillStyle = '#383548';
+        ctx.fillRect(0, 0, this.tileSize, this.tileSize);
+
+        // Coarse block seams
+        ctx.strokeStyle = '#1e1c28';
+        ctx.lineWidth = 1;
+        const blockH = this.tileSize / 3;
+        for (let y = blockH; y < this.tileSize; y += blockH) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(this.tileSize, y);
+            ctx.stroke();
+        }
+        // Staggered vertical seams
+        for (let row = 0; row < 3; row++) {
+            const offset = (row % 2) * (this.tileSize / 2);
+            ctx.beginPath();
+            ctx.moveTo(offset, row * blockH);
+            ctx.lineTo(offset, (row + 1) * blockH);
+            ctx.stroke();
+        }
+
+        // Moss patches
+        ctx.fillStyle = 'rgba(74, 106, 90, 0.5)';
+        for (let i = 0; i < 4; i++) {
+            const cx = Math.random() * this.tileSize;
+            const cy = Math.random() * this.tileSize;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 2 + Math.random() * 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        return canvas;
+    }
+
+    createCryptFloorSprite() {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.tileSize;
+        canvas.height = this.tileSize;
+        const ctx = canvas.getContext('2d');
+
+        // Deep purple-black flagstone
+        ctx.fillStyle = '#1a1826';
+        ctx.fillRect(0, 0, this.tileSize, this.tileSize);
+
+        // Cracked flagstone seams
+        ctx.strokeStyle = '#2c2838';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(0, this.tileSize / 2);
+        ctx.lineTo(this.tileSize, this.tileSize / 2);
+        ctx.moveTo(this.tileSize / 2, 0);
+        ctx.lineTo(this.tileSize / 2, this.tileSize);
+        ctx.stroke();
+
+        // A jagged fracture line for character
+        ctx.strokeStyle = '#0e0c16';
+        ctx.beginPath();
+        ctx.moveTo(2, 4);
+        ctx.lineTo(this.tileSize * 0.4, this.tileSize * 0.35);
+        ctx.lineTo(this.tileSize * 0.7, this.tileSize * 0.55);
+        ctx.lineTo(this.tileSize - 2, this.tileSize - 4);
+        ctx.stroke();
+
         return canvas;
     }
     
@@ -299,30 +443,29 @@ export class SpriteRenderer {
     
     renderTile(x, y, type, isVisible, isExplored) {
         if (!this.loaded) return;
-        
+
         const screenX = x * this.tileSize;
         const screenY = y * this.tileSize;
-        
+
         if (!isVisible && !isExplored) return;
-        
-        // Get the current world section coordinates for visual styling
-        const worldX = this.game.dungeon.worldX || 0;
-        const worldY = this.game.dungeon.worldY || 0;
-        
+
         // Check if the tile is at the map edge (for perimeter visualization)
-        const isMapEdge = 
-            (x === 0 || x === this.game.gridWidth - 1 || 
-            y === 0 || y === this.game.gridHeight - 1) && 
+        const isMapEdge =
+            (x === 0 || x === this.game.gridWidth - 1 ||
+            y === 0 || y === this.game.gridHeight - 1) &&
             type === 'wall';
-        
-        // Draw the appropriate sprite based on tile type
+
+        // Draw the appropriate sprite based on tile type, picking the theme
+        // variant for wall/floor. Themes now carry the per-section visual
+        // differentiation (the old per-coord hue tint was removed).
+        const theme = this.currentTheme();
         let sprite;
         switch (type) {
             case 'wall':
-                sprite = this.sprites.wall;
+                sprite = this.sprites.wall[theme] || this.sprites.wall.castle;
                 break;
             case 'floor':
-                sprite = this.sprites.floor;
+                sprite = this.sprites.floor[theme] || this.sprites.floor.castle;
                 break;
             case 'gate':
                 sprite = this.sprites.gate;
@@ -330,28 +473,16 @@ export class SpriteRenderer {
             default:
                 return;
         }
-        
+
         // Draw with appropriate visibility
         if (!isVisible) {
             // Draw explored but not visible tiles in darker color
             this.ctx.globalAlpha = 0.5;
         }
-        
+
         // Base rendering of the sprite
         this.ctx.drawImage(sprite, screenX, screenY, this.tileSize, this.tileSize);
-        
-        // Apply a subtle color tint based on world coordinates
-        if (isVisible && (worldX !== 0 || worldY !== 0)) {
-            // Calculate a hue based on world coordinates
-            const hue = ((worldX * 30) + (worldY * 20)) % 360;
-            
-            // Apply a very subtle colored overlay based on world section
-            this.ctx.globalAlpha = isVisible ? 0.15 : 0.08;
-            this.ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-            this.ctx.fillRect(screenX, screenY, this.tileSize, this.tileSize);
-            this.ctx.globalAlpha = isVisible ? 1.0 : 0.5;
-        }
-        
+
         // Highlight map edges to make them more distinct
         if (isMapEdge && isVisible) {
             // Add a brighter color to edge walls

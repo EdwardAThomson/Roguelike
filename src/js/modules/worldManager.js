@@ -5,6 +5,20 @@
 import { Dungeon } from './dungeon.js';
 import { Player } from './entity/player.js';
 
+export const DUNGEON_THEMES = ['cave', 'castle', 'crypt'];
+
+/**
+ * Deterministic seeded theme pick for a world section. Same (worldX, worldY)
+ * always yields the same theme so revisits are stable. Origin '0_0' is pinned
+ * to castle for a stable starter experience.
+ */
+export function pickThemeForSection(worldX, worldY) {
+    if (worldX === 0 && worldY === 0) return 'castle';
+    // 32-bit unsigned mix; large odd primes reduce clumping on a grid.
+    const h = ((worldX * 73856093) ^ (worldY * 19349663)) >>> 0;
+    return DUNGEON_THEMES[h % DUNGEON_THEMES.length];
+}
+
 export class WorldManager {
     constructor(game) {
         this.game = game;
@@ -34,10 +48,11 @@ export class WorldManager {
         this.game.dungeon.worldX = 0;
         this.game.dungeon.worldY = 0;
         this.game.dungeon.worldSectionId = '0_0';
-        
+        this.game.dungeon.theme = pickThemeForSection(0, 0);
+
         // Generate the map
         this.game.map = this.game.dungeon.generate(this.game);
-        console.log(`Dungeon generated with ${this.game.dungeon.rooms.length} rooms in section ${this.game.dungeon.worldSectionId}`);
+        console.log(`Dungeon generated with ${this.game.dungeon.rooms.length} rooms in section ${this.game.dungeon.worldSectionId} (theme: ${this.game.dungeon.theme})`);
         
         // Place player in a random floor tile
         const startPos = this.game.dungeon.getRandomFloorPosition();
@@ -61,7 +76,7 @@ export class WorldManager {
         console.log(`Items placed in first section: ${itemsPlaced} (should be 6)`);
         
         // Spawn monsters
-        this.spawnMonstersForSection(8, 1);
+        this.spawnMonstersForSection(8, 1, this.game.dungeon.theme);
         
         // Initialize exploration memory for this section
         if (!this.explorationMemory[this.currentSectionId]) {
@@ -76,14 +91,14 @@ export class WorldManager {
         console.log('First section initialized successfully');
     }
 
-    spawnMonstersForSection(count, difficultyLevel) {
+    spawnMonstersForSection(count, difficultyLevel, theme = null) {
         // If we have a combat manager, use it
         if (this.game.combat) {
-            this.game.combat.spawnMonsters(count, difficultyLevel);
-        } 
+            this.game.combat.spawnMonsters(count, difficultyLevel, theme);
+        }
         // Otherwise use the game's method directly
         else if (this.game.spawnMonsters) {
-            this.game.spawnMonsters(count, difficultyLevel);
+            this.game.spawnMonsters(count, difficultyLevel, theme);
         }
         else {
             console.error('No method available to spawn monsters');
@@ -141,17 +156,19 @@ export class WorldManager {
             this.game.dungeon.worldX = worldX;
             this.game.dungeon.worldY = worldY;
             this.game.dungeon.worldSectionId = sectionId;
-            
+            this.game.dungeon.theme = pickThemeForSection(worldX, worldY);
+
             // Generate the new map with entry information
             this.game.map = this.game.dungeon.generate(this.game, fromDirection, previousSectionId);
-            
+            console.log(`Section ${sectionId} theme: ${this.game.dungeon.theme}`);
+
             // Clear monsters and items
             this.game.monsters = [];
             this.game.itemManager.itemsOnGround = [];
-            
+
             // Spawn monsters with appropriate difficulty
             const monsterCount = 13 // + difficulty * 2; // should the difficulty be 0, 1 or 2? Maybe 0.
-            this.spawnMonstersForSection(monsterCount, difficulty);
+            this.spawnMonstersForSection(monsterCount, difficulty, this.game.dungeon.theme);
             
             // Place items
             const itemCount = Math.floor(8 + difficulty * 0.5);

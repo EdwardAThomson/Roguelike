@@ -14,6 +14,7 @@ export class Dungeon {
         this.worldX = 0; // X coordinate in the larger world grid
         this.worldY = 0; // Y coordinate in the larger world grid
         this.worldSectionId = '0_0'; // Identifier for this section in the larger world
+        this.theme = 'castle'; // Visual + spawn theme; set by worldManager on generation
     }
 
     // Dungeon generation

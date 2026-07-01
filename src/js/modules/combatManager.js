@@ -104,32 +104,32 @@ export class CombatManager {
         return true;
     }
 
-    spawnMonsters(count, difficultyLevel = 1) {
+    spawnMonsters(count, difficultyLevel = 1, theme = null) {
         for (let i = 0; i < count; i++) {
             let position;
             let isTooCloseToPlayer = true;
-            
+
             // Find a position that's not too close to the player
             while (isTooCloseToPlayer) {
                 position = this.game.dungeon.getRandomFloorPosition();
-                
+
                 // Make sure monster is not spawned too close to player
-                const distanceToPlayer = 
-                    Math.abs(position.x - this.game.player.x) + 
+                const distanceToPlayer =
+                    Math.abs(position.x - this.game.player.x) +
                     Math.abs(position.y - this.game.player.y);
-                
+
                 isTooCloseToPlayer = distanceToPlayer < 10;
             }
-            
+
             // Create a random monster at this position with the appropriate difficulty
-            const monster = this.game.monsterDB.createRandomMonster(position.x, position.y, difficultyLevel);
+            const monster = this.game.monsterDB.createRandomMonster(position.x, position.y, difficultyLevel, theme);
 
             this.applyDifficultyScaling(monster, difficultyLevel);
 
             this.game.monsters.push(monster);
         }
 
-        console.log(`Spawned ${count} monsters at difficulty level ${difficultyLevel}`);
+        console.log(`Spawned ${count} monsters at difficulty level ${difficultyLevel}${theme ? ` (theme: ${theme})` : ''}`);
     }
 
     // Scale a monster's combat stats with section difficulty. Boosts the stats

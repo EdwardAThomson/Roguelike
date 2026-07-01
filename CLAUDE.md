@@ -58,6 +58,8 @@ The world is a grid of sections keyed by `"<worldX>_<worldY>"` (starting at `"0_
 
 Each section gets a fresh `Dungeon` instance with `worldX`/`worldY`/`worldSectionId` set on it. The `Dungeon` class procedurally lays out rooms, connects them with corridors, and places gates/keys. Combat, item, and monster placement is driven by `CombatManager`, `ItemManager`, and `MonsterDatabase` respectively.
 
+Each section also carries a `theme` (`'cave' | 'castle' | 'crypt'`), picked deterministically per `(worldX, worldY)` by `worldManager.pickThemeForSection`; `'0_0'` is pinned to `castle`. The theme drives: (a) which wall/floor sprite variant `sprites.js` uses (`sprites.wall[theme]` / `sprites.floor[theme]`), and (b) which monsters can spawn — each entry in `monsterDatabase.js` declares `themes: []`, and `getRandomMonsterType(difficulty, theme)` prefers themed matches then falls back to the level-only pool if the themed pool is empty at that difficulty. When adding new monsters, include a `themes` array or the monster will only appear via the fallback.
+
 ### Monster AI
 
 Monster behavior is data-driven: each entry in `monsterDatabase.js` may set a `behavior` field, and `monster.js#act` dispatches to per-archetype logic. Archetypes are `melee` (default), `skittish` (flees below `fleeHealthThreshold`), `erratic` (darts randomly while engaged), `ranged` (kites to `preferredDistance` and fires projectiles within `attackRange`), and `pack` (rallies aware packmates within `packRallyRange`). To add behavior, add a `case` in `act()` plus tunable fields (default them in the `Monster` constructor and copy them through in `MonsterDatabase.createMonster`). Pursuit uses A* (`findPath`) with a greedy fallback and Chebyshev distance (8-directional movement).

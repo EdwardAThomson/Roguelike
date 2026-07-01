@@ -561,7 +561,9 @@ export class Renderer {
             this.ctx.fillStyle = '#ffff00'; // Bright yellow
             this.ctx.textAlign = 'left';
             this.ctx.textBaseline = 'top';
-            this.ctx.fillText(`Section (x: ${worldX}, y: ${worldY})`, 10, 10);
+            const theme = this.game.dungeon && this.game.dungeon.theme;
+            const themeLabel = theme ? ` — ${theme.charAt(0).toUpperCase()}${theme.slice(1)}` : '';
+            this.ctx.fillText(`Section (x: ${worldX}, y: ${worldY})${themeLabel}`, 10, 10);
             
             // Also show area if applicable
             if (this.game.dungeonArea > 1) {

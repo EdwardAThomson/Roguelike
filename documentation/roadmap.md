@@ -19,10 +19,10 @@ This document outlines the planned features and enhancements for the Modern Rogu
 - Add different monster behaviors and attack patterns based on their type and characteristics.
 
 ## 3. Varied Dungeon Themes and Layouts `[PARTIAL]`
-<!-- Multi-section world with gates/keys exists (dungeon.js, worldManager.js); no distinct themes or theme-specific traps/puzzles. -->
-- Introduce different dungeon themes (e.g., castle, cave, forest) with unique visual styles and obstacles.
-- Develop algorithms to generate varied dungeon layouts, including multi-level structures and special rooms.
-- Incorporate theme-specific traps, puzzles, and interactive elements to enhance the exploration experience.
+<!-- Visual themes (cave / castle / crypt) live in sprites.js with per-theme wall/floor sprites, palettes, and soft-tagged monster spawn pools (monsterDatabase.themes + getRandomMonsterType filter). Theme picked deterministically per (worldX, worldY) in worldManager.pickThemeForSection. Layout variety (theme-specific generation params) and traps/puzzles are still TODO. -->
+- Introduce different dungeon themes (e.g., castle, cave, forest) with unique visual styles and obstacles. `[DONE]` (cave / castle / crypt visuals + spawn tags)
+- Develop algorithms to generate varied dungeon layouts, including multi-level structures and special rooms. `[TODO]`
+- Incorporate theme-specific traps, puzzles, and interactive elements to enhance the exploration experience. `[TODO]`
 
 ## 4. Expanded Character Progression and Skills `[DONE]`
 <!-- Leveling, stat-point allocation, and 4 skills (Power Strike, Toughness, Quick Reflexes, Keen Eye) in character.js. -->

@@ -1,6 +1,6 @@
 # Roadmap — Modern Rogue
 
-_Status: active · updated 2026-07-01_
+_Status: active · updated 2026-07-01 (themes pass)_
 
 A browser roguelike in vanilla JS + HTML5 Canvas — procedural dungeons,
 turn-based tactical combat, magic, and character progression. See
@@ -16,6 +16,7 @@ turn-based tactical combat, magic, and character progression. See
 - [x] Monster AI — A* pathfinding, per-type archetypes, ranged attackers
 - [x] Monster behavior refinement — skittish panic triggered by wounds, aggro / lose-aggro on line-of-sight loss
 - [x] Combat balance — percentage-based defense mitigation, difficulty-scaled attackPower / defense / HP / XP
+- [x] Dungeon themes — Cave / Castle / Crypt with per-theme tilesets, palettes, and soft-tagged monster spawn pools; new L4 crypt Wraith
 - [x] Character progression (level-up, stat allocation, wizard/warrior/hybrid builds)
 - [x] Procedural dungeon generation (multi-section, gates/keys, difficulty scaling)
 - [x] Inventory & equipment with loot drops
@@ -30,7 +31,7 @@ turn-based tactical combat, magic, and character progression. See
 
 ## Next
 
-- [ ] Distinct dungeon themes / layouts (currently partial)
+- [ ] Dungeon layout variety — theme-specific generation (cave chambers vs castle grids vs crypt corridors), traps, puzzles
 - [ ] Enhanced UI & accessibility (keybindings, color-blind mode, text size)
 
 ## Backlog

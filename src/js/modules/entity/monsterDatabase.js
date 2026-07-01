@@ -20,7 +20,8 @@ export class MonsterDatabase {
                 attackDelay: 1200,
                 detectionRange: 4,
                 xpValue: 10,
-                behavior: 'skittish' // a cornered rat runs when wounded
+                behavior: 'skittish', // a cornered rat runs when wounded
+                themes: ['cave', 'castle', 'crypt'] // rats are everywhere
             },
 
             spider: {
@@ -42,7 +43,8 @@ export class MonsterDatabase {
                 behavior: 'ranged', // spits venom from a distance
                 attackRange: 5,
                 preferredDistance: 3,
-                ranged: { damageType: 'poison', symbol: '*', color: '#5f5', verb: 'spits venom' }
+                ranged: { damageType: 'poison', symbol: '*', color: '#5f5', verb: 'spits venom' },
+                themes: ['cave', 'castle', 'crypt'] // cobwebs everywhere
             },
 
             bat: {
@@ -62,9 +64,10 @@ export class MonsterDatabase {
                 detectionRange: 6,
                 xpValue: 18,
                 behavior: 'erratic', // darting, unpredictable flight
-                erraticChance: 0.5
+                erraticChance: 0.5,
+                themes: ['cave', 'castle', 'crypt'] // roost anywhere dark
             },
-            
+
             // Level 2 monsters
             goblin: {
                 name: 'Goblin',
@@ -85,9 +88,10 @@ export class MonsterDatabase {
                 behavior: 'skittish', // cowardly — bolts when badly hurt
                 dropTables: {
                     // We'll implement drop tables later
-                }
+                },
+                themes: ['cave', 'castle']
             },
-            
+
             skeleton: {
                 name: 'Skeleton',
                 description: 'An animated pile of bones',
@@ -103,7 +107,8 @@ export class MonsterDatabase {
                 moveDelay: 350,
                 attackDelay: 1200,
                 detectionRange: 7,
-                xpValue: 30
+                xpValue: 30,
+                themes: ['castle', 'crypt'] // classic undead — haunts both
             },
 
             kobold: {
@@ -122,7 +127,8 @@ export class MonsterDatabase {
                 attackDelay: 1050,
                 detectionRange: 5,
                 xpValue: 28,
-                behavior: 'skittish' // cunning — retreats rather than die
+                behavior: 'skittish', // cunning — retreats rather than die
+                themes: ['cave'] // den-dwelling reptilians
             },
 
             wolf: {
@@ -142,9 +148,10 @@ export class MonsterDatabase {
                 detectionRange: 7,
                 xpValue: 32,
                 behavior: 'pack', // hunts in packs — rallies allies to the player
-                packRallyRange: 8
+                packRallyRange: 8,
+                themes: ['cave', 'castle']
             },
-            
+
             // Level 3 monsters
             orc: {
                 name: 'Orc Warrior',
@@ -161,9 +168,10 @@ export class MonsterDatabase {
                 moveDelay: 400,
                 attackDelay: 1300,
                 detectionRange: 6,
-                xpValue: 45
+                xpValue: 45,
+                themes: ['cave', 'castle']
             },
-            
+
             ghost: {
                 name: 'Specter',
                 description: 'A translucent, floating apparition',
@@ -181,7 +189,8 @@ export class MonsterDatabase {
                 detectionRange: 8,
                 xpValue: 50,
                 behavior: 'erratic', // drifts unpredictably as it closes in
-                erraticChance: 0.35
+                erraticChance: 0.35,
+                themes: ['castle', 'crypt']
             },
 
             centaur: {
@@ -203,7 +212,8 @@ export class MonsterDatabase {
                 behavior: 'ranged', // mounted archer — looses arrows and keeps its distance
                 attackRange: 6,
                 preferredDistance: 4,
-                ranged: { damageType: 'physical', symbol: '»', color: '#fd0', verb: 'looses an arrow' }
+                ranged: { damageType: 'physical', symbol: '»', color: '#fd0', verb: 'looses an arrow' },
+                themes: ['castle'] // grounds and courtyards
             },
 
             minotaur: {
@@ -221,7 +231,32 @@ export class MonsterDatabase {
                 moveDelay: 450,
                 attackDelay: 1400,
                 detectionRange: 5,
-                xpValue: 75
+                xpValue: 75,
+                themes: ['cave', 'castle']
+            },
+
+            // Level 4 — crypt boss-tier
+            wraith: {
+                name: 'Wraith',
+                description: 'A shrouded undead that flings shards of shadow at the living',
+                symbol: 'W',
+                color: '#96b',
+                baseStats: {
+                    level: 4,
+                    maxHealth: 75,
+                    attackPower: 15,
+                    defense: 16,
+                    criticalChance: 12
+                },
+                moveDelay: 320,
+                attackDelay: 1200,
+                detectionRange: 8,
+                xpValue: 80,
+                behavior: 'ranged', // hangs back and hurls shadow bolts
+                attackRange: 6,
+                preferredDistance: 4,
+                ranged: { damageType: 'arcane', symbol: '•', color: '#96b', verb: 'flings a shadow bolt' },
+                themes: ['crypt']
             }
         };
     }
@@ -277,25 +312,33 @@ export class MonsterDatabase {
         return monster;
     }
     
-    getRandomMonsterType(dungeonLevel = 1) {
-        // Filter monster types by level
-        let availableTypes = Object.keys(this.monsterTypes).filter(type => {
-            const monster = this.monsterTypes[type];
-            return monster.baseStats.level <= dungeonLevel;
-        });
-        
-        // If no monsters match, fall back to all monster types
-        if (availableTypes.length === 0) {
-            availableTypes = Object.keys(this.monsterTypes);
+    getRandomMonsterType(dungeonLevel = 1, theme = null) {
+        // Prefer monsters matching both the level cap AND the section theme.
+        // Themed pools are intentionally narrow so they carry flavor; if a
+        // theme has no monster at the requested level, we quietly fall back to
+        // the level-only pool so sections never spawn empty.
+        const byLevel = Object.keys(this.monsterTypes).filter(type =>
+            this.monsterTypes[type].baseStats.level <= dungeonLevel
+        );
+
+        let available = byLevel;
+        if (theme) {
+            const themed = byLevel.filter(type => {
+                const themes = this.monsterTypes[type].themes;
+                return Array.isArray(themes) && themes.includes(theme);
+            });
+            if (themed.length > 0) available = themed;
         }
-        
-        // Select random type
-        const randomIndex = Math.floor(Math.random() * availableTypes.length);
-        return availableTypes[randomIndex];
+
+        // Final fallback: any monster in the database.
+        if (available.length === 0) available = Object.keys(this.monsterTypes);
+
+        const randomIndex = Math.floor(Math.random() * available.length);
+        return available[randomIndex];
     }
-    
-    createRandomMonster(x, y, dungeonLevel = 1) {
-        const type = this.getRandomMonsterType(dungeonLevel);
+
+    createRandomMonster(x, y, dungeonLevel = 1, theme = null) {
+        const type = this.getRandomMonsterType(dungeonLevel, theme);
         return this.createMonster(type, x, y);
     }
 }
