@@ -13,9 +13,10 @@ npm start            # Serve at http://localhost:8080 via http-server
 npm run dev          # Alternative dev server via vite
 npx http-server . -p 8080 -c-1 -o   # Dev with caching disabled (recommended when iterating)
 
-npm test             # Run the Vitest unit tests once
+npm test             # Run the Vitest unit + integration tests once
 npm run test:watch   # Run Vitest in watch mode
 npx vitest run test/monsterPathfinding.test.js   # Run a single test file
+npm run test:e2e     # Run the Playwright smoke test (auto-starts http-server on :8080)
 
 # Version management (updates package.json AND src/js/version.js together)
 npm run bump:patch   # 0.4.0 -> 0.4.1
@@ -23,7 +24,13 @@ npm run bump:minor   # 0.4.0 -> 0.5.0
 npm run bump:major   # 0.4.0 -> 1.0.0
 ```
 
-There is no linter and no build step in the runtime path. Vitest covers the **pure logic** that is decoupled from the DOM/canvas (pathfinding, combat math, the monster database, distance/geometry) — tests live in `test/`. Most managers are deeply coupled to `game`, the DOM, and the canvas, so they are not unit-tested; gameplay and UI changes must still be validated by loading the game in a browser.
+There is no linter and no build step in the runtime path. Tests split into three tiers:
+
+- **Unit tests** (`test/*.test.js`) cover pure logic decoupled from the DOM/canvas (pathfinding, combat math, monster database, magic items, etc.).
+- **Integration tests** (`test/integration/*.test.js`) use `test/helpers/fakeGame.js` — a headless harness that assembles real managers (Dungeon, MonsterDatabase, ItemManager, WorldManager, CombatManager, FOV, projectile/status/spell systems, InputManager, Player) with only DOM-shaped pieces stubbed. `bootFakeGame()` also runs `worldManager.initializeFirstSection()` for scenarios that need a live section. Cross-manager wire-up bugs show up here.
+- **E2E smoke** (`test/e2e/smoke.spec.js`, Playwright, `*.spec.js` convention) loads `index.html` in headless Chromium, clicks Quick Play, drives a few real keystrokes, and asserts no runtime errors + game state. Convention: `.test.js` = Vitest, `.spec.js` = Playwright — `vitest.config.js` restricts include to `.test.js` so the suites don't collide.
+
+Rendering, input listeners, sprite loading, and CSS still need a real browser; UI changes must be eyeballed manually.
 
 `src/js/version.js` is the single source of truth for the in-game version string; `package.json` mirrors it. The `bump-version.js` script keeps them in sync — don't edit version numbers by hand in only one place. `CODENAME` and `RELEASE_DATE` in `version.js` must be updated manually after a bump.
 

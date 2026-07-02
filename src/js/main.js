@@ -28,10 +28,13 @@ window.startGame = startGame;
 
 function startGame() {
     console.log('Game starting from menu...');
-    
+
     try {
         const game = new RogueGame();
         game.init();
+        // Expose the live game for e2e tests / debugging in the browser
+        // console. Not used by gameplay code.
+        window.__game = game;
         console.log('Game initialized successfully!');
     } catch (error) {
         console.error('Error initializing game:', error);
