@@ -12,6 +12,7 @@ A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features
 - **Tactical Combat**: Strategic turn-based combat system with various monsters and weapons
 - **Character Progression**: Stat point allocation system enabling wizard, warrior, and hybrid builds
 - **Procedural Generation**: Dynamically generated dungeons with varied layouts and challenges
+- **Dungeon Themes**: Cave, castle, and crypt sections with distinct visuals and theme-specific monster spawns
 - **Inventory System**: Comprehensive item management with equipment, consumables, and loot
 - **Field of View**: Realistic line-of-sight and fog of war mechanics
 - **World Management**: Multi-section world with seamless transitions
