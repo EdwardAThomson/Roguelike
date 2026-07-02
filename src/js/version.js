@@ -4,10 +4,10 @@
  */
 export class Version {
     static MAJOR = 0;
-    static MINOR = 4;
+    static MINOR = 5;
     static PATCH = 0;
-    static CODENAME = "Arcane Awakening";
-    static RELEASE_DATE = "2025-10-17";
+    static CODENAME = "Crypts & Castles";
+    static RELEASE_DATE = "2026-07-02";
     
     /**
      * Get version string (e.g., "0.4.0")

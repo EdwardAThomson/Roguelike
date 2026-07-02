@@ -1,6 +1,6 @@
 # Modern Roguelike
 
-**Version 0.4.0 "Arcane Awakening"** | October 2025
+**Version 0.5.0 "Crypts & Castles"** | July 2026
 
 A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features procedurally generated dungeons, tactical combat, magic system, and an immersive exploration experience.
 
@@ -140,12 +140,10 @@ Additional documentation can be found in the `documentation/` folder:
 - `magic_system.md` - Magic system reference and spell database
 - `spell_scaling_implementation.md` - Spell scaling and progression system
 - `versioning.md` - Version management and release workflow
+- `CHANGELOG.md` - Complete version history and roadmap
 - `multiplayer_roadmap.md` - Future multiplayer features
 - `developer_log.md` - Development notes and progress
 - `player_guide.md` - Comprehensive player guide
-
-See also:
-- `CHANGELOG.md` - Complete version history and roadmap
 
 ## 🎥 YouTube Dev Log
 
