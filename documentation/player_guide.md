@@ -23,6 +23,8 @@ Your goal is to explore the procedurally generated dungeon, fight monsters, coll
 
 The game features procedurally generated dungeons with interconnected rooms. Explore the dungeon, discover new areas, and find valuable loot. The dungeon is divided into levels, and you must find the gate key to unlock the gate and progress to the next level.
 
+Sections come in one of three themes (cave, castle, or crypt), each with its own visual style and a preference for certain monsters, so different areas both look and feel distinct. The current section's theme is shown next to its coordinates in the HUD.
+
 ## Combat
 
 Engage in combat with monsters inhabiting the dungeon. Move your character towards a monster to initiate an attack. Your character's attributes and equipment will determine the outcome of the battle. Defeating monsters grants experience points and potentially drops loot.
