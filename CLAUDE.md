@@ -105,5 +105,7 @@ Deep-dives on subsystems live in `documentation/`:
 - `magic_system.md`, `spell_scaling_implementation.md` — spells and scaling
 - `gates.md`, `ranged_combat_design.md`, `map_reveal_feature.md` — feature specs
 - `multiplayer_roadmap.md`, `multiplayer_components.md` — future direction (not implemented)
-- `developer_log.md`, `roadmap.md` — progress and plans
+- `roadmap.md`, `CHANGELOG.md` — plans and per-release history
 - `player_guide.md` — gameplay reference
+
+The canonical development log is `DEVLOG.md` at the repo root (narrative, per-date notes, newest first); `documentation/CHANGELOG.md` holds curated per-release notes.

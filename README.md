@@ -142,8 +142,9 @@ Additional documentation can be found in the `documentation/` folder:
 - `versioning.md` - Version management and release workflow
 - `CHANGELOG.md` - Complete version history and roadmap
 - `multiplayer_roadmap.md` - Future multiplayer features
-- `developer_log.md` - Development notes and progress
 - `player_guide.md` - Comprehensive player guide
+
+The narrative development log lives at [`DEVLOG.md`](DEVLOG.md) in the repo root (per-date notes, newest first).
 
 ## 🎥 YouTube Dev Log
 

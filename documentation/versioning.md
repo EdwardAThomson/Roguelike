@@ -189,8 +189,8 @@ Examples:
 
 ### Manual (you update)
 - `src/js/version.js` - CODENAME, RELEASE_DATE
-- `CHANGELOG.md` - Version history
-- `documentation/developer_log.md` - Detailed notes (optional)
+- `documentation/CHANGELOG.md` - Version history
+- `DEVLOG.md` (repo root) - Narrative development notes (optional)
 
 ---
 

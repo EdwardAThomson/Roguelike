@@ -83,7 +83,7 @@ console.log('');
 console.log('📝 Next steps:');
 console.log('   1. Update CODENAME in src/js/version.js (if needed)');
 console.log('   2. Update RELEASE_DATE in src/js/version.js');
-console.log('   3. Add changelog entry to documentation/developer_log.md');
+console.log('   3. Add a release entry to documentation/CHANGELOG.md (and a DEVLOG.md note if useful)');
 console.log('   4. Commit changes:');
 console.log(`      git add package.json src/js/version.js`);
 console.log(`      git commit -m "Release v${newVersion}"`);
