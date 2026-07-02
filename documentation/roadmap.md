@@ -2,7 +2,7 @@
 
 This document outlines the planned features and enhancements for the Modern Rogue game, along with implementation details and considerations.
 
-**Status legend:** `[DONE]` complete · `[PARTIAL]` partially implemented · `[TODO]` not started. (Reflects code as of v0.4.0 "Arcane Awakening".)
+**Status legend:** `[DONE]` complete · `[PARTIAL]` partially implemented · `[TODO]` not started. (Reflects code as of v0.5.0 "Crypts & Castles".)
 
 ## 1. Saving and Loading Game State `[TODO]`
 - Implement a system to save the player's progress, including character stats, inventory, equipment, and dungeon state.

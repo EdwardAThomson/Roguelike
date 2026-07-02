@@ -1,6 +1,6 @@
 # Roadmap — Modern Rogue
 
-_Status: active · updated 2026-07-01 (themes pass)_
+_Status: active · v0.5.0 "Crypts & Castles" shipped 2026-07-02_
 
 A browser roguelike in vanilla JS + HTML5 Canvas — procedural dungeons,
 turn-based tactical combat, magic, and character progression. See
