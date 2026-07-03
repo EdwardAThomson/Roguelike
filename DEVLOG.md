@@ -7,6 +7,14 @@ notes on what changed and why. Newest entries first. Entries dated before
 For curated, per-release notes in Keep-a-Changelog format, see
 [`documentation/CHANGELOG.md`](documentation/CHANGELOG.md).
 
+## 2026-07-02
+
+Release day: shipped v0.5.0 "Crypts & Castles", the minor bump carrying the dungeon-themes work. Since 0.4.0 this adds the cave/castle/crypt themes with per-theme tilesets and theme-tagged spawn pools (plus the L4 Wraith), per-type monster AI with A* pathfinding and aggro memory, castable staves and wands, numpad diagonal movement, percentage-based defense mitigation, and the Vitest + Playwright test suite. Around the release itself, the day was mostly housekeeping: the Playwright config was fixed so `npm run test:e2e` works locally (it had hardcoded a CI-only Chromium `executablePath`; it now gates on `existsSync` and falls back to the Playwright-managed browser), the README and player guide were synced to mention the themes, and the roadmaps were updated to show 0.5.0 as the current shipped version.
+
+**Decisions & notes:** `CHANGELOG.md` and `versioning.md` had been living in the gitignored `temp/` folder, meaning the release docs were not actually tracked; they were moved into `documentation/` and the README links repointed. The two overlapping dev logs were also consolidated: the 874 lines of history from the old hand-written `documentation/developer_log.md` (stale since 2025-10-23) were merged into this root `DEVLOG.md` and the old file deleted. DEVLOG.md is now the single narrative per-date diary; `documentation/CHANGELOG.md` stays separate as curated per-release notes.
+
+---
+
 ## 2026-07-01
 
 Added themed dungeons so sections no longer all look and play the same. Each world section now carries a `theme` (`cave`, `castle`, or `crypt`) chosen deterministically per `(worldX, worldY)`, with the starting section `0_0` pinned to `castle`. The theme drives two things: which wall/floor sprite variants `sprites.js` renders, and which monsters are eligible to spawn. Monster entries in `monsterDatabase.js` gained a `themes` array, and `getRandomMonsterType` now prefers themed matches at the given difficulty, falling back to the level-only pool when the themed pool is empty. Sprite work was the bulk of the diff, expanding `sprites.js` substantially to cover the three visual sets. A new `test/dungeonTheme.test.js` locks in the theme-selection and spawn-pool behavior. The roadmap was also updated to check off combat balance and monster-behavior refinement as done.
