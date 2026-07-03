@@ -25,7 +25,7 @@ A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v20 or higher, required by the test tooling)
 - npm or yarn package manager
 - Modern web browser
 
@@ -130,6 +130,16 @@ The game follows a modular architecture with clear separation of concerns:
 - **CombatManager**: Handles all combat interactions
 - **WorldManager**: Manages world sections and transitions
 - **ItemManager**: Handles item interactions and inventory
+
+### Testing
+
+```bash
+npm test             # Vitest unit + integration tests (headless, no browser needed)
+npm run test:watch   # Vitest in watch mode
+npm run test:e2e     # Playwright smoke test (auto-starts http-server on :8080)
+```
+
+Unit tests (`test/*.test.js`) cover pure game logic such as pathfinding and combat math. Integration tests (`test/integration/`) boot a headless "fake game" harness (`test/helpers/fakeGame.js`) that wires up the real managers to catch cross-manager bugs. The end-to-end smoke test (`test/e2e/smoke.spec.js`) loads the game in headless Chromium, clicks Quick Play, and drives real keystrokes; run `npx playwright install chromium` once before the first local run.
 
 ## 📚 Documentation
 
