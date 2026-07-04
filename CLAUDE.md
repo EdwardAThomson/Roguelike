@@ -28,7 +28,9 @@ There is no linter and no build step in the runtime path. Tests split into three
 
 - **Unit tests** (`test/*.test.js`) cover pure logic decoupled from the DOM/canvas (pathfinding, combat math, monster database, magic items, etc.).
 - **Integration tests** (`test/integration/*.test.js`) use `test/helpers/fakeGame.js` — a headless harness that assembles real managers (Dungeon, MonsterDatabase, ItemManager, WorldManager, CombatManager, FOV, projectile/status/spell systems, InputManager, Player) with only DOM-shaped pieces stubbed. `bootFakeGame()` also runs `worldManager.initializeFirstSection()` for scenarios that need a live section. Cross-manager wire-up bugs show up here.
-- **E2E smoke** (`test/e2e/smoke.spec.js`, Playwright, `*.spec.js` convention) loads `index.html` in headless Chromium, clicks Quick Play, drives a few real keystrokes, and asserts no runtime errors + game state. Convention: `.test.js` = Vitest, `.spec.js` = Playwright — `vitest.config.js` restricts include to `.test.js` so the suites don't collide.
+- **E2E** (`test/e2e/*.spec.js`, Playwright) loads `index.html` in headless Chromium and drives real keystrokes: `smoke.spec.js` (boot + input), `saveload.spec.js` (Ctrl+S, reload, Continue with real IndexedDB), `gameModal.spec.js` (tabbed modal, pause, capture-mode binding; fails on any native dialog). All boot via Quick Play, then pick a card in the mode chooser. Convention: `.test.js` = Vitest, `.spec.js` = Playwright — `vitest.config.js` restricts include to `.test.js` so the suites don't collide.
+
+Persistence is unit-tested in node via the storage-adapter seam: serializer/hydrator are pure functions exercised on the fake game, and `InMemorySaveStore` stands in for IndexedDB (which does not exist in the node test env; real IndexedDB round-trips live in the e2e tier only).
 
 Rendering, input listeners, sprite loading, and CSS still need a real browser; UI changes must be eyeballed manually.
 
@@ -38,7 +40,7 @@ Rendering, input listeners, sprite loading, and CSS still need a real browser; U
 
 ### Game entry and lifecycle
 
-`index.html` hosts both a landing-page menu and the game DOM. `src/js/menu.js` handles the menu and calls `window.startGame()` exposed by `src/js/main.js`. The game itself is a single `RogueGame` instance whose `init()` constructs every manager, then enters a `requestAnimationFrame` loop calling `update(deltaTime)` and `renderer.render()`.
+`index.html` hosts both a landing-page menu and the game DOM. `src/js/menu.js` handles the menu (Quick Play opens a run-mode chooser: Adventure vs Hardcore; Multiplayer/Options/Credits open an in-menu modal, never `alert()`) and calls `window.startGame(options)` exposed by `src/js/main.js`. Options: `{continue: true}` resumes the saved run, `{hardcore: bool}` sets the mode for a new run. The game itself is a single `RogueGame` instance whose `init(options)` constructs every manager, then either restores the save or initializes a fresh first section, then enters a `requestAnimationFrame` loop calling `update(deltaTime)` and `renderer.render()`.
 
 `RogueGame` is the central hub — every manager receives `game` in its constructor and reaches back into it (`this.game.player`, `this.game.map`, `this.game.monsters`, etc.). When adding a new system, follow this pattern: take `game` in the constructor, expose the manager as `game.<name>` from `main.js#init`. Don't try to make managers standalone — the cross-references are pervasive.
 
@@ -48,16 +50,16 @@ Initialization order in `main.js` matters because managers reference each other:
 
 1. **State/camera/FOV** (`gameStateManager.js`, `cameraManager.js`, `fovManager.js`) — constructed early in the `RogueGame` constructor.
 2. **Magic system** (`projectileManager`, `statusEffectManager`, `targetingSystem`, `spellDatabase`) — also constructor-time.
-3. **Async init** (`init()`) sets up: `InputHandler` + `InputManager`, `SpriteRenderer` (awaits sprite loading), `Dungeon`, `ItemManager`, `MonsterDatabase`, `WorldManager`, `CombatManager`, `Renderer`, then UI.
-4. `worldManager.initializeFirstSection()` creates the first dungeon, places the player, populates items/monsters, and wires the player's spellbook to the global `SpellDatabase` (unlocking `magic_dart` as the starter spell).
+3. **Async init** (`init()`) sets up: `InputHandler` + `InputManager`, `SpriteRenderer` (awaits sprite loading), `Dungeon`, `ItemManager`, `MonsterDatabase`, `WorldManager`, `CombatManager`, `Renderer`, then `SaveManager`, then the world (restore or fresh), then UI.
+4. On a fresh run, `worldManager.initializeFirstSection()` creates the first dungeon, places the player, populates items/monsters, and wires the player's spellbook to the global `SpellDatabase` (unlocking `magic_dart` as the starter spell). On `{continue: true}`, `restoreGame` in `persistence/hydrator.js` rebuilds all of that from the save instead; it must reproduce the same wiring, especially `spellbook.setSpellDatabase(...)`.
 
 ### Input flow
 
 Two cooperating input layers:
 - `input.js` (`InputHandler`) — low-level key state polling.
-- `inputManager.js` (`InputManager`) — game-aware input. `update()` calls `inputManager.handleUIInput()` always, and `inputManager.handleInput()` only when `stateManager.isPlaying()` and a player exists.
+- `inputManager.js` (`InputManager`) — game-aware input. `update()` calls `inputManager.handleUIInput()` always (so I/C/B/H work while paused), and `inputManager.handleInput()` only when `stateManager.isPlaying()` and a player exists.
 
-A small set of debug/cheat keys (M for map reveal, Shift+G for gate debug) is wired directly in `main.js#setupKeyListeners` — everything else goes through `InputManager`.
+`handleUIInput` routes I/C/B to `gameModal.toggleTab(...)` and H to the help overlay (mutually exclusive with the modal). A small set of keys is wired directly in `main.js#setupKeyListeners`: M (map reveal cheat), Shift+G (gate debug), and Ctrl+S / Cmd+S (manual save). While the game modal is open, its own document keydown listener (attached on open, detached on close) handles Escape, spellbook capture keys, and the inventory tab's item-action keys.
 
 ### World / dungeon model
 
@@ -87,9 +89,29 @@ Castable items (`items/magicItem.js`) reuse this path: `Staff` (equippable mage 
 
 Note: `spellbook_backup.js` exists alongside `spellbook.js` — `spellbook.js` is the active module; `spellbook_backup.js` is legacy and not imported.
 
+### Persistence (save/load)
+
+`src/js/modules/persistence/` owns saving. `saveSchema.js` defines the versioned envelope (`FORMAT_VERSION`, meta summary for the menu, compact one-char-per-tile row encoding). `serializer.js` is a pure game-to-JSON conversion; `hydrator.js` (`restoreGame`) rebuilds live managers from it. Storage sits behind the `SaveStore` adapter (`saveStore.js`): `IndexedDBSaveStore` in the browser, `InMemorySaveStore` in tests, `CloudSaveStore` for the Octonion gateway. `SaveManager` owns every policy: manual save (Ctrl+S), autosave (one-line hook at the end of `worldManager.transitionToSection`), death handling (one-line hook in `gameStateManager.handlePlayerDeath`), and cloud mirroring.
+
+Things that will bite you if you change them casually:
+
+- **Equipment double-apply hazard.** `Equipment.applyStats` mutates player attributes on equip, and `Inventory.clear()` does not reverse them. The serializer therefore stores BASE attributes (current minus equipped bonuses) and the hydrator restores in a strict order: new Player, `inventory.clear()`, overwrite base attributes, re-equip via the equip path, `updateStats()`, clamp health/mana. The round-trip test asserts exact attribute/derived-stat equality and idempotence; keep it green.
+- **The live current section is NOT in `worldManager.sectionStates`** until the player leaves it, so `serializeGame` flushes `game.dungeon/monsters/itemsOnGround` into the section map at save time.
+- **No seeded RNG exists**, so dungeons cannot be regenerated from seeds; tiles and all placed structures are stored verbatim.
+- **Monsters persist their difficulty-scaled stats and name** (the `Elite ` prefix drives loot behavior); rebuilding from the database template alone silently de-elites them. Gate keys are customized clones whose `gateId`/name/color are not in the `gate_key` template; they persist their custom fields.
+- **Run mode is immutable per run**: `game.hardcore` is set once at run start (mode chooser) or restored from the save; hardcore death deletes the save (locally and in the cloud), adventure death keeps it. The policy lives only in `SaveManager.onPlayerDeath`.
+
+Cloud saves are dormant until `src/js/config.js` is filled in (hub URL, Supabase URL/anon key, gateway URL); with an empty config the game is fully offline and account UI stays hidden. `authClient.js` implements the Octonion hub SSO flow (one-time-token exchange, lazy supabase-js import); `cloudSaveStore.js` speaks the RPG-Loom gateway contract (`/api/saves/:slot`, generation-based optimistic concurrency, 503 degradation). Sync is local-first: IndexedDB is the source of truth, cloud pushes ride behind local saves, and the menu pulls a newer cloud save into IndexedDB before offering Continue. The server side (gateway + `newroguelike` schema) lives in the sibling octonion repos and is not built yet.
+
 ### UI
 
-`ui/index.js` exports a `UI` class that composes `GameUI`, `InventoryUI`, `EquipmentDisplay`, `HelpScreen`, and `SpellbookUI`. Use `game.ui.addMessage(text, color)` for the message log. UI components mutate the DOM in `#ui-container` and `#overlay-container`; the canvas (`#game-canvas`) is owned by the `Renderer`.
+`ui/index.js` exports a `UI` class that composes `GameUI` (HUD + character tab), `InventoryUI`, `EquipmentDisplay` (persistent HUD sidebar), `HelpScreen`, `SpellbookUI`, and `GameModal`. Use `game.ui.addMessage(text, color)` for the message log. UI components mutate the DOM in `#ui-container` and `#overlay-container`; the canvas (`#game-canvas`) is owned by the `Renderer`.
+
+**The game modal** (`ui/gameModal.js`) is the single tabbed screen hosting Character / Inventory / Spellbook. Its frame size is fixed (`.game-modal` in `src/css/style.css`, `min(92vw,1000px)` by `min(85vh,680px)`) so switching tabs never resizes; panels scroll internally. The three screens are content providers implementing `mountPanel(el)` / `onShow(options)` / `onHide()` / optional `handleKey(e)`; they render into persistent panels and own no modal chrome. When adding a tab, implement that interface and register it in the `UI` constructor.
+
+**Pause is real and lives in `GameStateManager`**: opening the modal or help calls `stateManager.openMenu()` (state `'menu'`), which halts gameplay input, player/monster updates, and status ticks via the existing `isPlaying()` gates; `closeMenu()` only restores `'playing'` from `'menu'`, so `gameOver` is sticky. Never reintroduce the old `game.gameState` ad-hoc property; it was dead state that made modals silently fail to pause.
+
+**Spell hotkey binding** is a capture flow in the spellbook tab: `startCapture(spellId)` shows the reserved-space hint strip and pulses the slots; the modal's keydown handler maps Q/R/F/V/X (order read from `spellbook.slotKeys`, do not hardcode a third copy) to `completeCapture(slotIndex)`; Escape is two-stage (cancel capture, then close). Native `prompt()`/`confirm()`/`alert()` are banned in game and menu UI; the e2e specs fail on any dialog.
 
 ## Conventions
 
