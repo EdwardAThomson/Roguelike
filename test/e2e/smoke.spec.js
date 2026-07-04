@@ -24,9 +24,11 @@ test('boots from the menu, initializes managers, and survives a few input turns'
 
     await page.goto('/');
 
-    // Menu is rendered — click Quick Play to start the game.
+    // Menu is rendered — Quick Play opens the mode chooser; pick Adventure.
     await expect(page.locator('#quick-play-btn')).toBeVisible();
     await page.locator('#quick-play-btn').click();
+    await expect(page.locator('#mode-select')).toBeVisible();
+    await page.locator('#mode-adventure').click();
 
     // main.js exposes the live game object on window.__game once init runs.
     await page.waitForFunction(() => window.__game && window.__game.player, null, { timeout: 10_000 });

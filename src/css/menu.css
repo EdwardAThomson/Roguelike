@@ -115,3 +115,125 @@
     text-decoration: underline;
     color: #fff;
 }
+
+/* Run mode chooser (shown after Quick Play) */
+.mode-select {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.mode-select-title {
+    color: #ff9d00;
+    font-size: 22px;
+    font-family: 'Cinzel', serif;
+    margin-bottom: 5px;
+}
+
+.mode-card {
+    background-color: #262626;
+    border: 2px solid #555;
+    border-radius: 8px;
+    padding: 16px 20px;
+    text-align: left;
+    cursor: pointer;
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    transition: all 0.3s ease;
+}
+
+.mode-card:hover {
+    border-color: #ff9d00;
+    background-color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* The player's previous choice, highlighted as the suggested default */
+.mode-card.preferred {
+    border-color: #ff9d00;
+}
+
+.mode-card-name {
+    font-size: 20px;
+    margin-bottom: 6px;
+}
+
+.mode-card-desc {
+    font-size: 13px;
+    color: #aaa;
+    font-family: monospace;
+}
+
+.mode-back {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    padding: 8px;
+}
+
+.mode-back:hover {
+    color: #fff;
+}
+
+/* In-menu modal (Multiplayer / Options / Credits) */
+.menu-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10; /* above the menu container, inside #landing-page */
+}
+
+.menu-modal {
+    background-color: rgba(15, 15, 20, 0.97);
+    border: 2px solid #555;
+    border-radius: 10px;
+    max-width: 420px;
+    width: 85%;
+    color: #ddd;
+    font-family: monospace;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.menu-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #444;
+    color: #ff9d00;
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+}
+
+.menu-modal-close {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 6px;
+}
+
+.menu-modal-close:hover {
+    color: #f55;
+}
+
+.menu-modal-body {
+    padding: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.menu-modal-body p {
+    margin: 0 0 10px;
+}

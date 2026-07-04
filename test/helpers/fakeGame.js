@@ -40,6 +40,8 @@ export function makeFakeGame(options = {}) {
         dungeonLevel: 1,
         dungeonArea: 1,
         mapRevealed: false,
+        hardcore: options.hardcore ?? true, // run mode, immutable per run
+
         // Message log stub — captures instead of rendering.
         ui: {
             messages: [],

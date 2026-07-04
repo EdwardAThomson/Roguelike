@@ -3,25 +3,35 @@ import { InventoryUI } from './inventoryUI.js';
 import { EquipmentDisplay } from './equipmentDisplay.js';
 import { HelpScreen } from './helpScreen.js';
 import { SpellbookUI } from './spellbookUI.js';
+import { GameModal } from './gameModal.js';
 
 export class UI {
     constructor(game) {
         this.game = game;
-        
+
         // Initialize UI components
         this.gameUI = new GameUI(game);
         this.inventoryUI = new InventoryUI(game);
         this.equipmentDisplay = new EquipmentDisplay(game);
         this.helpScreen = new HelpScreen(game);
         this.spellbookUI = new SpellbookUI(game);
-        
+
+        // The tabbed modal hosting character sheet, inventory and spellbook.
+        this.gameModal = new GameModal(game, {
+            character: this.gameUI,
+            inventory: this.inventoryUI,
+            spellbook: this.spellbookUI
+        });
+
         // Create backup UI buttons
         this.createEmergencyButtons();
     }
-    
+
     initialize() {
         this.gameUI.initialize();
-        // SpellbookUI now initializes itself in constructor
+        // Builds the modal shell and mounts the three tab panels; must run
+        // after gameUI.initialize() (GameUI defers its DOM to initialize()).
+        this.gameModal.initialize();
     }
     
     createEmergencyButtons() {
@@ -39,7 +49,7 @@ export class UI {
         invButton.style.cssText = 'padding: 8px 16px; background: #22a; color: white; border: none; border-radius: 4px; cursor: pointer;';
         invButton.onclick = () => {
             console.log('Emergency inventory button clicked');
-            this.inventoryUI.toggleInventory();
+            this.gameModal.toggleTab('inventory');
         };
         buttonContainer.appendChild(invButton);
         
@@ -49,7 +59,7 @@ export class UI {
         charButton.style.cssText = 'padding: 8px 16px; background: #2a2; color: white; border: none; border-radius: 4px; cursor: pointer;';
         charButton.onclick = () => {
             console.log('Emergency character button clicked');
-            this.gameUI.toggleCharacterScreen();
+            this.gameModal.toggleTab('character');
         };
         buttonContainer.appendChild(charButton);
         
@@ -59,7 +69,7 @@ export class UI {
         spellbookButton.style.cssText = 'padding: 8px 16px; background: #0af; color: white; border: none; border-radius: 4px; cursor: pointer;';
         spellbookButton.onclick = () => {
             console.log('Emergency spellbook button clicked');
-            this.toggleSpellbook();
+            this.gameModal.toggleTab('spellbook');
         };
         buttonContainer.appendChild(spellbookButton);
         
@@ -137,16 +147,10 @@ export class UI {
     }
     
     toggleInventory() {
-        this.inventoryUI.toggleInventory();
+        this.gameModal.toggleTab('inventory');
     }
-    
+
     toggleSpellbook() {
-        if (this.spellbookUI) {
-            this.spellbookUI.toggleSpellbook();
-        }
-    }
-    
-    get showCharacterScreen() {
-        return this.gameUI.showCharacterScreen;
+        this.gameModal.toggleTab('spellbook');
     }
 }

@@ -5,8 +5,8 @@ export class GameUI {
         this.canvas = game.canvas;
         this.messageLog = [];
         this.maxMessages = 5;
-        this.showCharacterScreen = false;
         this.selectedStatTab = 'attributes'; // 'attributes' or 'skills'
+        this.panelEl = null; // character tab panel inside the game modal
     }
     
     initialize() {
@@ -30,48 +30,44 @@ export class GameUI {
         this.logElement.id = 'message-log';
         this.logElement.className = 'message-log';
         messageContainer.appendChild(this.logElement);
-        
-        // Create character screen in overlay container
-        const overlayContainer = document.getElementById('overlay-container');
-        this.characterScreen = document.createElement('div');
-        this.characterScreen.id = 'character-screen';
-        this.characterScreen.className = 'character-screen';
-        this.characterScreen.style.display = 'none';
-        overlayContainer.appendChild(this.characterScreen);
-        
-        // Create tabs for character screen
-        const tabContainer = document.createElement('div');
-        tabContainer.className = 'tab-container';
-        this.characterScreen.appendChild(tabContainer);
-        
-        // Attributes tab
-        const attributesTab = document.createElement('div');
-        attributesTab.className = 'tab active';
-        attributesTab.textContent = 'Attributes';
-        attributesTab.addEventListener('click', () => this.switchTab('attributes'));
-        tabContainer.appendChild(attributesTab);
-        
-        // Skills tab
-        const skillsTab = document.createElement('div');
-        skillsTab.className = 'tab';
-        skillsTab.textContent = 'Skills';
-        skillsTab.addEventListener('click', () => this.switchTab('skills'));
-        tabContainer.appendChild(skillsTab);
-        
-        // Content area
-        this.characterContent = document.createElement('div');
-        this.characterContent.className = 'character-content';
-        this.characterScreen.appendChild(this.characterContent);
-        
-        // Close button
-        const closeButton = document.createElement('button');
-        closeButton.className = 'close-button';
-        closeButton.textContent = 'Close (C)';
-        closeButton.addEventListener('click', () => this.toggleCharacterScreen());
-        this.characterScreen.appendChild(closeButton);
-        
+
+        // The character screen itself lives in the game modal's character
+        // tab (see mountPanel), not in a standalone overlay.
+
         // Add styles
         this.addStyles();
+    }
+
+    // GameModal provider interface: the character tab.
+    mountPanel(panelEl) {
+        this.panelEl = panelEl;
+
+        // Sub-tabs (Attributes / Skills) inside the character panel. Scoped
+        // classes + data attributes; never use global .tab selectors here.
+        const subTabBar = document.createElement('div');
+        subTabBar.className = 'cs-subtabs';
+        const subTabs = [['attributes', 'Attributes'], ['skills', 'Skills']];
+        for (const [id, label] of subTabs) {
+            const el = document.createElement('div');
+            el.className = 'cs-subtab' + (id === this.selectedStatTab ? ' active' : '');
+            el.dataset.subtab = id;
+            el.textContent = label;
+            el.addEventListener('click', () => this.switchTab(id));
+            subTabBar.appendChild(el);
+        }
+        panelEl.appendChild(subTabBar);
+
+        this.characterContent = document.createElement('div');
+        this.characterContent.className = 'character-content';
+        panelEl.appendChild(this.characterContent);
+    }
+
+    onShow() {
+        this.updateCharacterScreen();
+    }
+
+    onHide() {
+        // Nothing transient to clean up on the character tab.
     }
     
     addStyles() {
@@ -95,39 +91,27 @@ export class GameUI {
                 margin: 2px 0;
             }
             
-            .character-screen {
-                background-color: rgba(20, 20, 20, 0.95);
-                color: #fff;
-                padding: 20px;
-                border-radius: 10px;
-                font-family: monospace;
-                width: 90%;
-                max-width: 900px;
-                max-height: 80vh;
-                overflow-y: auto;
-                border: 2px solid #444;
-                margin: 0 auto;
-            }
-            
-            .tab-container {
+            .cs-subtabs {
                 display: flex;
                 border-bottom: 1px solid #444;
                 margin-bottom: 15px;
             }
-            
-            .tab {
+
+            .cs-subtab {
                 padding: 8px 15px;
                 cursor: pointer;
                 margin-right: 5px;
                 border-radius: 5px 5px 0 0;
+                color: #aaa;
             }
-            
-            .tab.active {
+
+            .cs-subtab.active {
                 background-color: #333;
                 border: 1px solid #444;
                 border-bottom: none;
+                color: #fff;
             }
-            
+
             .character-content {
                 margin-bottom: 20px;
             }
@@ -194,18 +178,6 @@ export class GameUI {
             .skill-button:disabled {
                 color: #555;
                 cursor: not-allowed;
-            }
-            
-            .close-button {
-                background-color: #333;
-                border: 1px solid #555;
-                color: #fff;
-                padding: 8px 15px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-family: monospace;
-                display: block;
-                margin: 0 auto;
             }
             
             .progress-bar {
@@ -297,17 +269,13 @@ export class GameUI {
     
     switchTab(tab) {
         this.selectedStatTab = tab;
-        // Update tab classes
-        const tabs = document.querySelectorAll('.tab');
-        tabs.forEach(t => {
-            t.classList.remove('active');
-            // Match by tab name (handle emoji in spellbook tab)
-            const tabText = t.textContent.toLowerCase().replace(/[^\w\s]/g, '').trim();
-            if (tabText === tab || t.textContent.toLowerCase().includes(tab)) {
-                t.classList.add('active');
-            }
-        });
-        
+        // Scoped to this panel's sub-tabs; matched by data attribute.
+        if (this.panelEl) {
+            this.panelEl.querySelectorAll('.cs-subtab').forEach(t => {
+                t.classList.toggle('active', t.dataset.subtab === tab);
+            });
+        }
+
         this.updateCharacterScreen();
     }
     
@@ -396,7 +364,6 @@ export class GameUI {
             `;
             
             // Add event listeners to stat buttons
-            this.characterContent.innerHTML = this.characterContent.innerHTML;
             const statButtons = this.characterContent.querySelectorAll('.stat-button');
             statButtons.forEach(button => {
                 button.addEventListener('click', () => {
@@ -454,97 +421,6 @@ export class GameUI {
         }
     }
     
-    // Removed renderSpellbookTab() - spellbook now has its own modal
-    
-    renderSpellbookTab_DEPRECATED() {
-        if (!this.game.player || !this.game.player.spellbook) {
-            this.characterContent.innerHTML = '<p style="color: #f55;">No spellbook available!</p>';
-            return;
-        }
-        
-        const spellbook = this.game.player.spellbook;
-        const summary = spellbook.getSummary();
-        
-        // Build HTML (similar to SpellbookUI but adapted for character screen)
-        let html = '<h2>📖 Spellbook</h2>';
-        html += '<div style="display: flex; gap: 20px;">';
-        
-        // Left panel: Spell slots
-        html += '<div style="flex: 0 0 200px;">';
-        html += '<h3 style="color: #0af; font-size: 14px; margin-bottom: 10px;">Spell Hotbar</h3>';
-        
-        for (const slot of summary.spellSlots) {
-            if (slot.spell) {
-                html += `
-                    <div style="background: rgba(40,40,40,0.9); border: 2px solid #555; border-radius: 6px; padding: 8px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                        <div style="font-size: 16px; font-weight: bold; color: #0af; background: rgba(0,170,255,0.2); border: 1px solid #0af; border-radius: 4px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">${slot.key}</div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold; font-size: 12px;">${slot.spell.icon} ${slot.spell.name}</div>
-                            <div style="font-size: 10px; color: #0af;">💧 ${slot.spell.manaCost}</div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div style="background: rgba(40,40,40,0.9); border: 2px dashed #333; border-radius: 6px; padding: 8px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: #666;">
-                        <div style="font-size: 16px; font-weight: bold; color: #0af; background: rgba(0,170,255,0.2); border: 1px solid #0af; border-radius: 4px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">${slot.key}</div>
-                        <div>Empty</div>
-                    </div>
-                `;
-            }
-        }
-        
-        html += '</div>';
-        
-        // Right panel: All spells
-        html += '<div style="flex: 1; max-height: 400px; overflow-y: auto;">';
-        html += `<h3 style="color: #0af; font-size: 14px; margin-bottom: 10px;">Known Spells (${summary.knownSpellCount})</h3>`;
-        
-        // Get all possible spells
-        const allSpells = this.getAllSpellDefinitions(spellbook);
-        
-        for (const spell of allSpells) {
-            const isUnlocked = spellbook.isSpellUnlocked(spell.id);
-            
-            html += `
-                <div style="background: rgba(40,40,40,0.9); border: 2px solid ${isUnlocked ? '#555' : '#333'}; border-radius: 6px; padding: 10px; margin-bottom: 8px; opacity: ${isUnlocked ? '1' : '0.5'};">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                        <div style="font-size: 20px;">${spell.icon}</div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold; font-size: 13px;">${spell.name}</div>
-                            <div style="font-size: 11px; color: #0af;">💧 ${spell.manaCost} mana</div>
-                        </div>
-                        ${!isUnlocked ? '<div style="color: #f55; font-size: 16px;">🔒</div>' : ''}
-                    </div>
-                    <div style="color: #aaa; font-size: 11px; margin-bottom: 6px;">${spell.description}</div>
-                    <div style="display: flex; gap: 12px; font-size: 10px; color: #888;">
-                        ${spell.damage ? `<div>⚔️ ${spell.damage.min}-${spell.damage.max}</div>` : ''}
-                        ${spell.healing ? `<div>💚 ${spell.healing.min}-${spell.healing.max}</div>` : ''}
-                        <div>📏 ${spell.range}</div>
-                        ${spell.element ? `<div>🔮 ${spell.element}</div>` : ''}
-                    </div>
-                </div>
-            `;
-        }
-        
-        html += '</div>';
-        html += '</div>';
-        
-        this.characterContent.innerHTML = html;
-    }
-    
-    // Deprecated - spellbook now has its own modal
-    getAllSpellDefinitions_DEPRECATED(spellbook) {
-        return [
-            spellbook.getSpellData('magic_dart'),
-            spellbook.getSpellData('magic_missile'),
-            spellbook.getSpellData('fireball'),
-            spellbook.getSpellData('ice_shard'),
-            spellbook.getSpellData('heal'),
-            spellbook.getSpellData('lightning_bolt')
-        ].filter(spell => spell !== null);
-    }
-    
     allocateStat(stat) {
         // Call the player's allocateStatPoint method
         const success = this.game.player.allocateStatPoint(stat);
@@ -566,25 +442,6 @@ export class GameUI {
             this.updateStats();
             this.updateCharacterScreen();
             this.addMessage(`Learned new skill level!`);
-        }
-    }
-    
-    toggleCharacterScreen() {
-        this.showCharacterScreen = !this.showCharacterScreen;
-        
-        if (this.showCharacterScreen) {
-            this.characterScreen.style.display = 'block';
-            document.getElementById('overlay-container').classList.add('active');
-            this.updateCharacterScreen();
-            
-            // Pause game while character screen is open
-            this.game.gameState = 'characterScreen';
-        } else {
-            this.characterScreen.style.display = 'none';
-            document.getElementById('overlay-container').classList.remove('active');
-            
-            // Resume game
-            this.game.gameState = 'playing';
         }
     }
     

@@ -221,23 +221,18 @@ export class HelpScreen {
         this.helpElement.style.display = 'block';
         document.getElementById('overlay-container').classList.add('active');
         this.updateContent();
-        
-        // Pause game while help is open
-        this.previousGameState = this.game.gameState;
-        this.game.gameState = 'help';
+
+        // Pause game while help is open (same mechanism as the game modal)
+        this.game.stateManager.openMenu();
     }
-    
+
     closeHelpScreen() {
         this.isOpen = false;
         this.helpElement.style.display = 'none';
         document.getElementById('overlay-container').classList.remove('active');
-        
-        // Resume previous game state
-        if (this.previousGameState) {
-            this.game.gameState = this.previousGameState;
-        } else {
-            this.game.gameState = 'playing';
-        }
+
+        // Resume (no-op if the game was in gameOver)
+        this.game.stateManager.closeMenu();
     }
     
     updateContent() {
@@ -347,19 +342,24 @@ export class HelpScreen {
                         <td>Pick up and immediately equip items</td>
                     </tr>
                     <tr>
-                        <td>Open Inventory</td>
+                        <td>Inventory Tab</td>
                         <td><span class="help-key">I</span></td>
-                        <td>Open inventory to manage items</td>
+                        <td>Open the game menu on the Inventory tab (pauses the game)</td>
                     </tr>
                     <tr>
-                        <td>Character Screen</td>
+                        <td>Character Tab</td>
                         <td><span class="help-key">C</span></td>
-                        <td>Open character sheet with stats and skills</td>
+                        <td>Open the game menu on the Character tab (stats and skills)</td>
                     </tr>
                     <tr>
-                        <td>Spellbook</td>
+                        <td>Spellbook Tab</td>
                         <td><span class="help-key">B</span></td>
-                        <td>Open spellbook to manage spells</td>
+                        <td>Open the game menu on the Spellbook tab</td>
+                    </tr>
+                    <tr>
+                        <td>Drop Item</td>
+                        <td><span class="help-key">Z</span></td>
+                        <td>Open the inventory in drop mode (click or press 1-9 to drop)</td>
                     </tr>
                     <tr>
                         <td>Help Screen</td>
@@ -367,11 +367,21 @@ export class HelpScreen {
                         <td>Open this help screen</td>
                     </tr>
                     <tr>
+                        <td>Save Game</td>
+                        <td><span class="help-key">Ctrl+S</span></td>
+                        <td>Save your run (also autosaves when changing sections)</td>
+                    </tr>
+                    <tr>
                         <td>Close Screen</td>
                         <td><span class="help-key">Esc</span></td>
                         <td>Close any open screen</td>
                     </tr>
                 </table>
+                <p style="margin-top: 10px; color: #aaa; font-size: 0.9em;">
+                    The Inventory, Character and Spellbook tabs share one menu: the game pauses while
+                    it is open, pressing a tab's key again (or Esc) closes it, and pressing another
+                    tab's key switches tabs.
+                </p>
             </div>
             
             <div class="help-section">
@@ -390,11 +400,12 @@ export class HelpScreen {
                     <tr>
                         <td>Fire Ranged Weapon</td>
                         <td><span class="help-key">Space</span></td>
-                        <td>Fire equipped bow/crossbow at nearest target</td>
+                        <td>Fire equipped bow/crossbow at nearest target, or channel an equipped staff's bound spell</td>
                     </tr>
                 </table>
                 <p style="margin-top: 10px; color: #aaa; font-size: 0.9em;">
                     💡 Tip: Equip a bow or crossbow, then press Space to fire at enemies from a distance!
+                    Staves work the same way but cast their bound spell using your mana.
                 </p>
             </div>
             
@@ -469,7 +480,9 @@ export class HelpScreen {
                     </tr>
                 </table>
                 <p style="margin-top: 10px; color: #aaa; font-size: 0.9em;">
-                    💡 Tip: Open the Spellbook (B) to assign spells to hotkeys and manage your spell collection.
+                    💡 Tip: Open the Spellbook (B) to manage your spells. Click "Assign to Hotkey" on a
+                    spell, then press Q, R, F, V or X to bind it (Esc cancels). Click a filled hotbar
+                    slot to unbind it.
                 </p>
             </div>
         `;
@@ -483,7 +496,7 @@ export class HelpScreen {
                 
                 <div class="rarity-display">
                     <div class="rarity-name rarity-common">Common</div>
-                    <div>Basic items with minimal bonuses (70% chance)</div>
+                    <div>Basic items with minimal bonuses (50% chance)</div>
                 </div>
                 <div class="rarity-display">
                     <div class="rarity-name rarity-uncommon">Uncommon</div>
@@ -491,15 +504,15 @@ export class HelpScreen {
                 </div>
                 <div class="rarity-display">
                     <div class="rarity-name rarity-rare">Rare</div>
-                    <div>Powerful items with good bonuses (7% chance, level 5+)</div>
+                    <div>Powerful items with good bonuses (15% chance, level 5+)</div>
                 </div>
                 <div class="rarity-display">
                     <div class="rarity-name rarity-epic">Epic</div>
-                    <div>Very powerful items (2% chance, level 7+)</div>
+                    <div>Very powerful items (10% chance, level 7+)</div>
                 </div>
                 <div class="rarity-display">
                     <div class="rarity-name rarity-legendary">Legendary</div>
-                    <div>Extremely powerful items (1% chance, level 10+)</div>
+                    <div>Extremely powerful items (5% chance, level 10+)</div>
                 </div>
             </div>
             
@@ -562,7 +575,7 @@ export class HelpScreen {
                     <li>Press <span class="help-key">I</span> to open your inventory screen</li>
                     <li>Click the <strong>E</strong> button next to an item to equip it</li>
                     <li>Click the <strong>U</strong> button to use a consumable item</li>
-                    <li>Click the <strong>U</strong> button next to equipped items to unequip them</li>
+                    <li>Click the <strong>X</strong> button next to equipped items to unequip them</li>
                     <li>Remember that higher-rarity items are generally more powerful</li>
                 </ul>
             </div>
@@ -618,7 +631,7 @@ export class HelpScreen {
                     <tr>
                         <td>Max Mana</td>
                         <td>Energy for special abilities</td>
-                        <td>10 + (Intelligence × 3) + ((Level - 1) × 5)</td>
+                        <td>20 + (Intelligence × 3) + ((Level - 1) × 5)</td>
                     </tr>
                     <tr>
                         <td>Attack Power</td>
@@ -672,6 +685,17 @@ export class HelpScreen {
                 </ol>
             </div>
             
+            <div class="help-section">
+                <div class="help-section-title">Saving & Game Modes</div>
+                <p>Press <strong>Ctrl+S</strong> to save at any time; the game also autosaves whenever you
+                move between world sections. Use <strong>Continue</strong> on the main menu to resume.</p>
+                <p>Your mode is chosen when you start a run and cannot be changed afterwards:</p>
+                <ul>
+                    <li><strong>⚔️ Adventure</strong>: death sends you back to the menu; Continue resumes from your last save</li>
+                    <li><strong>💀 Hardcore</strong>: death erases your save; the run is over for good</li>
+                </ul>
+            </div>
+
             <div class="help-section">
                 <div class="help-section-title">Tips for Success</div>
                 <ul>

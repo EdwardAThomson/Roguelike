@@ -285,7 +285,13 @@ export class WorldManager {
         } else if (this.game.updateFOV) {
             this.game.updateFOV();
         }
-        
+
+        // Autosave once the transition has settled: the departed section is
+        // snapshotted in sectionStates and the new one is live.
+        if (this.game.saveManager) {
+            this.game.saveManager.autosave();
+        }
+
         return targetSectionId;
     }
 

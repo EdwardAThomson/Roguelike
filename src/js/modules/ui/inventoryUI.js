@@ -6,102 +6,92 @@ export class InventoryUI {
         this.selectedEquipSlot = null;
         this.itemDetailsVisible = false;
         this.dropMode = false;
-        
-        // Create UI elements
-        this.inventoryElement = null;
-        this.itemDetailsElement = null;
-        this.createInventoryUI();
-        
-        // Bind methods
-        this.handleDropModeKeys = this.handleDropModeKeys.bind(this);
-    }
-    
-    createInventoryUI() {
-        const container = document.getElementById('overlay-container');
-        
-        // Create inventory screen
-        this.inventoryElement = document.createElement('div');
-        this.inventoryElement.id = 'inventory-screen';
-        this.inventoryElement.className = 'inventory-screen';
-        this.inventoryElement.style.display = 'none';
-        container.appendChild(this.inventoryElement);
-        
-        // Create item details panel
+        this.panelEl = null; // inventory tab panel inside the game modal
+
+        // Floating tooltip; a sibling of the modal in the overlay container
+        // so it can hover above the frame.
         this.itemDetailsElement = document.createElement('div');
         this.itemDetailsElement.id = 'item-details';
         this.itemDetailsElement.className = 'item-details';
         this.itemDetailsElement.style.display = 'none';
-        container.appendChild(this.itemDetailsElement);
-        
-        // Add styles
+        document.getElementById('overlay-container').appendChild(this.itemDetailsElement);
+
         this.addStyles();
-        
-        // Add event listeners (Escape, number keys, and action keys)
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isOpen) {
-                this.closeInventory();
-            } else if (this.isOpen) {
-                // E key to equip selected item
-                if ((e.key === 'e' || e.key === 'E') && this.selectedItemIndex >= 0) {
-                    const item = this.game.player.inventory.items[this.selectedItemIndex];
-                    if (item && item.canEquip) {
-                        this.handleItemAction('equip', this.selectedItemIndex);
-                    }
-                }
-                // U key to use selected item
-                else if ((e.key === 'u' || e.key === 'U') && this.selectedItemIndex >= 0) {
-                    const item = this.game.player.inventory.items[this.selectedItemIndex];
-                    if (item && item.canUse) {
-                        this.handleItemAction('use', this.selectedItemIndex);
-                    }
-                }
-                // Number keys for quick actions when inventory is open
-                else {
-                    const numKey = parseInt(e.key);
-                    if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
-                        const index = numKey - 1;
-                        if (index < this.game.player.inventory.items.length) {
-                            this.selectItem(index);
-                            const item = this.game.player.inventory.items[index];
-                            
-                            // If holding Alt, use item
-                            if (e.altKey && item.canUse) {
-                                this.handleItemAction('use', index);
-                            }
-                            // If holding Shift, equip item
-                            else if (e.shiftKey && item.canEquip) {
-                                this.handleItemAction('equip', index);
-                            }
-                        }
-                    }
+    }
+
+    // GameModal provider interface: the inventory tab.
+    mountPanel(panelEl) {
+        this.panelEl = panelEl;
+    }
+
+    onShow(options = {}) {
+        this.isOpen = true;
+        this.dropMode = !!options.dropMode;
+        this.updateInventory();
+    }
+
+    onHide() {
+        this.isOpen = false;
+        this.dropMode = false;
+        this.selectedItemIndex = -1;
+        this.selectedEquipSlot = null;
+        this.hideItemDetails();
+    }
+
+    // Per-tab keys, delegated from the GameModal keydown handler while this
+    // tab is active (Escape is handled by the shell).
+    handleKey(e) {
+        if (this.dropMode) {
+            // Z exits drop mode (Escape does too, via the shell close).
+            if (e.key === 'z' || e.key === 'Z') {
+                this.game.ui.gameModal.close();
+                return;
+            }
+            const numKey = parseInt(e.key);
+            if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
+                const index = numKey - 1;
+                if (index < this.game.player.inventory.items.length) {
+                    this.handleItemAction('drop', index);
                 }
             }
-        });
+            return;
+        }
+
+        // E equips the selected item
+        if ((e.key === 'e' || e.key === 'E') && this.selectedItemIndex >= 0) {
+            const item = this.game.player.inventory.items[this.selectedItemIndex];
+            if (item && item.canEquip) {
+                this.handleItemAction('equip', this.selectedItemIndex);
+            }
+            return;
+        }
+        // U uses the selected item
+        if ((e.key === 'u' || e.key === 'U') && this.selectedItemIndex >= 0) {
+            const item = this.game.player.inventory.items[this.selectedItemIndex];
+            if (item && item.canUse) {
+                this.handleItemAction('use', this.selectedItemIndex);
+            }
+            return;
+        }
+        // Number keys select; Shift+number equips, Alt+number uses
+        const numKey = parseInt(e.key);
+        if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
+            const index = numKey - 1;
+            if (index < this.game.player.inventory.items.length) {
+                this.selectItem(index);
+                const item = this.game.player.inventory.items[index];
+                if (e.altKey && item.canUse) {
+                    this.handleItemAction('use', index);
+                } else if (e.shiftKey && item.canEquip) {
+                    this.handleItemAction('equip', index);
+                }
+            }
+        }
     }
     
     addStyles() {
         const style = document.createElement('style');
         style.textContent = `
-            .inventory-screen {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background-color: rgba(0, 0, 0, 0.9);
-                color: #fff;
-                padding: 20px;
-                border-radius: 10px;
-                font-family: monospace;
-                z-index: 100;
-                width: 80%;
-                max-width: 800px;
-                max-height: 85vh;
-                overflow-y: auto;
-                border: 2px solid #444;
-                display: flex;
-                flex-direction: column;
-            }
-            
             .inventory-header {
                 display: flex;
                 justify-content: space-between;
@@ -290,7 +280,7 @@ export class InventoryUI {
                 border-radius: 5px;
                 padding: 10px;
                 max-width: 300px;
-                z-index: 101;
+                z-index: 1101; /* above the game modal inside #overlay-container */
                 color: #ddd;
                 font-family: monospace;
                 pointer-events: none;
@@ -373,24 +363,6 @@ export class InventoryUI {
                 padding: 2px 8px;
             }
             
-            .inventory-footer {
-                margin-top: 15px;
-                border-top: 1px solid #444;
-                padding-top: 10px;
-                display: flex;
-                justify-content: center;
-            }
-            
-            .close-button {
-                background-color: #333;
-                border: 1px solid #555;
-                color: #fff;
-                padding: 8px 15px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-family: monospace;
-            }
-            
             /* Rarity colors */
             .rarity-common {
                 color: #aaa;
@@ -421,68 +393,8 @@ export class InventoryUI {
         document.head.appendChild(style);
     }
     
-    toggleInventory(dropMode = false) {
-        console.log(`toggleInventory called, current state: ${this.isOpen ? 'open' : 'closed'}`);
-        
-        if (this.isOpen) {
-            this.closeInventory();
-        } else {
-            this.openInventory(dropMode);
-        }
-        
-        // After toggle, dump state to console for debugging
-        console.log(`Inventory now: ${this.isOpen ? 'open' : 'closed'}`);
-        console.log(`Game state: ${this.game.gameState}`);
-        console.log(`Inventory element display: ${this.inventoryElement.style.display}`);
-    }
-    
-    openInventory(dropMode = false) {
-        console.log("Opening inventory");
-        this.isOpen = true;
-        this.inventoryElement.style.display = 'flex';
-        
-        const overlay = document.getElementById('overlay-container');
-        if (overlay) {
-            overlay.classList.add('active');
-            console.log("Overlay container activated");
-        } else {
-            console.error("Overlay container element not found!");
-        }
-        
-        // If in drop mode, highlight the drop action specifically
-        this.dropMode = dropMode;
-        
-        this.updateInventory();
-        
-        // Pause game while inventory is open
-        this.game.gameState = 'inventory';
-    }
-    
-    closeInventory() {
-        console.log("Closing inventory");
-        this.isOpen = false;
-        this.inventoryElement.style.display = 'none';
-        
-        const overlay = document.getElementById('overlay-container');
-        if (overlay) {
-            overlay.classList.remove('active');
-            console.log("Overlay container deactivated");
-        }
-        
-        this.hideItemDetails();
-        
-        // Remove drop mode event listener if it was active
-        if (this.dropMode) {
-            document.removeEventListener('keydown', this.handleDropModeKeys);
-            this.dropMode = false;
-        }
-        
-        // Resume game
-        this.game.gameState = 'playing';
-    }
-    
     updateInventory() {
-        if (!this.isOpen) return;
+        if (!this.isOpen || !this.panelEl) return;
         
         const player = this.game.player;
         const inventory = player.inventory;
@@ -584,15 +496,12 @@ export class InventoryUI {
         }
         
         html += `</div>
-            </div>
-            <div class="inventory-footer">
-                <button class="close-button">Close Inventory (I)</button>
             </div>`;
-        
-        this.inventoryElement.innerHTML = html;
-        
+
+        this.panelEl.innerHTML = html;
+
         // Add event listeners for items
-        const itemRows = this.inventoryElement.querySelectorAll('.item-row');
+        const itemRows = this.panelEl.querySelectorAll('.item-row');
         itemRows.forEach(row => {
             row.addEventListener('click', () => {
                 const index = parseInt(row.getAttribute('data-index'));
@@ -617,7 +526,7 @@ export class InventoryUI {
         });
         
         // Add event listeners for direct action buttons
-        const actionButtons = this.inventoryElement.querySelectorAll('.item-button');
+        const actionButtons = this.panelEl.querySelectorAll('.item-button');
         actionButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 // Stop event from bubbling to parent (which would select the item)
@@ -635,7 +544,7 @@ export class InventoryUI {
         });
         
         // Add event listeners for equipment slots
-        const equipSlots = this.inventoryElement.querySelectorAll('.item-slot');
+        const equipSlots = this.panelEl.querySelectorAll('.item-slot');
         equipSlots.forEach(slot => {
             slot.addEventListener('click', () => {
                 const slotKey = slot.getAttribute('data-slot');
@@ -656,7 +565,7 @@ export class InventoryUI {
         });
         
         // Add event listeners for unequip buttons in equipment slots
-        const unequipButtons = this.inventoryElement.querySelectorAll('.item-button.unequip');
+        const unequipButtons = this.panelEl.querySelectorAll('.item-button.unequip');
         unequipButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 // Stop event propagation to prevent slot selection
@@ -672,16 +581,8 @@ export class InventoryUI {
             });
         });
         
-        // Add event listener for close button
-        const closeButton = this.inventoryElement.querySelector('.close-button');
-        closeButton.addEventListener('click', () => {
-            this.closeInventory();
-        });
-        
-        // Add keyboard event listeners for drop mode
-        if (this.dropMode) {
-            document.addEventListener('keydown', this.handleDropModeKeys);
-        }
+        // Closing and drop-mode keys are handled by the GameModal shell,
+        // which delegates to handleKey() while this tab is active.
     }
     
     selectItem(index) {
@@ -831,29 +732,12 @@ export class InventoryUI {
             this.game.player.unequipItem(item);
         }
         
-        // Close inventory if in drop mode
+        // In drop mode the modal closes after the drop completes.
         if (this.dropMode) {
-            this.closeInventory();
+            this.game.ui.gameModal.close();
         }
     }
-    
-    // Handler for keyboard events in drop mode
-    handleDropModeKeys(e) {
-        // Exit drop mode if Z is pressed again or Escape
-        if (e.key === 'z' || e.key === 'Z' || e.key === 'Escape') {
-            this.closeInventory();
-        }
-        
-        // Handle number keys for quick item dropping
-        const numKey = parseInt(e.key);
-        if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
-            const index = numKey - 1;
-            if (index < this.game.player.inventory.items.length) {
-                this.handleItemAction('drop', index);
-            }
-        }
-    }
-    
+
     showItemDetails(item, x, y) {
         if (!item) return;
         
@@ -880,7 +764,6 @@ export class InventoryUI {
         this.itemDetailsElement.style.display = 'block';
         
         // Position tooltip
-        const rect = this.inventoryElement.getBoundingClientRect();
         const tooltipWidth = 300; // Max width
         
         let posX = x + 15;

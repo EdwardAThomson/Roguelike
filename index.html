@@ -28,18 +28,46 @@
         <div class="menu-container">
             <h1 class="game-title">Modern Rogue</h1>
             
-            <div class="menu-options">
+            <div class="menu-options" id="menu-options">
+                <button id="continue-btn" class="menu-btn" style="display: none;">Continue</button>
                 <button id="quick-play-btn" class="menu-btn">Quick Play</button>
                 <button id="multiplayer-btn" class="menu-btn">Multiplayer</button>
                 <button id="options-btn" class="menu-btn">Options</button>
                 <button id="credits-btn" class="menu-btn">Credits</button>
+                <button id="signin-btn" class="menu-btn" style="display: none;">Sign In</button>
             </div>
-            
-            <div class="game-version">v0.4.0 "Arcane Awakening"</div>
+
+            <!-- Run mode chooser, shown after Quick Play. The mode is fixed
+                 for the life of the run once chosen. -->
+            <div id="mode-select" class="mode-select" style="display: none;">
+                <div class="mode-select-title">Choose your fate</div>
+                <button class="mode-card" id="mode-adventure">
+                    <div class="mode-card-name">⚔️ Adventure</div>
+                    <div class="mode-card-desc">Checkpoint saves. Death sends you back to your last save.</div>
+                </button>
+                <button class="mode-card" id="mode-hardcore">
+                    <div class="mode-card-name">💀 Hardcore</div>
+                    <div class="mode-card-desc">One life. Death erases your save forever.</div>
+                </button>
+                <button class="mode-back" id="mode-back">‹ Back</button>
+            </div>
+
+            <div class="game-version">v0.5.0 "Crypts & Castles"</div>
             <div class="game-copyright">&copy; 2026 Edward Thomson (<a href="https://octonion.io" target="_blank" rel="noopener noreferrer">Octonion Software</a>)</div>
         </div>
+
+        <!-- In-menu modal for Multiplayer / Options / Credits (no alert()) -->
+        <div id="menu-modal-backdrop" class="menu-modal-backdrop" style="display: none;">
+            <div class="menu-modal">
+                <div class="menu-modal-header">
+                    <span id="menu-modal-title"></span>
+                    <button id="menu-modal-close" class="menu-modal-close">✕</button>
+                </div>
+                <div id="menu-modal-body" class="menu-modal-body"></div>
+            </div>
+        </div>
     </div>
-    
+
     <!-- Original Game Structure (initially hidden) -->
     <div id="main-container" style="display: none;">
         <!-- Game area - contains the game map -->

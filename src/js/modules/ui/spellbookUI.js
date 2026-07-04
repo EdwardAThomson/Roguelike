@@ -1,47 +1,85 @@
-// SpellbookUI - standalone modal for spell management
+// SpellbookUI - the spellbook tab of the game modal
 export class SpellbookUI {
     constructor(game) {
         this.game = game;
-        this.spellbookElement = null;
         this.selectedSpellId = null;
-        this.isOpen = false;
-        this.initialize();
-    }
-    
-    initialize() {
-        // Create spellbook modal in overlay container
-        const container = document.getElementById('overlay-container');
-        this.spellbookElement = document.createElement('div');
-        this.spellbookElement.id = 'spellbook-modal';
-        this.spellbookElement.className = 'spellbook-modal';
-        this.spellbookElement.style.display = 'none';
-        container.appendChild(this.spellbookElement);
-        
+        this.panelEl = null; // spellbook tab panel inside the game modal
+        this.hintEl = null; // capture-mode hint strip
+        this.contentEl = null; // scrolling spell layout host
+        // Spell id currently waiting for a hotkey press, or null.
+        this.captureSpellId = null;
         this.addStyles();
+    }
+
+    // GameModal provider interface: the spellbook tab.
+    mountPanel(panelEl) {
+        this.panelEl = panelEl;
+
+        // Hint strip is always present (visibility toggles) so entering
+        // capture mode never reflows the layout.
+        this.hintEl = document.createElement('div');
+        this.hintEl.className = 'sb-hint';
+        this.hintEl.innerHTML = '&nbsp;';
+        panelEl.appendChild(this.hintEl);
+
+        this.contentEl = document.createElement('div');
+        this.contentEl.className = 'sb-content';
+        panelEl.appendChild(this.contentEl);
+
+        // Clicking anything that is not a slot or an assign button cancels
+        // an active capture.
+        panelEl.addEventListener('click', (e) => {
+            if (this.isCapturing() && !e.target.closest('.spell-slot, .spell-assign-button')) {
+                this.cancelCapture();
+            }
+        });
+    }
+
+    onShow() {
+        this.render();
+    }
+
+    onHide() {
+        this.cancelCapture();
+        this.selectedSpellId = null;
     }
     
     addStyles() {
         const style = document.createElement('style');
         style.textContent = `
-            .spellbook-modal {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background-color: rgba(0, 0, 0, 0.95);
-                color: #fff;
-                padding: 20px;
-                border-radius: 10px;
-                font-family: monospace;
-                z-index: 100;
-                width: 90%;
-                max-width: 1200px;
-                max-height: 85vh;
-                overflow-y: auto;
-                border: 2px solid #0af;
-                box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
+            .sb-hint {
+                flex: 0 0 auto;
+                padding: 8px 12px;
+                margin-bottom: 12px;
+                border: 1px solid #0af;
+                border-radius: 5px;
+                color: #0ff;
+                background-color: rgba(0, 170, 255, 0.12);
+                font-weight: bold;
+                text-align: center;
+                visibility: hidden; /* keeps its space; zero reflow when shown */
             }
-            
+
+            .sb-hint.active {
+                visibility: visible;
+            }
+
+            .sb-content {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow: hidden;
+            }
+
+            .spell-slot.capturing {
+                border-color: #0af;
+                animation: sb-pulse 0.8s infinite alternate;
+            }
+
+            @keyframes sb-pulse {
+                from { box-shadow: 0 0 4px rgba(0, 170, 255, 0.4); }
+                to { box-shadow: 0 0 14px rgba(0, 170, 255, 0.9); }
+            }
+
             .spellbook-container {
                 display: flex;
                 gap: 20px;
@@ -249,95 +287,21 @@ export class SpellbookUI {
                 cursor: not-allowed;
             }
             
-            .spellbook-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                padding-bottom: 15px;
-                border-bottom: 2px solid #0af;
-            }
-            
-            .spellbook-header h2 {
-                margin: 0;
-                color: #0af;
-                font-size: 24px;
-            }
-            
-            .spellbook-close-btn {
-                background-color: #333;
-                border: 2px solid #0af;
-                color: #fff;
-                padding: 8px 16px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-family: monospace;
-                font-size: 14px;
-                transition: all 0.2s;
-            }
-            
-            .spellbook-close-btn:hover {
-                background-color: #0af;
-                color: #000;
-            }
         `;
         document.head.appendChild(style);
     }
-    
-    toggleSpellbook() {
-        if (this.isOpen) {
-            this.close();
-        } else {
-            this.open();
-        }
-    }
-    
-    open() {
-        if (!this.spellbookElement) return;
-        this.isOpen = true;
-        this.spellbookElement.style.display = 'block';
-        
-        const overlay = document.getElementById('overlay-container');
-        if (overlay) {
-            overlay.classList.add('active');
-        }
-        
-        // Pause game while spellbook is open
-        this.game.gameState = 'spellbook';
-        this.render();
-    }
-    
-    close() {
-        if (!this.spellbookElement) return;
-        this.isOpen = false;
-        this.spellbookElement.style.display = 'none';
-        
-        const overlay = document.getElementById('overlay-container');
-        if (overlay) {
-            overlay.classList.remove('active');
-        }
-        
-        // Resume game
-        this.game.gameState = 'playing';
-    }
-    
+
     render() {
+        if (!this.contentEl) return;
         if (!this.game.player || !this.game.player.spellbook) {
-            this.spellbookElement.innerHTML = '<p style="color: #f55;">No spellbook available!</p>';
+            this.contentEl.innerHTML = '<p style="color: #f55;">No spellbook available!</p>';
             return;
         }
-        
+
         const spellbook = this.game.player.spellbook;
         const summary = spellbook.getSummary();
-        
-        // Build HTML with header and close button
-        let html = `
-            <div class="spellbook-header">
-                <h2>📖 Spellbook</h2>
-                <button class="spellbook-close-btn">Close (B)</button>
-            </div>
-        `;
-        html += '<div class="spellbook-container">';
+
+        let html = '<div class="spellbook-container">';
         
         // Left panel: Spell slots (hotbar)
         html += '<div class="spell-slots-panel">';
@@ -376,7 +340,6 @@ export class SpellbookUI {
         for (const spell of allSpells) {
             const isUnlocked = spellbook.isSpellUnlocked(spell.id);
             const isSelected = this.selectedSpellId === spell.id;
-            console.log(`📖 Spell ${spell.name} (${spell.id}): unlocked=${isUnlocked}`);
             const classes = ['spell-item'];
             if (!isUnlocked) classes.push('locked');
             if (isSelected) classes.push('selected');
@@ -407,22 +370,20 @@ export class SpellbookUI {
         
         html += '</div>';
         html += '</div>';
-        
-        this.spellbookElement.innerHTML = html;
-        
+
+        this.contentEl.innerHTML = html;
+
         // Add event listeners
         this.attachEventListeners();
-        
-        // Add close button listener
-        const closeBtn = this.spellbookElement.querySelector('.spellbook-close-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.close());
-        }
+
+        // A render mid-capture (e.g. picking a different spell to assign)
+        // wipes the slot classes; restore the visuals.
+        this.updateCaptureVisuals();
     }
-    
+
     attachEventListeners() {
         // Click on spell items to select them
-        const spellItems = this.spellbookElement.querySelectorAll('.spell-item:not(.locked)');
+        const spellItems = this.contentEl.querySelectorAll('.spell-item:not(.locked)');
         spellItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 if (e.target.classList.contains('spell-assign-button')) return;
@@ -430,60 +391,96 @@ export class SpellbookUI {
                 this.selectSpell(spellId);
             });
         });
-        
-        // Click assign buttons
-        const assignButtons = this.spellbookElement.querySelectorAll('.spell-assign-button');
+
+        // Click assign buttons: enter hotkey capture mode
+        const assignButtons = this.contentEl.querySelectorAll('.spell-assign-button');
         assignButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const spellId = button.getAttribute('data-spell-id');
-                this.showSlotSelector(spellId);
+                this.startCapture(spellId);
             });
         });
-        
-        // Click on spell slots to unassign
-        const spellSlots = this.spellbookElement.querySelectorAll('.spell-slot:not(.empty)');
+
+        // Click on spell slots: bind while capturing, unassign otherwise
+        const spellSlots = this.contentEl.querySelectorAll('.spell-slot');
         spellSlots.forEach(slot => {
             slot.addEventListener('click', () => {
                 const slotIndex = parseInt(slot.getAttribute('data-slot'));
-                this.unassignSlot(slotIndex);
+                if (this.isCapturing()) {
+                    this.completeCapture(slotIndex);
+                } else if (!slot.classList.contains('empty')) {
+                    this.unassignSlot(slotIndex);
+                }
             });
         });
     }
-    
+
     selectSpell(spellId) {
         this.selectedSpellId = spellId;
         this.render();
     }
-    
-    showSlotSelector(spellId) {
+
+    // Hotkey capture mode: replaces the old window.prompt() flow. The
+    // GameModal keydown handler feeds Q/R/F/V/X presses to completeCapture
+    // and Escape to cancelCapture while isCapturing() is true.
+    isCapturing() {
+        return this.captureSpellId !== null;
+    }
+
+    startCapture(spellId) {
         const spell = this.game.player.spellbook.getSpellData(spellId);
         if (!spell) return;
-        
-        // Simple prompt for now - could be improved with a modal
-        const slotKey = prompt(`Assign ${spell.name} to which slot? (Q/R/F/V/X)`);
-        if (!slotKey) return;
-        
-        const slotIndex = ['Q', 'R', 'F', 'V', 'X'].indexOf(slotKey.toUpperCase());
-        if (slotIndex === -1) {
-            this.game.ui.addMessage('Invalid slot! Use Q, R, F, V, or X', '#f55');
-            return;
-        }
-        
-        this.game.player.spellbook.assignSpellToSlot(spellId, slotIndex);
-        this.game.ui.addMessage(`Assigned ${spell.name} to ${slotKey.toUpperCase()} key`, '#0f0');
+        this.captureSpellId = spellId;
+        this.updateCaptureVisuals();
+        console.log(`✨ SpellbookUI: capturing hotkey for ${spell.name}`);
+    }
+
+    completeCapture(slotIndex) {
+        if (!this.isCapturing()) return;
+        const spellbook = this.game.player.spellbook;
+        const spellId = this.captureSpellId;
+        const spell = spellbook.getSpellData(spellId);
+        this.captureSpellId = null;
+
+        spellbook.assignSpellToSlot(spellId, slotIndex);
+        this.game.ui.addMessage(`Assigned ${spell.name} to ${spellbook.slotKeys[slotIndex]} key`, '#0f0');
         this.render();
     }
-    
-    unassignSlot(slotIndex) {
-        const spell = this.game.player.spellbook.getSpellInSlot(slotIndex);
-        if (!spell) return;
-        
-        if (confirm(`Remove ${spell.name} from this slot?`)) {
-            this.game.player.spellbook.spellSlots[slotIndex] = null;
-            this.game.ui.addMessage(`Removed ${spell.name} from slot`, '#aaa');
-            this.render();
+
+    cancelCapture() {
+        if (!this.isCapturing()) return;
+        this.captureSpellId = null;
+        this.updateCaptureVisuals();
+    }
+
+    updateCaptureVisuals() {
+        if (!this.hintEl || !this.contentEl) return;
+        const capturing = this.isCapturing();
+
+        if (capturing) {
+            const spell = this.game.player.spellbook.getSpellData(this.captureSpellId);
+            const keys = this.game.player.spellbook.slotKeys.join(', ');
+            this.hintEl.textContent = `Press ${keys} to bind ${spell ? spell.name : 'spell'} (Esc to cancel)`;
+            this.hintEl.classList.add('active');
+        } else {
+            this.hintEl.innerHTML = '&nbsp;';
+            this.hintEl.classList.remove('active');
         }
+
+        this.contentEl.querySelectorAll('.spell-slot').forEach(slot => {
+            slot.classList.toggle('capturing', capturing);
+        });
+    }
+
+    unassignSlot(slotIndex) {
+        const spellbook = this.game.player.spellbook;
+        const spell = spellbook.getSpellInSlot(slotIndex);
+        if (!spell) return;
+
+        spellbook.spellSlots[slotIndex] = null;
+        this.game.ui.addMessage(`Removed ${spell.name} from slot ${spellbook.slotKeys[slotIndex]} (click Assign to rebind)`, '#aaa');
+        this.render();
     }
     
     getAllSpellDefinitions() {

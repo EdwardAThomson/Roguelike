@@ -22,16 +22,23 @@ import { TargetingSystem } from './modules/magic/targetingSystem.js';
 import { SpellDatabase } from './modules/magic/spellDatabase.js';
 import { Version } from './version.js';
 
+// Persistence (save/load)
+import { SaveManager } from './modules/persistence/saveManager.js';
+import { IndexedDBSaveStore } from './modules/persistence/indexedDBSaveStore.js';
+import { CloudSaveStore } from './modules/persistence/cloudSaveStore.js';
+import { cloudConfigured } from './config.js';
+
 
 // Export a function to start the game
 window.startGame = startGame;
 
-function startGame() {
+// options.continue: attempt to resume the saved run instead of starting new.
+function startGame(options = {}) {
     console.log('Game starting from menu...');
 
     try {
         const game = new RogueGame();
-        game.init();
+        game.init(options);
         // Expose the live game for e2e tests / debugging in the browser
         // console. Not used by gameplay code.
         window.__game = game;
@@ -72,6 +79,7 @@ class RogueGame {
         this.dungeonArea = 1; // Current area within the level
         this.worldX = 0;
         this.worldY = 0;
+        this.hardcore = true; // Run mode; finalized in init() and then immutable
         
         // Initialize managers
         this.stateManager = new GameStateManager(this);
@@ -85,7 +93,7 @@ class RogueGame {
         this.spellDatabase = new SpellDatabase();
     }
 
-    async init() {
+    async init(options = {}) {
         // Log version
         Version.logVersion();
         
@@ -110,9 +118,29 @@ class RogueGame {
         this.combat = new CombatManager(this);
         this.renderer = new Renderer(this);
         
-        // Initialize the first section
-        this.worldManager.initializeFirstSection();
-        
+        // Persistence: local IndexedDB is the source of truth; the cloud
+        // mirror only exists when the Octonion config is filled in.
+        this.saveManager = new SaveManager(
+            this,
+            new IndexedDBSaveStore(),
+            cloudConfigured() ? new CloudSaveStore() : null
+        );
+
+        // Restore the saved run when asked to continue, otherwise (or when
+        // the save is missing/corrupt) initialize a fresh first section.
+        let restored = false;
+        if (options.continue) {
+            const envelope = await this.saveManager.loadEnvelope();
+            restored = envelope ? this.saveManager.restore(envelope) : false;
+        }
+        if (!restored) {
+            // The run's mode is fixed here and never changes afterwards; a
+            // restored run keeps the mode it was created with (set by the
+            // hydrator from the save).
+            this.hardcore = !!options.hardcore;
+            this.worldManager.initializeFirstSection();
+        }
+
         // Initialize UI
         this.ui = new UI(this);
         this.ui.initialize();
@@ -121,7 +149,13 @@ class RogueGame {
         this.ui.addMessage('Press H for help screen with controls and info.', '#0f0');
         this.ui.addMessage('Press G to pick up items, P to pick up and equip.', '#aaa');
         this.ui.addMessage('Attack monsters by moving into them.', '#f55');
-        
+        // Last so it stays visible in the capped message log.
+        if (restored) {
+            this.ui.addMessage('Game loaded. Welcome back!', '#0ff');
+        } else if (options.continue) {
+            this.ui.addMessage('Could not load save, starting a new game.', '#f55');
+        }
+
         // Calculate initial field of view
         this.fov.update();
         
@@ -162,6 +196,15 @@ class RogueGame {
             if (e.key === 'G' && e.shiftKey) {
                 if (this.worldManager && typeof this.worldManager.showGateDebugInfo === 'function') {
                     this.worldManager.showGateDebugInfo();
+                }
+            }
+
+            // Manual save (Ctrl+S / Cmd+S). preventDefault stops the
+            // browser's own save dialog.
+            if ((e.key === 's' || e.key === 'S') && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                if (this.saveManager) {
+                    this.saveManager.saveGame('manual');
                 }
             }
         });

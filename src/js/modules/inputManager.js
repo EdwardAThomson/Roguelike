@@ -22,17 +22,8 @@ export class InputManager {
     handleInput() {
         // console.log('🎮 InputManager.handleInput: CALLED');
         
-        // Skip input if not in playing state
-        if (this.game.stateManager && typeof this.game.stateManager.isPlaying === 'function') {
-            const isPlaying = this.game.stateManager.isPlaying();
-            //console.log(`🎮 InputManager.handleInput: isPlaying = ${isPlaying}`);
-            if (!isPlaying) {
-                console.log('🎮 InputManager.handleInput: NOT PLAYING - returning early');
-                return;
-            }
-        } else if (this.game.gameState !== 'playing') {
-            // Fallback to direct gameState check
-            console.log(`🎮 InputManager.handleInput: gameState = ${this.game.gameState} - returning early`);
+        // Skip input if not in playing state (paused via menu, or gameOver)
+        if (this.game.stateManager && !this.game.stateManager.isPlaying()) {
             return;
         }
         
@@ -223,9 +214,9 @@ export class InputManager {
         
         // Check for dropping item (Z key)
         if (zPressed) {
-            // Open the inventory in drop mode
-            if (this.game.ui && this.game.ui.inventoryUI) {
-                this.game.ui.inventoryUI.toggleInventory(true);
+            // Open the inventory tab in drop mode
+            if (this.game.ui && this.game.ui.gameModal) {
+                this.game.ui.gameModal.open('inventory', { dropMode: true });
                 this.game.ui.addMessage('Select an item to drop', '#aaa');
             } else {
                 this.game.ui.addMessage('Open inventory (I) to drop items', '#aaa');
@@ -519,27 +510,26 @@ export class InputManager {
         this.uiKeyStates.h = hDown;
         this.uiKeyStates.b = bDown;
         
-        // Handle UI keys
+        // Handle UI keys: I/C/B open (or switch to) a tab of the game
+        // modal; the same key on its own tab closes it. H is the separate
+        // help overlay, mutually exclusive with the modal.
         if (iPressed) {
-            console.log('✅ I key pressed, toggling inventory');
-            this.game.ui.inventoryUI.toggleInventory();
+            this.game.ui.gameModal.toggleTab('inventory');
         }
-        
+
         if (cPressed) {
-            console.log('✅ C key pressed, toggling character screen');
-            this.game.ui.gameUI.toggleCharacterScreen();
+            this.game.ui.gameModal.toggleTab('character');
         }
-        
-        if (hPressed) {
-            console.log('✅ H key pressed, toggling help screen');
-            this.game.ui.helpScreen.toggleHelpScreen();
-        }
-        
+
         if (bPressed) {
-            console.log('✅ B key pressed, toggling spellbook');
-            if (this.game.ui.spellbookUI) {
-                this.game.ui.spellbookUI.toggleSpellbook();
+            this.game.ui.gameModal.toggleTab('spellbook');
+        }
+
+        if (hPressed) {
+            if (this.game.ui.gameModal.isOpen) {
+                this.game.ui.gameModal.close();
             }
+            this.game.ui.helpScreen.toggleHelpScreen();
         }
     }
     
