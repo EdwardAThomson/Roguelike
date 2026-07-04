@@ -7,6 +7,12 @@ notes on what changed and why. Newest entries first. Entries dated before
 For curated, per-release notes in Keep-a-Changelog format, see
 [`documentation/CHANGELOG.md`](documentation/CHANGELOG.md).
 
+## 2026-07-03
+
+A quiet documentation day, driven by the automated docs sweep. The README picked up a Testing section documenting the three test tiers (Vitest unit tests, the headless fake-game integration harness, and the Playwright smoke test) with the commands to run each, plus a note to run `npx playwright install chromium` once before the first local e2e run. The stated Node.js prerequisite was also corrected from v14 to v20, since the test tooling requires it.
+
+---
+
 ## 2026-07-02
 
 Release day: shipped v0.5.0 "Crypts & Castles", the minor bump carrying the dungeon-themes work. Since 0.4.0 this adds the cave/castle/crypt themes with per-theme tilesets and theme-tagged spawn pools (plus the L4 Wraith), per-type monster AI with A* pathfinding and aggro memory, castable staves and wands, numpad diagonal movement, percentage-based defense mitigation, and the Vitest + Playwright test suite. Around the release itself, the day was mostly housekeeping: the Playwright config was fixed so `npm run test:e2e` works locally (it had hardcoded a CI-only Chromium `executablePath`; it now gates on `existsSync` and falls back to the Playwright-managed browser), the README and player guide were synced to mention the themes, and the roadmaps were updated to show 0.5.0 as the current shipped version.
