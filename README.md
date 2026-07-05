@@ -16,6 +16,8 @@ A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features
 - **Inventory System**: Comprehensive item management with equipment, consumables, and loot
 - **Field of View**: Realistic line-of-sight and fog of war mechanics
 - **World Management**: Multi-section world with seamless transitions
+- **Save & Continue**: Local saves (IndexedDB) with manual save (Ctrl+S), autosave on section transitions, and a Continue option on the main menu
+- **Run Modes**: Adventure (death resumes from the last save) or Hardcore (death erases the save), chosen at the start of each run
 - **Modular Architecture**: Clean, extensible codebase with separated concerns
 - **Rich UI**: Intuitive interface with inventory, character screen, and help system
 
@@ -63,7 +65,10 @@ npx http-server . -p 8080 -c-1 -o
 - **E**: Equip items
 - **I**: Toggle inventory
 - **C**: Toggle character screen
+- **B**: Toggle spellbook
 - **H**: Toggle help screen
+- **Ctrl+S**: Save the game (also autosaves when changing sections)
+- **Esc**: Close any open screen
 - **M**: Toggle map reveal (debug/cheat mode)
 - **Shift+G**: Show gate debug information
 
@@ -82,6 +87,7 @@ src/
 ├── js/
 │   ├── main.js              # Main game loop and initialization
 │   ├── menu.js              # Main menu system
+│   ├── config.js            # Cloud/account config (empty = fully offline)
 │   └── modules/
 │       ├── dungeon.js       # Dungeon generation
 │       ├── renderer.js      # Game rendering
@@ -100,9 +106,16 @@ src/
 │       │   ├── inventory.js     # Inventory system
 │       │   ├── item.js          # Base item class
 │       │   └── equipment.js     # Equipment system
+│       ├── persistence/
+│       │   ├── saveManager.js   # Save/load policies (manual save, autosave, death)
+│       │   ├── serializer.js    # Game state -> save JSON
+│       │   ├── hydrator.js      # Save JSON -> live game
+│       │   └── saveStore.js     # Storage adapter (IndexedDB / in-memory / cloud)
 │       └── ui/
+│           ├── gameModal.js     # Unified tabbed modal (Character/Inventory/Spellbook)
 │           ├── gameUI.js        # Main game UI
 │           ├── inventoryUI.js   # Inventory interface
+│           ├── spellbookUI.js   # Spellbook and hotkey binding
 │           └── helpScreen.js    # Help system
 └── css/
     ├── style.css            # Main game styles
@@ -130,6 +143,7 @@ The game follows a modular architecture with clear separation of concerns:
 - **CombatManager**: Handles all combat interactions
 - **WorldManager**: Manages world sections and transitions
 - **ItemManager**: Handles item interactions and inventory
+- **SaveManager**: Owns save/load policy — manual save, autosave on section transitions, and death handling per run mode
 
 ### Testing
 
@@ -139,7 +153,7 @@ npm run test:watch   # Vitest in watch mode
 npm run test:e2e     # Playwright smoke test (auto-starts http-server on :8080)
 ```
 
-Unit tests (`test/*.test.js`) cover pure game logic such as pathfinding and combat math. Integration tests (`test/integration/`) boot a headless "fake game" harness (`test/helpers/fakeGame.js`) that wires up the real managers to catch cross-manager bugs. The end-to-end smoke test (`test/e2e/smoke.spec.js`) loads the game in headless Chromium, clicks Quick Play, and drives real keystrokes; run `npx playwright install chromium` once before the first local run.
+Unit tests (`test/*.test.js`) cover pure game logic such as pathfinding and combat math. Integration tests (`test/integration/`) boot a headless "fake game" harness (`test/helpers/fakeGame.js`) that wires up the real managers to catch cross-manager bugs. The end-to-end tests (`test/e2e/*.spec.js`) load the game in headless Chromium and drive real keystrokes: `smoke.spec.js` (boot + input), `saveload.spec.js` (save, reload, Continue with real IndexedDB), and `gameModal.spec.js` (tabbed game menu). Run `npx playwright install chromium` once before the first local run.
 
 ## 📚 Documentation
 

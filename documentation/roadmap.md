@@ -4,12 +4,13 @@ This document outlines the planned features and enhancements for the Modern Rogu
 
 **Status legend:** `[DONE]` complete · `[PARTIAL]` partially implemented · `[TODO]` not started. (Reflects code as of v0.5.0 "Crypts & Castles".)
 
-## 1. Saving and Loading Game State `[TODO]`
-- Implement a system to save the player's progress, including character stats, inventory, equipment, and dungeon state.
-- Use browser's local storage or a server-side database to store the game state.
-- Add a "Save Game" option in the game menu.
-- Automatically save the game at certain checkpoints (e.g., after clearing a dungeon level).
-- Allow players to load a saved game from the main menu.
+## 1. Saving and Loading Game State `[DONE]`
+<!-- src/js/modules/persistence/: versioned save schema, pure serializer/hydrator, SaveStore adapter (IndexedDB in browser, in-memory in tests, cloud store for the Octonion gateway), SaveManager owning all policies. Adventure vs Hardcore run modes chosen at Quick Play; hardcore death deletes the save. Cloud sync is scaffolded but dormant until src/js/config.js is filled in. -->
+- Implement a system to save the player's progress, including character stats, inventory, equipment, and dungeon state. `[DONE]`
+- Use browser's local storage or a server-side database to store the game state. `[DONE]` (IndexedDB locally; server-side cloud saves scaffolded, dormant until configured)
+- Add a "Save Game" option in the game menu. `[DONE]` (Ctrl+S saves at any time)
+- Automatically save the game at certain checkpoints (e.g., after clearing a dungeon level). `[DONE]` (autosave on every section transition)
+- Allow players to load a saved game from the main menu. `[DONE]` (Continue button on the main menu)
 
 ## 2. Enhanced Monster AI and Pathfinding `[DONE]`
 <!-- A* pathfinding, Chebyshev distance, line-of-sight detection, lose-aggro-after-losing-sight, and five per-type behavior archetypes (melee/skittish/erratic/ranged/pack) in monster.js + monsterDatabase.js. Ranged monsters fire projectiles (spider venom, centaur arrows). -->
