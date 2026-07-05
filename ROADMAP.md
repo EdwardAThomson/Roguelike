@@ -24,9 +24,10 @@ turn-based tactical combat, magic, and character progression. See
 - [x] Castable items — staves (mana) and wands (charges)
 - [x] Field of view & fog of war with per-section memory
 - [x] Multi-section world with persistent state
-- [x] UI — inventory, character sheet, spellbook, help, message log
+- [x] UI — inventory, character sheet, spellbook (unified tabbed modal that pauses the game), help, message log
 - [x] Numpad / controller diagonal movement
-- [x] Test suite — Vitest unit + integration harness (fake headless game) + Playwright smoke test
+- [x] Test suite — Vitest unit + integration harness (fake headless game) + Playwright e2e specs (smoke, save/load, game modal)
+- [x] Save / load game state — IndexedDB local saves (manual Ctrl+S + autosave on section transitions), menu Continue, Adventure/Hardcore run modes; cloud sync scaffolded (dormant until configured)
 - [x] Player guide + design docs
 
 ## Next
@@ -36,7 +37,6 @@ turn-based tactical combat, magic, and character progression. See
 
 ## Backlog
 
-- [ ] Save / load game state (local storage or server-side)
 - [ ] Multiplayer mode
 - [ ] Quest system & NPC interactions
 - [ ] Sound & music

@@ -16,6 +16,9 @@ Your goal is to explore the procedurally generated dungeon, fight monsters, coll
   - Hold Alt + number key to use the selected item.
   - Click on equipped items in the equipment panel to unequip them.
 - Character Screen: Press 'C' to view your character stats and allocate skill points when leveling up.
+- Spellbook: Press 'B' to manage your spells and bind them to the Q/R/F/V/X hotkeys.
+- The Inventory, Character, and Spellbook screens are tabs of one game menu: the game pauses while it is open, pressing a tab's key again (or Esc) closes it, and pressing another tab's key switches tabs.
+- Save: Press Ctrl+S (Cmd+S on Mac) to save your run at any time (see Saving and Loading below).
 - Help: Press 'H' to open the help screen with controls and information.
 - Map Reveal: Press 'M' to toggle between revealing the entire map and showing only explored areas (cheat mode).
 
@@ -51,7 +54,14 @@ Manage your inventory wisely and equip the best items to suit your playstyle and
 
 ## Saving and Loading
 
-Currently, the game does not support saving and loading progress. Each playthrough starts fresh with a new procedurally generated dungeon.
+Press Ctrl+S (Cmd+S on Mac) to save your run at any time. The game also autosaves whenever you move between world sections. To resume a saved run, use the Continue button on the main menu.
+
+When starting a new game via Quick Play, you choose one of two run modes:
+
+- Adventure: death sends you back to the menu, and Continue resumes from your last save.
+- Hardcore: death erases your save; the run is over for good.
+
+The mode is fixed for the whole run.
 
 ## Tips
 
