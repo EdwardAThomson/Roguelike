@@ -20,7 +20,8 @@ export class GameModal {
         // { character: GameUI, inventory: InventoryUI, spellbook: SpellbookUI, map: MapUI }
         this.providers = providers;
         this.tabs = ['character', 'inventory', 'spellbook', 'map'];
-        this.tabLabels = { character: 'Character', inventory: 'Inventory', spellbook: 'Spellbook', map: 'Map' };
+        this.tabLabels = { character: 'Hero', inventory: 'Pack', spellbook: 'Spells', map: 'Map' };
+        this.tabKeys = { character: 'C', inventory: 'I', spellbook: 'B', map: 'M' };
         this.activeTab = null;
         this.isOpen = false;
         this.tabButtons = {};
@@ -44,14 +45,15 @@ export class GameModal {
             const button = document.createElement('button');
             button.className = 'gm-tab';
             button.dataset.tab = tab;
-            button.textContent = this.tabLabels[tab];
+            button.innerHTML = `<span class="gm-tab-key">${this.tabKeys[tab]}</span>${this.tabLabels[tab]}`;
             button.addEventListener('click', () => this.setTab(tab));
             tabBar.appendChild(button);
             this.tabButtons[tab] = button;
         }
         const closeButton = document.createElement('button');
         closeButton.className = 'gm-close';
-        closeButton.textContent = '✕ Esc';
+        closeButton.textContent = 'Esc';
+        closeButton.setAttribute('aria-label', 'Close');
         closeButton.addEventListener('click', () => this.close());
         tabBar.appendChild(closeButton);
         this.root.appendChild(tabBar);

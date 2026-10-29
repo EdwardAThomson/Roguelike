@@ -6,27 +6,14 @@
     <title>Modern Rogue</title>
     <link rel="stylesheet" href="src/css/style.css">
     <link rel="stylesheet" href="src/css/menu.css">
-     
 
-
-    <!-- <style>
-        /* Temporary debugging styles     */
-        #game-container { border: 2px solid red; }
-        #ui-container { border: 2px solid green; }
-        #equipment-area, #stats-area, #message-area { 
-            border: 2px solid blue; 
-            min-height: 50px; /* Ensure they have some height */
-            margin: 5px;
-        }
-    </style> -->
-
-    
 </head>
 <body>
     <!-- Landing Page / Menu (initially visible) -->
     <div id="landing-page">
         <div class="menu-container">
-            <h1 class="game-title">Modern Rogue</h1>
+            <h1 class="game-title">Modern<br>Rogue</h1>
+            <div class="game-version">v0.5.0 "Crypts &amp; Castles"</div>
             
             <div class="menu-options" id="menu-options">
                 <button id="continue-btn" class="menu-btn" style="display: none;">Continue</button>
@@ -42,17 +29,16 @@
             <div id="mode-select" class="mode-select" style="display: none;">
                 <div class="mode-select-title">Choose your fate</div>
                 <button class="mode-card" id="mode-adventure">
-                    <div class="mode-card-name">⚔️ Adventure</div>
+                    <div class="mode-card-name">Adventure</div>
                     <div class="mode-card-desc">Checkpoint saves. Death sends you back to your last save.</div>
                 </button>
                 <button class="mode-card" id="mode-hardcore">
-                    <div class="mode-card-name">💀 Hardcore</div>
+                    <div class="mode-card-name">Hardcore</div>
                     <div class="mode-card-desc">One life. Death erases your save forever.</div>
                 </button>
                 <button class="mode-back" id="mode-back">‹ Back</button>
             </div>
 
-            <div class="game-version">v0.5.0 "Crypts & Castles"</div>
             <div class="game-copyright">&copy; 2026 Edward Thomson (<a href="https://octonion.io" target="_blank" rel="noopener noreferrer">Octonion Software</a>)</div>
         </div>
 
@@ -75,12 +61,8 @@
             <canvas id="game-canvas"></canvas>
         </div>
         
-        <!-- UI area - for permanent UI elements -->
-        <div id="ui-container">
-            <div id="equipment-area"></div>
-            <div id="stats-area"></div>
-            <div id="message-area"></div>
-        </div>
+        <!-- HUD: bars, stats, gear, hotbar, log (built by ui/hud.js) -->
+        <div id="ui-container"></div>
         
         <!-- Overlay area - for modal windows like inventory -->
         <div id="overlay-container"></div>

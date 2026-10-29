@@ -59,7 +59,7 @@ Two cooperating input layers:
 - `input.js` (`InputHandler`) — low-level key state polling.
 - `inputManager.js` (`InputManager`) — game-aware input. `update()` calls `inputManager.handleUIInput()` always (so I/C/B/H work while paused), and `inputManager.handleInput()` only when `stateManager.isPlaying()` and a player exists.
 
-`handleUIInput` routes I/C/B/M to `gameModal.toggleTab(...)` (M is skipped while Shift is held) and H to the help overlay (mutually exclusive with the modal). A small set of keys is wired directly in `main.js#setupKeyListeners`: Shift+M (map reveal cheat), Shift+G (gate debug), and Ctrl+S / Cmd+S (manual save). While the game modal is open, its own document keydown listener (attached on open, detached on close) handles Escape, spellbook capture keys, and the inventory tab's item-action keys.
+`handleUIInput` routes I/C/B/M to `gameModal.toggleTab(...)` (M is skipped while Shift is held) and H to the help overlay (mutually exclusive with the modal). A small set of keys is wired directly in `main.js#setupKeyListeners`: Shift+M (map reveal cheat), T (graphics style), L (HUD layout), Shift+G (gate debug), and Ctrl+S / Cmd+S (manual save). During play, `handleInput` also maps 1/2/3 to the HUD belt (`hud.useBeltSlot`); while the modal is open the same digits belong to the inventory tab. While the game modal is open, its own document keydown listener (attached on open, detached on close) handles Escape, spellbook capture keys, and the inventory tab's item-action keys.
 
 ### World / dungeon model
 
@@ -117,7 +117,11 @@ The non-classic modes live in `src/js/modules/render/` and only read game state:
 
 ### UI
 
-`ui/index.js` exports a `UI` class that composes `GameUI` (HUD + character tab), `InventoryUI`, `EquipmentDisplay` (persistent HUD sidebar), `HelpScreen`, `SpellbookUI`, and `GameModal`. Use `game.ui.addMessage(text, color)` for the message log. UI components mutate the DOM in `#ui-container` and `#overlay-container`; the canvas (`#game-canvas`) is owned by the `Renderer`.
+`ui/index.js` exports a `UI` class that composes `GameUI` (message log data + character tab), `Hud`, `InventoryUI`, `HelpScreen`, `SpellbookUI`, and `GameModal`. Use `game.ui.addMessage(text, color)` for the message log. UI components mutate the DOM in `#ui-container` and `#overlay-container`; the canvas (`#game-canvas`) is owned by the `Renderer`.
+
+**Theme.** Colours, fonts and sizes are CSS custom properties on `:root` in `src/css/style.css` (`--ui-panel`, `--ui-gold`, `--ui-font-display`, ...); the JS-injected styles in the UI modules use the same variables. Fonts (Pixelify Sans for headings, JetBrains Mono for text) are vendored in `assets/fonts/`, so the game needs no network. Icons are pixel sprites from `render/itemIcons.js` (`itemIconHtml`, `spellIconHtml`; spell art is `SPELL_SPRITES` in `spriteDefs.js`), never emoji.
+
+**The HUD** (`ui/hud.js`) builds everything in `#ui-container`: hero bars, stats, equipped gear, the spell hotbar plus a three-slot potion/wand belt (`beltItems()`), the message log (`#message-area`) and clickable key hints. `update()` runs every frame but rebuilds a section only when its signature string changes. One set of elements serves both **HUD layouts** (`ui/hudLayouts.js`: `sidebar`, the default, and `actionbar`); the layout is a per-player localStorage setting (`modernrogue.hudLayout`), never in the save, picked in Options or cycled with L. `main.js` puts `hud-layout-<id>` on `#main-container` and the CSS grid does the arranging, so the map's size depends on the layout: `setHudLayout` calls `resizeCanvas()` and the viewport follows the container.
 
 **The game modal** (`ui/gameModal.js`) is the single tabbed screen hosting Character / Inventory / Spellbook / Map. Its frame size is fixed (`.game-modal` in `src/css/style.css`, `min(92vw,1000px)` by `min(85vh,680px)`) so switching tabs never resizes; panels scroll internally. The screens are content providers implementing `mountPanel(el)` / `onShow(options)` / `onHide()` / optional `handleKey(e)`; they render into persistent panels and own no modal chrome. When adding a tab, implement that interface and register it in the `UI` constructor.
 

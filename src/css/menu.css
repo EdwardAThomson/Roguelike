@@ -1,182 +1,186 @@
-/* Menu Styling */
+/* Title screen: a left-hand column over a dungeon backdrop. Colours and fonts
+   come from the tokens in style.css. */
 #landing-page {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: #111;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../assets/menu-background.jpg');
+    background-color: var(--ui-bg);
+    background-image:
+        linear-gradient(90deg, rgba(11, 10, 15, 0.97) 0%, rgba(11, 10, 15, 0.9) 34%, rgba(11, 10, 15, 0.25) 75%),
+        url('../../assets/menu-background.png');
     background-size: cover;
-    background-position: center;
+    background-position: 75% 55%;
+    image-rendering: pixelated;
     display: flex;
-    justify-content: center;
     align-items: center;
     z-index: 1000;
 }
 
 .menu-container {
-    background-color: rgba(0, 0, 0, 0.7);
-    border: 2px solid #555;
-    border-radius: 10px;
-    padding: 40px;
-    text-align: center;
-    max-width: 500px;
-    width: 80%;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    width: min(440px, calc(100% - 32px));
+    margin-left: clamp(16px, 8vw, 120px);
+    animation: fadeIn 0.5s ease-out;
 }
 
 .game-title {
-    color: #ff9d00;
-    font-size: 48px;
-    margin-bottom: 40px;
-    text-shadow: 0 0 10px rgba(255, 157, 0, 0.7);
-    font-family: 'Cinzel', serif;
+    margin: 0;
+    color: var(--ui-gold);
+    font-family: var(--ui-font-display);
+    font-size: 72px;
+    font-weight: 700;
+    line-height: 0.95;
+    text-shadow: 0 4px 0 #5a3f15;
+}
+
+.game-version {
+    margin-top: -18px;
+    color: var(--ui-muted);
+    font-size: 13px;
 }
 
 .menu-options {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 8px;
 }
 
 .menu-btn {
-    background-color: #333;
-    color: #fff;
-    border: 2px solid #555;
-    border-radius: 5px;
-    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    padding: 0 18px;
+    background-color: var(--ui-panel);
+    border: 1px solid var(--ui-line-strong);
+    border-radius: 3px;
+    color: var(--ui-text);
+    font-family: var(--ui-font-display);
     font-size: 18px;
+    text-align: left;
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: 'Cinzel', serif;
+    transition: border-color 0.15s, background-color 0.15s;
 }
 
-.menu-btn:hover {
-    background-color: #555;
-    border-color: #ff9d00;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+.menu-btn:hover,
+.menu-btn:focus-visible {
+    border-color: var(--ui-gold);
+    background-color: var(--ui-panel-2);
+    outline: none;
 }
 
-.menu-btn:active {
-    transform: translateY(1px);
+/* The first action on the screen (Continue when there is a save, else Quick
+   Play) is the gold one. */
+#continue-btn,
+#continue-btn[style*="none"] + #quick-play-btn {
+    min-height: 52px;
+    background-color: var(--ui-gold);
+    border-color: var(--ui-gold-bright);
+    color: #1a1408;
+    font-size: 20px;
 }
 
-#quick-play-btn {
-    background-color: #5a3a00;
-    border-color: #ff9d00;
+#continue-btn:hover,
+#continue-btn[style*="none"] + #quick-play-btn:hover {
+    background-color: var(--ui-gold-bright);
 }
 
-#quick-play-btn:hover {
-    background-color: #ff9d00;
-    color: #000;
-}
-
-.game-version {
-    color: #777;
-    margin-top: 30px;
-    font-size: 14px;
-}
-
-/* Animation for menu appearance */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.menu-container {
-    animation: fadeIn 0.5s ease-out;
-}
-
-/* Responsive adjustments */
-@media (max-width: 600px) {
-    .game-title {
-        font-size: 36px;
-    }
-    
-    .menu-btn {
-        padding: 12px 16px;
-        font-size: 16px;
-    }
-} 
-.game-copyright {
-    color: #777;
-    margin-top: 10px;
+.menu-btn-meta {
+    font-family: var(--ui-font);
     font-size: 12px;
-    opacity: 0.7;
+    opacity: 0.75;
+}
+
+.game-copyright {
+    color: var(--ui-faint);
+    font-size: 11px;
 }
 
 .game-copyright a {
-    color: #aaa;
+    color: var(--ui-gold);
     text-decoration: none;
 }
 
 .game-copyright a:hover {
     text-decoration: underline;
-    color: #fff;
+    color: var(--ui-gold-bright);
+}
+
+/* Animation for menu appearance */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 /* Run mode chooser (shown after Quick Play) */
 .mode-select {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .mode-select-title {
-    color: #ff9d00;
+    color: var(--ui-gold);
+    font-family: var(--ui-font-display);
     font-size: 22px;
-    font-family: 'Cinzel', serif;
-    margin-bottom: 5px;
+    margin-bottom: 2px;
 }
 
 .mode-card {
-    background-color: #262626;
-    border: 2px solid #555;
-    border-radius: 8px;
-    padding: 16px 20px;
+    padding: 14px 18px;
+    background-color: var(--ui-panel);
+    border: 1px solid var(--ui-line-strong);
+    border-radius: 3px;
+    color: var(--ui-text);
     text-align: left;
     cursor: pointer;
-    color: #fff;
-    font-family: 'Cinzel', serif;
-    transition: all 0.3s ease;
+    transition: border-color 0.15s, background-color 0.15s;
 }
 
-.mode-card:hover {
-    border-color: #ff9d00;
-    background-color: #333;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+.mode-card:hover,
+.mode-card:focus-visible {
+    border-color: var(--ui-gold);
+    background-color: var(--ui-panel-2);
+    outline: none;
 }
 
 /* The player's previous choice, highlighted as the suggested default */
 .mode-card.preferred {
-    border-color: #ff9d00;
+    border-color: var(--ui-gold);
+    box-shadow: inset 3px 0 0 var(--ui-gold);
 }
 
 .mode-card-name {
+    margin-bottom: 4px;
+    font-family: var(--ui-font-display);
     font-size: 20px;
-    margin-bottom: 6px;
+}
+
+#mode-hardcore .mode-card-name {
+    color: var(--ui-bad);
 }
 
 .mode-card-desc {
+    color: var(--ui-muted);
     font-size: 13px;
-    color: #aaa;
-    font-family: monospace;
 }
 
 .mode-back {
+    align-self: flex-start;
+    padding: 8px 0;
     background: none;
     border: none;
-    color: #999;
-    font-size: 15px;
+    color: var(--ui-muted);
+    font-size: 14px;
     cursor: pointer;
-    font-family: 'Cinzel', serif;
-    padding: 8px;
 }
 
 .mode-back:hover {
-    color: #fff;
+    color: var(--ui-text);
 }
 
 /* In-menu modal (Multiplayer / Options / Credits) */
@@ -186,7 +190,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(5, 4, 8, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -194,14 +198,12 @@
 }
 
 .menu-modal {
-    background-color: rgba(15, 15, 20, 0.97);
-    border: 2px solid #555;
-    border-radius: 10px;
-    max-width: 420px;
-    width: 85%;
-    color: #ddd;
-    font-family: monospace;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    width: min(460px, calc(100% - 32px));
+    background-color: var(--ui-panel);
+    border: 2px solid var(--ui-line-strong);
+    border-radius: 6px;
+    color: var(--ui-text-soft);
+    box-shadow: 0 0 0 1px #000, 0 24px 60px rgba(0, 0, 0, 0.6);
 }
 
 .menu-modal-header {
@@ -209,28 +211,29 @@
     justify-content: space-between;
     align-items: center;
     padding: 14px 18px;
-    border-bottom: 1px solid #444;
-    color: #ff9d00;
-    font-family: 'Cinzel', serif;
+    border-bottom: 2px solid var(--ui-line);
+    background: var(--ui-panel-2);
+    color: var(--ui-gold);
+    font-family: var(--ui-font-display);
     font-size: 18px;
 }
 
 .menu-modal-close {
     background: none;
     border: none;
-    color: #aaa;
+    color: var(--ui-muted);
     font-size: 16px;
     cursor: pointer;
     padding: 2px 6px;
 }
 
 .menu-modal-close:hover {
-    color: #f55;
+    color: var(--ui-bad);
 }
 
 .menu-modal-body {
     padding: 18px;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.5;
 }
 
@@ -238,10 +241,11 @@
     margin: 0 0 10px;
 }
 
-/* Options: graphics style picker */
+/* Options: graphics style and layout pickers */
 .menu-option-label {
-    color: #ff9d00;
-    font-weight: bold;
+    color: var(--ui-gold);
+    font-family: var(--ui-font-display);
+    font-size: 15px;
 }
 
 .display-mode-list {
@@ -252,28 +256,35 @@
 }
 
 .display-mode-btn {
-    background-color: #222;
-    color: #ccc;
-    border: 1px solid #555;
-    border-radius: 6px;
-    padding: 9px 8px;
+    min-height: 40px;
+    padding: 8px;
+    background-color: var(--ui-inset);
+    border: 1px solid var(--ui-line-strong);
+    border-radius: 3px;
+    color: var(--ui-text-soft);
     font: inherit;
     cursor: pointer;
 }
 
 .display-mode-btn:hover {
-    border-color: #ff9d00;
-    color: #fff;
+    border-color: var(--ui-gold);
+    color: var(--ui-text);
 }
 
 .display-mode-btn[aria-checked="true"] {
-    background-color: #ff9d00;
-    border-color: #ff9d00;
-    color: #1a1206;
-    font-weight: bold;
+    background-color: var(--ui-gold);
+    border-color: var(--ui-gold-bright);
+    color: #1a1408;
+    font-weight: 600;
 }
 
 .menu-option-hint {
-    color: #999;
+    color: var(--ui-muted);
     font-size: 12px;
+}
+
+@media (max-width: 600px) {
+    .game-title {
+        font-size: 52px;
+    }
 }

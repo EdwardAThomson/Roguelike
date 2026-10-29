@@ -4,7 +4,7 @@
 // which looked different on every operating system.
 
 import { rasterizeSprite } from './pixelArt.js';
-import { ITEM_SPRITES } from './spriteDefs.js';
+import { ITEM_SPRITES, SPELL_SPRITES } from './spriteDefs.js';
 import { itemVisual } from './visuals.js';
 
 // What an empty equipment slot shows, as a faded outline.
@@ -23,8 +23,11 @@ const urlCache = new Map();
 // Rasterise a sprite, centred in a 16x16 cell (floor sprites sit low in
 // their tile; icons look better centred), and return it as a data URL.
 export function spriteDataUrl(key) {
-    if (urlCache.has(key)) return urlCache.get(key);
-    const def = ITEM_SPRITES[key] || ITEM_SPRITES.bag;
+    return defDataUrl(key, ITEM_SPRITES[key] || ITEM_SPRITES.bag);
+}
+
+function defDataUrl(cacheKey, def) {
+    if (urlCache.has(cacheKey)) return urlCache.get(cacheKey);
     if (typeof document === 'undefined') return '';
 
     const { pixels } = rasterizeSprite(def.rows, def.palette);
@@ -40,7 +43,7 @@ export function spriteDataUrl(key) {
         g.fillRect(p.x + dx, p.y + dy, 1, 1);
     }
     const url = canvas.toDataURL('image/png');
-    urlCache.set(key, url);
+    urlCache.set(cacheKey, url);
     return url;
 }
 
@@ -58,4 +61,11 @@ export function emptySlotIconHtml(slot) {
 
 export function spriteIconHtml(key, extraClass = '') {
     return imgHtml(key, extraClass);
+}
+
+// Spell icon by spell id; unknown spells fall back to the tome.
+export function spellIconHtml(spellId, extraClass = '') {
+    const def = SPELL_SPRITES[spellId];
+    const url = def ? defDataUrl(`spell:${spellId}`, def) : spriteDataUrl('tome');
+    return `<img class="pixel-icon ${extraClass}" src="${url}" alt="" draggable="false">`;
 }

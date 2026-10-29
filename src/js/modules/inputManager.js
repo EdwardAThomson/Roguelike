@@ -40,6 +40,18 @@ export class InputManager {
             }
         }
         
+        // BELT KEYS (1, 2, 3) - Quick-use the potions/wands shown on the HUD belt
+        if (!this.beltKeyStates) this.beltKeyStates = [false, false, false];
+        for (let i = 0; i < 3; i++) {
+            const down = this.input.isKeyDown(String(i + 1));
+            const pressed = down && !this.beltKeyStates[i];
+            this.beltKeyStates[i] = down;
+            if (pressed && this.game.ui && this.game.ui.hud) {
+                this.game.ui.hud.useBeltSlot(i);
+                return;
+            }
+        }
+
         // SPACE BAR - Fire ranged weapon (with edge detection)
         const spaceDown = this.input.isKeyDown(' ');
         const spacePressed = spaceDown && !this.spaceKeyState;

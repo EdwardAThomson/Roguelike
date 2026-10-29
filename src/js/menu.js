@@ -5,6 +5,7 @@ import { SAVE_SLOT, isCompatibleEnvelope } from './modules/persistence/saveSchem
 import { authClient } from './modules/persistence/authClient.js';
 import { CloudSaveStore } from './modules/persistence/cloudSaveStore.js';
 import { DISPLAY_MODES, loadDisplayMode, saveDisplayMode } from './modules/render/displayModes.js';
+import { HUD_LAYOUTS, loadHudLayout, saveHudLayout } from './modules/ui/hudLayouts.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Update version display dynamically
@@ -100,26 +101,35 @@ document.addEventListener('DOMContentLoaded', () => {
         modalBackdrop.style.display = 'flex';
     }
 
-    // Options: the graphics style is a display setting stored per player,
-    // separate from any run (T cycles it in game).
+    // Options: the graphics style and the HUD layout are display settings
+    // stored per player, separate from any run (T and L cycle them in game).
     function openOptions() {
-        const current = loadDisplayMode();
+        const currentMode = loadDisplayMode();
+        const currentLayout = loadHudLayout();
+        const radioGroup = (label, attr, options, current) => `
+            <p class="menu-option-label">${label}</p>
+            <div class="display-mode-list" role="radiogroup" aria-label="${label}">
+                ${options.map(o => `
+                    <button type="button" class="display-mode-btn" role="radio" ${attr}="${o.id}"
+                        aria-checked="${o.id === current}">${o.label}</button>`).join('')}
+            </div>`;
         openMenuModal('Options', `
-            <p class="menu-option-label">Graphics</p>
-            <div class="display-mode-list" role="radiogroup" aria-label="Graphics">
-                ${DISPLAY_MODES.map(m => `
-                    <button type="button" class="display-mode-btn" role="radio" data-display-mode="${m.id}"
-                        aria-checked="${m.id === current}">${m.label}</button>`).join('')}
-            </div>
+            ${radioGroup('Graphics', 'data-display-mode', DISPLAY_MODES, currentMode)}
             <p class="menu-option-hint">Press T in game to switch between them.</p>
+            ${radioGroup('Layout', 'data-hud-layout', HUD_LAYOUTS, currentLayout)}
+            <p class="menu-option-hint">Sidebar keeps everything beside the map; Action bar puts it along the bottom. Press L in game to switch.</p>
         `);
-        modalBody.querySelectorAll('[data-display-mode]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                saveDisplayMode(btn.dataset.displayMode);
-                modalBody.querySelectorAll('[data-display-mode]').forEach(b =>
-                    b.setAttribute('aria-checked', String(b === btn)));
+        const wire = (attr, save) => {
+            const buttons = modalBody.querySelectorAll(`[${attr}]`);
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    save(btn.getAttribute(attr));
+                    buttons.forEach(b => b.setAttribute('aria-checked', String(b === btn)));
+                });
             });
-        });
+        };
+        wire('data-display-mode', saveDisplayMode);
+        wire('data-hud-layout', saveHudLayout);
     }
 
     function closeMenuModal() {
@@ -150,8 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isCompatibleEnvelope(envelope)) {
                 const meta = envelope.meta || {};
                 const mode = meta.hardcore ? ', hardcore' : '';
-                continueBtn.textContent =
-                    `Continue (Lv ${meta.playerLevel ?? '?'}, section ${meta.currentSectionId ?? '?'}${mode})`;
+                continueBtn.innerHTML = `Continue <span class="menu-btn-meta">Lv ${meta.playerLevel ?? '?'} · section ${
+                    String(meta.currentSectionId ?? '?').replace('_', ', ')}${mode}</span>`;
                 continueBtn.style.display = '';
             } else {
                 continueBtn.style.display = 'none';
@@ -203,13 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide the landing page
         landingPage.style.display = 'none';
 
-        // Show the main container and explicitly set its display to flex
-        mainContainer.style.display = 'flex';
-
-        // Explicitly set the UI container's display properties
-        const uiContainer = document.getElementById('ui-container');
-        uiContainer.style.display = 'flex';
-        uiContainer.style.flexDirection = 'column';
+        // Show the game; the HUD layout class on it decides the arrangement.
+        mainContainer.style.display = '';
 
         // Initialize the game
         if (window.startGame && typeof window.startGame === 'function') {

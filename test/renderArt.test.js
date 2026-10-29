@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { rasterizeSprite, bitmapText, liftColor, hash01, OUTLINE } from '../src/js/modules/render/pixelArt.js';
-import { CHARACTER_SPRITES, ITEM_SPRITES } from '../src/js/modules/render/spriteDefs.js';
+import { CHARACTER_SPRITES, ITEM_SPRITES, SPELL_SPRITES } from '../src/js/modules/render/spriteDefs.js';
+import { SpellDatabase } from '../src/js/modules/magic/spellDatabase.js';
 import { itemVisual, monsterSpriteKey } from '../src/js/modules/render/visuals.js';
 import { SLOT_SPRITES } from '../src/js/modules/render/itemIcons.js';
 import { MonsterDatabase } from '../src/js/modules/entity/monsterDatabase.js';
@@ -25,7 +26,7 @@ describe('rasterizeSprite', () => {
     });
 
     it('rasterises every sprite in the game within a 16x16 cell', () => {
-        for (const [key, def] of Object.entries({ ...CHARACTER_SPRITES, ...ITEM_SPRITES })) {
+        for (const [key, def] of Object.entries({ ...CHARACTER_SPRITES, ...ITEM_SPRITES, ...SPELL_SPRITES })) {
             const r = rasterizeSprite(def.rows, def.palette);
             expect(r.pixels.length, key).toBeGreaterThan(10);
             expect(r.width, key).toBeLessThanOrEqual(16);
@@ -35,6 +36,13 @@ describe('rasterizeSprite', () => {
 });
 
 describe('visual registry coverage', () => {
+    it('has an icon for every spell in the spell database', () => {
+        const db = new SpellDatabase();
+        for (const spell of db.getAllSpells()) {
+            expect(SPELL_SPRITES[spell.id], spell.id).toBeDefined();
+        }
+    });
+
     it('has a sprite for every monster type in the database', () => {
         const db = new MonsterDatabase();
         for (const type of Object.keys(db.monsterTypes)) {
