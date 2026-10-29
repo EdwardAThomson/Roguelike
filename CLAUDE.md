@@ -103,6 +103,18 @@ Things that will bite you if you change them casually:
 
 Cloud saves are dormant until `src/js/config.js` is filled in (hub URL, Supabase URL/anon key, gateway URL); with an empty config the game is fully offline and account UI stays hidden. `authClient.js` implements the Octonion hub SSO flow (one-time-token exchange, lazy supabase-js import); `cloudSaveStore.js` speaks the RPG-Loom gateway contract (`/api/saves/:slot`, generation-based optimistic concurrency, 503 degradation). Sync is local-first: IndexedDB is the source of truth, cloud pushes ride behind local saves, and the menu pulls a newer cloud save into IndexedDB before offering Continue. The server side (gateway + `newroguelike` schema) lives in the sibling octonion repos and is not built yet.
 
+### Rendering and display modes
+
+`Renderer.render()` dispatches on `game.displayMode` (`render/displayModes.js`): `lit` (16-bit with lighting, the default), `tiles` (16-bit), `ascii`, and `classic` (the original renderer, still the code at the bottom of `renderer.js` plus `sprites.js`). The mode is a per-player display setting in localStorage (`modernrogue.displayMode`), never in the save; T cycles it in game and the menu's Options picks it. `game.setDisplayMode(id)` swaps the tile size and viewport.
+
+The non-classic modes live in `src/js/modules/render/` and only read game state:
+
+- `sectionScene.js` caches a per-section `MapView` plus deterministic decoration (torches, banners, candles, mushrooms, bones, castle carpets from `dungeon.rooms`) and rebuilds when the dungeon object or any tile changes. `collectLights` turns the player, decor, projectiles and impacts into light sources.
+- `tileArt.js` paints a whole section once at 16 px per tile: three-quarter walls (a wall with floor below shows its face, others show their top), floor shadows, theme materials (`TILE_THEMES`). Gates are drawn per frame because their lock state changes.
+- `spriteDefs.js` holds every character and item sprite as a 16x16 letter grid plus palette; `pixelArt.rasterizeSprite` adds the outline and top-left shading, so a new monster is a grid and a palette. Add one for every new monster type and map new items in `visuals.js#itemVisual`; `test/renderArt.test.js` fails if a database entry has no picture.
+- `effects.js` (`EffectsTracker`) observes positions and health once per frame and derives smooth movement, camera glide, melee lunges, hit flashes, damage numbers, death fades and projectile bursts. It must stay an observer: never write to game state from render code.
+- `pixelBackend.js` draws into a 16 px offscreen canvas and scales it 2x with smoothing off; in `lit` mode it multiplies a light map over the scene and adds particles. `asciiBackend.js` draws glyphs on light-tinted cells.
+
 ### UI
 
 `ui/index.js` exports a `UI` class that composes `GameUI` (HUD + character tab), `InventoryUI`, `EquipmentDisplay` (persistent HUD sidebar), `HelpScreen`, `SpellbookUI`, and `GameModal`. Use `game.ui.addMessage(text, color)` for the message log. UI components mutate the DOM in `#ui-container` and `#overlay-container`; the canvas (`#game-canvas`) is owned by the `Renderer`.
@@ -120,7 +132,7 @@ Cloud saves are dormant until `src/js/config.js` is filled in (hub URL, Supabase
 - ES module imports use relative paths with `.js` extensions (required since there's no bundler resolving extensions).
 - Managers consistently defensively check `typeof this.x === 'function'` before delegating (e.g. `main.js#update`). Mirror this pattern when adding manager methods called from `main.js`.
 - The codebase logs liberally to `console.log` with emoji prefixes (📖, 🎮, ⚠️). This is intentional for debugging in the browser console.
-- Tile coordinates are integer grid positions; pixel rendering is `tileSize=24` px per tile (`main.js`). The viewport size lives on `CameraManager`.
+- Tile coordinates are integer grid positions. `game.tileSize` follows the display mode (24 px for Classic/ASCII, 32 px for the 16-bit modes) and can change mid-run, so read it at draw time rather than caching it. The viewport size lives on `CameraManager` and is set by `main.js#applyViewport` from the mode and the container's shape.
 
 ## Documentation
 

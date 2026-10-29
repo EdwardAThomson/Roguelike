@@ -1,3 +1,5 @@
+import { spriteIconHtml } from '../render/itemIcons.js';
+
 export class HelpScreen {
     constructor(game) {
         this.game = game;
@@ -372,6 +374,11 @@ export class HelpScreen {
                         <td>Open this help screen</td>
                     </tr>
                     <tr>
+                        <td>Graphics Style</td>
+                        <td><span class="help-key">T</span></td>
+                        <td>Switch between 16-bit with lighting, 16-bit, ASCII and Classic</td>
+                    </tr>
+                    <tr>
                         <td>Save Game</td>
                         <td><span class="help-key">Ctrl+S</span></td>
                         <td>Save your run (also autosaves when changing sections)</td>
@@ -525,7 +532,7 @@ export class HelpScreen {
                 <div class="help-section-title">Item Types</div>
                 
                 <div class="item-example">
-                    <div class="item-example-icon rarity-rare">⚔️</div>
+                    <div class="item-example-icon rarity-rare">${spriteIconHtml('axe')}</div>
                     <div class="item-example-name">
                         <div class="rarity-rare">Battle Axe</div>
                         <div style="font-size: 0.8em; color: #888;">Weapon (weapon)</div>
@@ -537,7 +544,7 @@ export class HelpScreen {
                 <p><strong>Weapons</strong>: Increase your Attack Power and sometimes other attributes. Equip in weapon slot.</p>
                 
                 <div class="item-example">
-                    <div class="item-example-icon rarity-uncommon">👕</div>
+                    <div class="item-example-icon rarity-uncommon">${spriteIconHtml('armor')}</div>
                     <div class="item-example-name">
                         <div class="rarity-uncommon">Chainmail</div>
                         <div style="font-size: 0.8em; color: #888;">Armor (body)</div>
@@ -549,7 +556,7 @@ export class HelpScreen {
                 <p><strong>Armor</strong>: Increases your Defense and sometimes other attributes. Comes in head, body, and feet slots.</p>
                 
                 <div class="item-example">
-                    <div class="item-example-icon rarity-common">🧪</div>
+                    <div class="item-example-icon rarity-common">${spriteIconHtml('potion_health')}</div>
                     <div class="item-example-name">
                         <div class="rarity-common">Health Potion</div>
                         <div style="font-size: 0.8em; color: #888;">Consumable</div>
@@ -561,7 +568,7 @@ export class HelpScreen {
                 <p><strong>Consumables</strong>: One-time use items like potions that can restore health, mana, or provide other effects.</p>
                 
                 <div class="item-example">
-                    <div class="item-example-icon rarity-epic">💍</div>
+                    <div class="item-example-icon rarity-epic">${spriteIconHtml('ring')}</div>
                     <div class="item-example-name">
                         <div class="rarity-epic">Ring of Strength</div>
                         <div style="font-size: 0.8em; color: #888;">Accessory (ring)</div>

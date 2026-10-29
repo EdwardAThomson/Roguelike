@@ -16,6 +16,7 @@ turn-based tactical combat, magic, and character progression. See
 - [x] Monster AI — A* pathfinding, per-type archetypes, ranged attackers
 - [x] Monster behavior refinement — skittish panic triggered by wounds, aggro / lose-aggro on line-of-sight loss
 - [x] Combat balance — percentage-based defense mitigation, difficulty-scaled attackPower / defense / HP / XP
+- [x] Graphics styles — 16-bit tiles with lighting, motion and particles (default), plain 16-bit, polished ASCII and Classic; switch with T or in Options
 - [x] Dungeon themes — Cave / Castle / Crypt with per-theme tilesets, palettes, and soft-tagged monster spawn pools; new L4 crypt Wraith
 - [x] Character progression (level-up, stat allocation, wizard/warrior/hybrid builds)
 - [x] Procedural dungeon generation (multi-section, gates/keys, difficulty scaling)

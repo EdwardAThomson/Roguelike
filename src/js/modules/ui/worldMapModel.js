@@ -12,7 +12,7 @@
 import { pickThemeForSection } from '../worldManager.js';
 
 // Flattened map colours per theme. Values mirror the 16-bit terrain palette
-// (render/tileArt.js TILE_THEMES on the graphics branch) so the map reads as
+// (render/tileArt.js TILE_THEMES) so the map reads as
 // the same world as the play view.
 export const MAP_THEME_COLORS = {
     castle: { wall: '#555a7a', wallDark: '#2f3146', floor: '#4a4c62', accent: '#d6a640', label: 'Castle' },

@@ -1,3 +1,5 @@
+import { itemIconHtml, emptySlotIconHtml } from '../render/itemIcons.js';
+
 export class EquipmentDisplay {
     constructor(game) {
         this.game = game;
@@ -49,8 +51,8 @@ export class EquipmentDisplay {
             }
             
             .equipment-icon {
-                width: 20px;
-                height: 20px;
+                width: 32px;
+                height: 32px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -162,7 +164,7 @@ export class EquipmentDisplay {
             if (isEmpty) {
                 html += `
                     <div class="equipment-slot equipment-slot-empty" data-slot="${slotKey}">
-                        <div class="equipment-icon">${slotInfo.icon}</div>
+                        <div class="equipment-icon">${emptySlotIconHtml(slotKey)}</div>
                         <div class="equipment-name">
                             ${slotInfo.name}: Empty
                         </div>
@@ -171,7 +173,7 @@ export class EquipmentDisplay {
             } else {
                 html += `
                     <div class="equipment-slot" data-slot="${slotKey}">
-                        <div class="equipment-icon">${item.icon}</div>
+                        <div class="equipment-icon">${itemIconHtml(item)}</div>
                         <div class="equipment-name rarity-${item.rarity}">
                             ${item.name}
                         </div>
