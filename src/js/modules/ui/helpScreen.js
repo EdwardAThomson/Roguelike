@@ -34,16 +34,18 @@ export class HelpScreen {
         const style = document.createElement('style');
         style.textContent = `
             .help-screen {
-                background-color: rgba(0, 0, 0, 0.9);
-                color: #fff;
+                background-color: var(--ui-panel);
+                color: var(--ui-text);
                 padding: 20px;
-                border-radius: 10px;
-                font-family: monospace;
+                border-radius: 6px;
+                font-family: var(--ui-font);
+                font-size: 13px;
                 width: 80%;
                 max-width: 800px;
                 max-height: 85vh;
                 overflow-y: auto;
-                border: 2px solid #444;
+                border: 2px solid var(--ui-line-strong);
+                box-shadow: 0 0 0 1px #000, 0 24px 60px rgba(0, 0, 0, 0.6);
                 margin: 0 auto;
             }
             
@@ -51,32 +53,34 @@ export class HelpScreen {
                 font-size: 1.5em;
                 text-align: center;
                 margin-bottom: 15px;
-                color: #0c0;
-                border-bottom: 1px solid #444;
+                color: var(--ui-gold);
+                font-family: var(--ui-font-display);
+                border-bottom: 1px solid var(--ui-line);
                 padding-bottom: 10px;
             }
             
             .help-tabs {
                 display: flex;
                 margin-bottom: 15px;
-                border-bottom: 1px solid #333;
+                border-bottom: 1px solid var(--ui-line);
                 padding-bottom: 10px;
             }
             
             .help-tab {
                 padding: 5px 15px;
                 cursor: pointer;
-                border-radius: 5px;
+                border-radius: 3px;
                 margin-right: 10px;
+                color: var(--ui-muted);
             }
             
             .help-tab:hover {
-                background-color: #333;
+                color: var(--ui-text);
             }
             
             .help-tab.active {
-                background-color: #444;
-                color: #0c0;
+                background-color: var(--ui-panel-2);
+                color: var(--ui-gold);
             }
             
             .help-content {
@@ -89,9 +93,10 @@ export class HelpScreen {
             
             .help-section-title {
                 font-size: 1.2em;
-                color: #0c0;
+                color: var(--ui-gold);
+                font-family: var(--ui-font-display);
                 margin-bottom: 10px;
-                border-bottom: 1px solid #333;
+                border-bottom: 1px solid var(--ui-line);
                 padding-bottom: 5px;
             }
             
@@ -104,39 +109,43 @@ export class HelpScreen {
             .help-controls-table th, .help-controls-table td {
                 padding: 8px;
                 text-align: left;
-                border-bottom: 1px solid #333;
+                border-bottom: 1px solid var(--ui-line);
             }
             
             .help-controls-table th {
-                color: #0c0;
+                color: var(--ui-muted);
+                font-weight: 400;
             }
             
             .help-key {
                 display: inline-block;
-                background-color: #333;
-                border: 1px solid #555;
-                border-radius: 4px;
-                padding: 2px 6px;
-                font-family: monospace;
+                min-width: 12px;
+                border: 1px solid #4a4456;
+                border-bottom-width: 2px;
+                border-radius: 3px;
+                padding: 1px 6px;
+                text-align: center;
                 margin: 0 2px;
             }
             
             .help-footer {
                 margin-top: 20px;
-                border-top: 1px solid #444;
+                border-top: 1px solid var(--ui-line);
                 padding-top: 10px;
                 display: flex;
                 justify-content: center;
             }
             
             .help-close-button {
-                background-color: #333;
-                border: 1px solid #555;
-                color: #fff;
-                padding: 8px 15px;
-                border-radius: 5px;
+                min-height: 40px;
+                background-color: var(--ui-panel-2);
+                border: 1px solid var(--ui-line-strong);
+                color: var(--ui-text);
+                padding: 8px 18px;
+                border-radius: 3px;
                 cursor: pointer;
-                font-family: monospace;
+                font-family: var(--ui-font-display);
+                font-size: 15px;
             }
             
             .rarity-display {
@@ -150,18 +159,12 @@ export class HelpScreen {
                 margin-right: 10px;
             }
             
-            .rarity-common { color: #aaa; }
-            .rarity-uncommon { color: #5d5; }
-            .rarity-rare { color: #55d; }
-            .rarity-epic { color: #c5c; }
-            .rarity-legendary { color: #fb0; }
-            
             .item-example {
                 display: flex;
                 align-items: center;
-                background-color: rgba(40, 40, 40, 0.7);
-                border: 1px solid #555;
-                border-radius: 5px;
+                background-color: var(--ui-inset);
+                border: 1px solid var(--ui-line);
+                border-radius: 3px;
                 padding: 8px;
                 margin-bottom: 10px;
             }
@@ -187,9 +190,9 @@ export class HelpScreen {
             .item-example-button {
                 width: 20px;
                 height: 20px;
-                background-color: #333;
-                border: 1px solid #555;
-                color: #fff;
+                background-color: var(--ui-panel-2);
+                border: 1px solid var(--ui-line-strong);
+                color: var(--ui-text);
                 font-size: 10px;
                 border-radius: 3px;
                 display: flex;
@@ -198,13 +201,13 @@ export class HelpScreen {
             }
             
             .item-example-button.equip {
-                background-color: #22a;
-                border-color: #44c;
+                background-color: var(--ui-gold-dim);
+                border-color: var(--ui-gold);
             }
             
             .item-example-button.use {
-                background-color: #2a2;
-                border-color: #4c4;
+                background-color: #24375e;
+                border-color: var(--ui-mp);
             }
         `;
         document.head.appendChild(style);
@@ -372,6 +375,16 @@ export class HelpScreen {
                         <td>Graphics Style</td>
                         <td><span class="help-key">T</span></td>
                         <td>Switch between 16-bit with lighting, 16-bit, ASCII and Classic</td>
+                    </tr>
+                    <tr>
+                        <td>HUD Layout</td>
+                        <td><span class="help-key">L</span></td>
+                        <td>Switch between the sidebar and the bottom action bar</td>
+                    </tr>
+                    <tr>
+                        <td>Quick Use</td>
+                        <td><span class="help-key">1</span> <span class="help-key">2</span> <span class="help-key">3</span></td>
+                        <td>Drink or use the potions and wands on your belt (shown on the HUD)</td>
                     </tr>
                     <tr>
                         <td>Save Game</td>

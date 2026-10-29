@@ -366,3 +366,62 @@ export const ITEM_SPRITES = {
         palette: { b: '#9a7048', t: '#c89a3a' }
     }
 };
+
+// Spell icons for the HUD hotbar and the spellbook, keyed by spell id. Not
+// drawn on the map; they replace the emoji the spell database carries.
+export const SPELL_SPRITES = {
+    magic_dart: {
+        rows: ['', '..........pppp..', '...........ppp..', '..........pwpp..', '.........pw..p..', '........pw......',
+            '.......pw.......', '......pw........', '.....pw.........', '....pw..........', '...pp...........', '..p.p...........'],
+        palette: { p: '#a070f0', w: '#e8d8ff' }
+    },
+    magic_missile: {
+        rows: ['', '.......p........', '.......p........', '......ppp.......', '......pwp.......', '..ppppwwwpppp...',
+            '......pwp.......', '......ppp.......', '.......p........', '.......p........'],
+        palette: { p: '#b080ff', w: '#f0e8ff' }
+    },
+    fireball: {
+        rows: ['', '.........r......', '........rr..r...', '.......rorr.rr..', '......roooorr...', '.....rooyyoor...',
+            '....rooyyyyor...', '....royywwyor...', '....royywwyor...', '....rooyyyyor...', '.....rooyyor....',
+            '......roooor....', '.......rrrr.....'],
+        palette: { r: '#c8381e', o: '#f07828', y: '#ffc848', w: '#fff4c0' }
+    },
+    lightning_bolt: {
+        rows: ['', '.........yyyy...', '........yyyy....', '.......yyyy.....', '......yyyy......', '.....yyyyyyyy...',
+            '.........yyy....', '........yyy.....', '.......yyy......', '......yy........', '.....yy.........', '....y...........'],
+        palette: { y: '#ffe060' }
+    },
+    ice_shard: {
+        rows: ['', '.......b........', '......bwb.......', '......bwb.......', '.....bbwbb......', '.....bwbbb......',
+            '....bbwbbbb.....', '....bwbbbbb.....', '.....bbbbb......', '.....bbbbb......', '......bbb.......',
+            '......bbb.......', '.......b........'],
+        palette: { b: '#80c8f0', w: '#e8f8ff' }
+    },
+    poison_cloud: {
+        rows: ['', '', '.....gg.........', '....gggg.gg.....', '...gglggggggg...', '..gglllggggggg..',
+            '..ggllgggggdgg..', '..ggggggggdddg..', '...gggddddddg...', '....gggggggg....', '', '....g...g...g...'],
+        palette: { g: '#70c040', l: '#b0f080', d: '#4a8a2a' }
+    },
+    heal: {
+        rows: ['', '', '......hhhh......', '......hwwh......', '......hwwh......', '..hhhhhwwhhhhh..',
+            '..hwwwwwwwwwwh..', '..hwwwwwwwwwwh..', '..hhhhhwwhhhhh..', '......hwwh......', '......hwwh......',
+            '......hhhh......'],
+        palette: { h: '#3aa850', w: '#8ef0a0' }
+    },
+    regeneration: {
+        rows: ['', '', '...hh....hh.....', '..hwhh..hhhh....', '.hwhhhhhhhhhh...', '.hhhhhhhhhhhh...',
+            '.hhhhhhhhhhhh...', '..hhhhhhhhhh....', '...hhhhhhhh.....', '....hhhhhh......', '.....hhhh.......',
+            '......hh........'],
+        palette: { h: '#48c060', w: '#c8ffd0' }
+    },
+    teleport: {
+        rows: ['', '.....pppppp.....', '....pp....pp....', '...pp.pppp.pp...', '...p.pp..pp.p...', '...p.p.pp.p.p...',
+            '...p.p.p..p.p...', '...p.pp.ppp.p...', '...pp.p.....p...', '....pp.pppppp...', '.....pp.........'],
+        palette: { p: '#60a0ff' }
+    },
+    shield: {
+        rows: ['', '....gggggggg....', '....gbbbbbbg....', '....gbbwbbbg....', '....gbbwbbbg....', '....gbwbbbbg....',
+            '....gbbbbbbg....', '.....gbbbbg.....', '......gbbg......', '.......gg.......'],
+        palette: { g: '#d8a64a', b: '#4878c8', w: '#a8c8ff' }
+    }
+};

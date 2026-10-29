@@ -1,58 +1,504 @@
+/* Modern Rogue UI theme: dark stone panels, a gold accent, a pixel font for
+   headings and a clean monospace for everything else. Colours live here as
+   tokens so the HUD, the game modal and the menu share one look. */
+
+@font-face {
+    font-family: 'Pixelify Sans';
+    src: url('../../assets/fonts/PixelifySans.woff2') format('woff2');
+    font-weight: 400 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'JetBrains Mono';
+    src: url('../../assets/fonts/JetBrainsMono.woff2') format('woff2');
+    font-weight: 100 800;
+    font-display: swap;
+}
+
+:root {
+    --ui-bg: #0b0a0f;
+    --ui-panel: #15131b;
+    --ui-panel-2: #1c1924;
+    --ui-inset: #0f0e14;
+    --ui-line: #2e2a38;
+    --ui-line-strong: #3d3648;
+    --ui-text: #ebe5d6;
+    --ui-text-soft: #c7c0d2;
+    --ui-muted: #a39cae;
+    --ui-faint: #6f6880;
+    --ui-gold: #d8a64a;
+    --ui-gold-bright: #f0c46a;
+    --ui-gold-dim: #5a4a2c;
+    --ui-hp: #d0473f;
+    --ui-mp: #3f7fd6;
+    --ui-good: #9fd28a;
+    --ui-bad: #e0574e;
+    --ui-font-display: 'Pixelify Sans', 'JetBrains Mono', monospace;
+    --ui-font: 'JetBrains Mono', ui-monospace, monospace;
+    --hud-sidebar-width: 340px;
+    --hud-bar-height: 132px;
+}
+
 body {
     margin: 0;
     padding: 0;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background-color: var(--ui-bg);
     height: 100vh;
-    font-family: monospace;
+    font-family: var(--ui-font);
     overflow: hidden;
-    color: #fff;
+    color: var(--ui-text);
 }
 
-/* Main container that holds everything */
+button {
+    font-family: inherit;
+}
+
+kbd {
+    display: inline-block;
+    min-width: 14px;
+    padding: 0 4px;
+    border: 1px solid #4a4456;
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    color: var(--ui-text);
+    font-family: var(--ui-font);
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+}
+
+/* ---------- Game screen layout ----------
+   The layout class on #main-container (set by main.js from the player's
+   HUD layout setting) decides where the HUD sits around the map. */
+
 #main-container {
-    display: flex;
-    width: 80%; /*100%;*/
+    display: grid;
+    position: relative;
+    width: 100vw;
     height: 100vh;
 }
 
-/* Game area with the canvas (left side) */
+#main-container.hud-layout-sidebar {
+    grid-template-columns: minmax(0, 1fr) var(--hud-sidebar-width);
+    grid-template-rows: minmax(0, 1fr);
+}
+
+#main-container.hud-layout-actionbar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) var(--hud-bar-height);
+}
+
 #game-container {
-    flex: 3; /* Takes 75% of the space */
     position: relative;
-    margin-right: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    background-color: #111;
-    border-radius: 5px;
-    overflow: hidden; /* Keep the canvas inside bounds */
+    min-width: 0;
+    min-height: 0;
+    background-color: #000;
+    overflow: hidden;
 }
 
 #game-canvas {
     display: block;
     width: 100%;
     height: 100%;
-    background-color: #111;
-    image-rendering: pixelated; /* For crisp pixel art */
-    object-fit: contain; /* Keep tiles square whatever the container shape */
+    background-color: #000;
+    image-rendering: pixelated;
 }
 
-/* UI area for permanent UI elements (right side) */
-#ui-container {
-    flex: 1; /* Takes 25% of the space */
+/* ---------- HUD ---------- */
+
+.hud {
+    min-width: 0;
+    min-height: 0;
+    box-sizing: border-box;
+    background: var(--ui-panel);
+    color: var(--ui-text);
+    font-size: 13px;
+}
+
+.hud-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    color: var(--ui-gold);
+    font-family: var(--ui-font-display);
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.hud-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--ui-line);
+}
+
+.hud-hero-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.hud-name {
+    font-family: var(--ui-font-display);
+    font-size: 22px;
+}
+
+.hud-level {
+    color: var(--ui-muted);
+}
+
+.hud-mode-adventure { color: var(--ui-gold); }
+.hud-mode-hardcore { color: var(--ui-bad); }
+
+.hud-bar {
+    position: relative;
+    height: 18px;
+    margin-bottom: 6px;
+    border: 1px solid #000;
+}
+
+.hud-bar-hp { background: #3a1716; box-shadow: inset 0 0 0 1px #5a2522; }
+.hud-bar-mp { background: #14223d; box-shadow: inset 0 0 0 1px #24375e; }
+
+.hud-bar-fill {
+    height: 100%;
+    transition: width 0.2s ease-out;
+}
+
+.hud-bar-hp .hud-bar-fill { background: linear-gradient(#e0574e, #a93129); }
+.hud-bar-mp .hud-bar-fill { background: linear-gradient(#5d97ec, #2f63b9); }
+
+.hud-bar-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    font-size: 11px;
+    text-shadow: 0 1px 0 #000;
+}
+
+.hud-xp {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ui-muted);
+    font-size: 11px;
+}
+
+.hud-xp-track {
+    flex: 1;
+    height: 6px;
+    background: #2a2433;
+    border: 1px solid #000;
+}
+
+.hud-xp-fill {
+    height: 100%;
+    background: var(--ui-gold);
+}
+
+.hud-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.hud-stat {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0;
+    background: var(--ui-panel-2);
+    border: 1px solid var(--ui-line);
+    border-radius: 3px;
 }
 
-#equipment-area, #stats-area, #message-area {
-    margin: 10px;
+.hud-stat span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--ui-muted);
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+.hud-stat b {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 15px;
+}
+
+.hud-stat-gold b { color: var(--ui-gold-bright); }
+
+.hud-gold-icon {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.hud-slots {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.hud-hotbar-slots {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.hud-slot {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    padding: 0;
+    background: var(--ui-inset);
+    border: 1px solid var(--ui-line);
+    border-radius: 3px;
+    color: var(--ui-text);
+    cursor: pointer;
+}
+
+.hud-slot:hover { border-color: var(--ui-gold); }
+.hud-slot.filled { border-color: var(--ui-gold-dim); }
+.hud-slot.spell { background: #1d1830; border-color: #4b3f78; }
+.hud-slot.unaffordable .pixel-icon { opacity: 0.35; }
+.hud-slot.belt:nth-child(6) { margin-left: 4px; }
+
+.hud-slot .pixel-icon {
+    width: 28px;
+    height: 28px;
+}
+
+.hud-gear .hud-slot .pixel-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.hud-slot-key {
+    position: absolute;
+    top: 1px;
+    left: 3px;
+    color: var(--ui-muted);
+    font-size: 10px;
+}
+
+.hud-slot-count {
+    position: absolute;
+    right: 3px;
+    bottom: 0;
+    font-size: 10px;
+    text-shadow: 0 1px 0 #000;
+}
+
+.hud-slot.spell .hud-slot-count { color: #8fb4f0; }
+
+.rarity-border-uncommon { border-color: #4f7a3f !important; }
+.rarity-border-rare { border-color: #3f5fa8 !important; }
+.rarity-border-epic { border-color: #7a4aa0 !important; }
+.rarity-border-legendary { border-color: var(--ui-gold) !important; }
+
+.hud-log {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.hud-log-list {
     flex: 1;
-    border: 1px solid #333;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 3px;
+    margin: 0;
+    padding: 8px 10px;
+    overflow: hidden;
+    list-style: none;
+    background: var(--ui-inset);
+    border: 1px solid var(--ui-line);
+    border-radius: 3px;
+    line-height: 1.4;
 }
 
-/* Overlay container for modals like inventory */
+/* Older lines fade so the newest reads first. */
+.hud-log-line {
+    opacity: max(0.45, calc(1 - var(--age) * 0.1));
+}
+
+.hud-keys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+}
+
+.hud-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--ui-muted);
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.hud-key:hover { color: var(--ui-text); }
+.hud-key:hover kbd { border-color: var(--ui-gold); }
+
+.hud-tooltip {
+    position: fixed;
+    z-index: 1100;
+    max-width: 240px;
+    padding: 8px 10px;
+    background: rgba(11, 10, 15, 0.96);
+    border: 1px solid var(--ui-line-strong);
+    border-radius: 4px;
+    color: var(--ui-text-soft);
+    font-family: var(--ui-font);
+    font-size: 12px;
+    line-height: 1.4;
+    pointer-events: none;
+}
+
+.hud-tooltip-name {
+    margin-bottom: 4px;
+    font-family: var(--ui-font-display);
+    font-size: 15px;
+    color: var(--ui-text);
+}
+
+.hud-tooltip-stats {
+    margin-top: 6px;
+    color: var(--ui-good);
+}
+
+/* Sidebar layout: one column beside the map. */
+.hud-layout-sidebar .hud {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    border-left: 2px solid var(--ui-line);
+}
+
+.hud-layout-sidebar .hud-log {
+    flex: 1;
+}
+
+/* Action bar layout: the map takes the full width; hero bars, hotbar and gear
+   sit in a strip along the bottom, and the log floats over the map. */
+.hud-layout-actionbar .hud {
+    display: grid;
+    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr) minmax(300px, 380px);
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+        "hero hotbar gear"
+        "hero hotbar stats"
+        "hero hotbar keys";
+    column-gap: 24px;
+    row-gap: 6px;
+    align-items: center;
+    padding: 10px 20px;
+    border-top: 2px solid var(--ui-line);
+    box-shadow: 0 -1px 0 var(--ui-line-strong);
+}
+
+.hud-layout-actionbar .hud-hero { grid-area: hero; }
+.hud-layout-actionbar .hud-hotbar { grid-area: hotbar; justify-self: center; }
+.hud-layout-actionbar .hud-gear { grid-area: gear; }
+.hud-layout-actionbar .hud-keys { grid-area: keys; justify-content: flex-end; flex-wrap: nowrap; gap: 8px; }
+.hud-layout-actionbar .hud-title { display: none; }
+
+.hud-layout-actionbar .hud-hero-head { margin-bottom: 4px; }
+.hud-layout-actionbar .hud-name { font-size: 20px; }
+.hud-layout-actionbar .hud-bar { margin-bottom: 5px; }
+
+.hud-layout-actionbar .hud-stats {
+    grid-area: stats;
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+}
+
+.hud-layout-actionbar .hud-stat {
+    flex-direction: row;
+    gap: 5px;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+.hud-layout-actionbar .hud-stat b { font-size: 13px; }
+
+.hud-layout-actionbar .hud-gear-slots {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.hud-layout-actionbar .hud-gear .hud-slot {
+    width: 38px;
+    height: 38px;
+}
+
+.hud-layout-actionbar .hud-hotbar-slots {
+    display: flex;
+    gap: 8px;
+}
+
+.hud-layout-actionbar .hud-hotbar .hud-slot {
+    width: 58px;
+    height: 58px;
+    border-width: 2px;
+}
+
+.hud-layout-actionbar .hud-hotbar .pixel-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.hud-layout-actionbar .hud-slot.belt:nth-child(6) { margin-left: 16px; }
+.hud-layout-actionbar .hud-slot-key { font-size: 12px; left: 5px; }
+.hud-layout-actionbar .hud-slot-count { font-size: 11px; right: 5px; }
+
+.hud-layout-actionbar .hud-log {
+    position: absolute;
+    left: 16px;
+    bottom: calc(var(--hud-bar-height) + 12px);
+    width: min(520px, 45vw);
+    pointer-events: none;
+}
+
+.hud-layout-actionbar .hud-log-list {
+    max-height: 7.2em;
+    padding: 10px 12px;
+    background: linear-gradient(rgba(11, 10, 15, 0), rgba(11, 10, 15, 0.82) 30%);
+    border: none;
+    text-shadow: 0 1px 0 #000;
+}
+
+.hud-layout-actionbar .hud-log-line {
+    opacity: max(0, calc(1 - var(--age) * 0.22));
+}
+
+/* Rarity colours shared by the HUD, inventory and tooltips. */
+.rarity-common { color: var(--ui-text-soft); }
+.rarity-uncommon { color: #7fd06a; }
+.rarity-rare { color: #6f9cf0; }
+.rarity-epic { color: #c27ff0; }
+.rarity-legendary { color: var(--ui-gold-bright); }
+
+/* ---------- Overlays ---------- */
+
 #overlay-container {
     position: fixed;
     top: 0;
@@ -64,14 +510,14 @@ body {
     align-items: center;
     z-index: 1000;
     pointer-events: none; /* Let clicks go through by default */
-    visibility: visible !important; /* Ensure it's visible */
+    visibility: visible !important;
 }
 
 /* When overlays are active, they should receive clicks */
 #overlay-container.active {
     pointer-events: auto;
-    background-color: rgba(0, 0, 0, 0.5);
-    visibility: visible !important; /* Ensure it's visible */
+    background-color: rgba(5, 4, 8, 0.6);
+    visibility: visible !important;
 }
 
 /* Unified tabbed game modal (Character / Inventory / Spellbook).
@@ -84,59 +530,73 @@ body {
     flex-direction: column;
     width: min(92vw, 1000px);
     height: min(85vh, 680px);
-    background-color: rgba(15, 15, 20, 0.96);
-    border: 2px solid #444;
-    border-radius: 10px;
-    font-family: monospace;
-    color: #fff;
+    background-color: var(--ui-panel);
+    border: 2px solid var(--ui-line-strong);
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px #000, 0 24px 60px rgba(0, 0, 0, 0.6);
+    font-family: var(--ui-font);
+    font-size: 13px;
+    color: var(--ui-text);
     overflow: hidden;
+}
+
+.game-modal h2,
+.game-modal h3 {
+    font-family: var(--ui-font-display);
+    font-weight: 400;
+    color: var(--ui-gold);
 }
 
 .gm-tabs {
     flex: 0 0 auto;
     display: flex;
     align-items: stretch;
-    border-bottom: 1px solid #444;
-    background-color: rgba(30, 30, 36, 0.9);
+    border-bottom: 2px solid var(--ui-line);
+    background-color: var(--ui-panel-2);
 }
 
 .gm-tab {
-    padding: 12px 22px;
+    padding: 13px 22px;
     background: none;
     border: none;
-    border-right: 1px solid #333;
-    color: #aaa;
-    font-family: monospace;
-    font-size: 14px;
+    color: var(--ui-muted);
+    font-family: var(--ui-font-display);
+    font-size: 16px;
     cursor: pointer;
 }
 
+.gm-tab-key {
+    margin-right: 6px;
+    color: var(--ui-faint);
+}
+
 .gm-tab:hover {
-    color: #fff;
-    background-color: #2a2a2a;
+    color: var(--ui-text);
 }
 
 .gm-tab.active {
-    background-color: #333;
-    color: #0af;
-    font-weight: bold;
+    background-color: var(--ui-panel);
+    box-shadow: inset 0 -2px 0 var(--ui-gold);
+    color: var(--ui-gold);
+}
+
+.gm-tab.active .gm-tab-key {
+    color: #8f7440;
 }
 
 .gm-close {
     margin-left: auto;
-    padding: 12px 18px;
+    padding: 0 18px;
     background: none;
     border: none;
-    border-left: 1px solid #333;
-    color: #aaa;
-    font-family: monospace;
-    font-size: 13px;
+    border-left: 1px solid var(--ui-line);
+    color: var(--ui-muted);
+    font-size: 12px;
     cursor: pointer;
 }
 
 .gm-close:hover {
-    color: #f55;
-    background-color: #2a2a2a;
+    color: var(--ui-bad);
 }
 
 .gm-content {
@@ -164,6 +624,13 @@ body {
     flex-direction: column;
     overflow: hidden;
 }
+
+/* The inventory panel lays out its own columns edge to edge. */
+.gm-panel[data-tab="inventory"] {
+    padding: 0;
+    overflow: hidden;
+}
+
 /* Item icons drawn from the 16-bit sprites (render/itemIcons.js) */
 .pixel-icon {
     display: block;
@@ -184,3 +651,260 @@ body {
     height: 16px;
     vertical-align: -3px;
 }
+
+.game-modal ::-webkit-scrollbar { width: 10px; }
+.game-modal ::-webkit-scrollbar-track { background: var(--ui-inset); }
+.game-modal ::-webkit-scrollbar-thumb { background: var(--ui-line-strong); border-radius: 5px; }
+
+/* ---------- Inventory tab ---------- */
+
+.inv-layout {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr) 290px;
+    height: 100%;
+}
+
+.inv-heading {
+    margin: 0 0 10px;
+    font-size: 15px;
+}
+
+.inv-equipped {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+    border-right: 1px solid var(--ui-line);
+    overflow-y: auto;
+}
+
+.inv-equip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px;
+    background: var(--ui-inset);
+    border: 1px solid var(--ui-line);
+    border-radius: 3px;
+    color: var(--ui-text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.inv-equip.empty { cursor: default; }
+.inv-equip.filled { border-color: var(--ui-gold-dim); }
+.inv-equip.filled:hover,
+.inv-equip.selected { border-color: var(--ui-gold); }
+.inv-equip.selected { background: #2a2233; }
+
+.inv-equip-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.inv-equip-slot {
+    color: var(--ui-faint);
+    font-size: 10px;
+}
+
+.inv-equip-name {
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.inv-equip.empty .inv-equip-name { color: var(--ui-faint); }
+
+.inv-pack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    padding: 16px 18px;
+    overflow-y: auto;
+}
+
+.inv-pack-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.inv-pack-head .inv-heading { margin: 0; }
+
+.inv-pack-meta {
+    display: flex;
+    gap: 14px;
+    color: var(--ui-muted);
+}
+
+.inv-gold { color: var(--ui-gold-bright); font-weight: 600; }
+
+.inv-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.inv-cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 76px;
+    padding: 0;
+    background: var(--ui-inset);
+    border: 2px solid var(--ui-line-strong);
+    border-radius: 4px;
+    color: var(--ui-text);
+    cursor: pointer;
+}
+
+.inv-cell.empty {
+    background: #121017;
+    border-color: #24212c;
+    cursor: default;
+}
+
+.inv-cell:not(.empty):hover { border-color: var(--ui-gold-dim); }
+.inv-cell.selected { background: #2a2233; border-color: var(--ui-gold) !important; }
+
+.inv-cell .pixel-icon {
+    width: 48px;
+    height: 48px;
+}
+
+.inv-cell-key {
+    position: absolute;
+    top: 3px;
+    left: 6px;
+    color: var(--ui-faint);
+    font-size: 11px;
+}
+
+.inv-cell-qty {
+    position: absolute;
+    right: 6px;
+    bottom: 2px;
+    font-size: 12px;
+    text-shadow: 0 1px 0 #000;
+}
+
+.inv-hint {
+    margin: auto 0 0;
+    color: var(--ui-muted);
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+.inv-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px;
+    background: #1a1721;
+    border-left: 1px solid var(--ui-line);
+    overflow-y: auto;
+}
+
+.inv-detail-empty {
+    margin: 0;
+    color: var(--ui-faint);
+}
+
+.inv-detail-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.inv-detail-icon {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    background: var(--ui-inset);
+    border: 2px solid var(--ui-gold-dim);
+    border-radius: 4px;
+}
+
+.inv-detail-icon .pixel-icon {
+    width: 48px;
+    height: 48px;
+}
+
+.inv-detail-name {
+    font-family: var(--ui-font-display);
+    font-size: 20px;
+}
+
+.inv-detail-type {
+    color: var(--ui-muted);
+    font-size: 12px;
+}
+
+.inv-detail-desc {
+    margin: 0;
+    color: var(--ui-text-soft);
+    line-height: 1.5;
+}
+
+.inv-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--ui-inset);
+    border: 1px solid var(--ui-line);
+    border-radius: 3px;
+}
+
+.inv-stats-caption {
+    color: var(--ui-faint);
+    font-size: 11px;
+}
+
+.inv-stat-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.inv-up { color: #7fc4ff; }
+.inv-down { color: var(--ui-bad); }
+
+.inv-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: auto;
+}
+
+.inv-actions .inv-detail-empty { grid-column: 1 / -1; }
+
+.inv-action {
+    min-height: 44px;
+    background: var(--ui-panel-2);
+    border: 1px solid var(--ui-line-strong);
+    border-radius: 3px;
+    color: var(--ui-text);
+    font-family: var(--ui-font-display);
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.inv-action:hover:not(:disabled) { border-color: var(--ui-gold); }
+.inv-action:disabled { color: var(--ui-faint); cursor: not-allowed; }
+
+.inv-action.primary {
+    background: var(--ui-gold);
+    border-color: var(--ui-gold-bright);
+    color: #1a1408;
+}
+
+.inv-action.primary:hover { background: var(--ui-gold-bright); }
+.inv-action kbd { margin-left: 4px; }
+.inv-action.primary kbd { color: #1a1408; border-color: #8f7440; }

@@ -28,6 +28,7 @@ import { IndexedDBSaveStore } from './modules/persistence/indexedDBSaveStore.js'
 import { CloudSaveStore } from './modules/persistence/cloudSaveStore.js';
 import { cloudConfigured } from './config.js';
 import { getDisplayMode, nextDisplayMode, loadDisplayMode, saveDisplayMode, viewportFor, canvasTarget } from './modules/render/displayModes.js';
+import { getHudLayout, nextHudLayout, loadHudLayout, saveHudLayout } from './modules/ui/hudLayouts.js';
 
 
 // Export a function to start the game
@@ -70,6 +71,8 @@ class RogueGame {
         // per-player setting from localStorage; it sets the tile size.
         this.displayMode = loadDisplayMode();
         this.tileSize = getDisplayMode(this.displayMode).tileSize;
+        // HUD layout (sidebar / action bar), also a per-player setting.
+        this.hudLayout = loadHudLayout();
         this.gridWidth = 80; // Width for rooms
         this.gridHeight = 40; // Height for rooms
         
@@ -102,6 +105,9 @@ class RogueGame {
         // Log version
         Version.logVersion();
         
+        // Arrange the HUD first: the map's size depends on the layout.
+        this.applyHudLayoutClass();
+
         // Resize canvas
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -149,6 +155,7 @@ class RogueGame {
         // Initialize UI
         this.ui = new UI(this);
         this.ui.initialize();
+        this.resizeCanvas();
         this.ui.addMessage('Welcome to Modern Rogue!', '#0ff');
         this.ui.addMessage('Use arrow keys to move.', '#aaa');
         this.ui.addMessage('Press H for help screen with controls and info.', '#0f0');
@@ -203,6 +210,12 @@ class RogueGame {
                 this.cycleDisplayMode();
             }
 
+            // Switch the HUD layout (sidebar / action bar).
+            if ((e.key === 'l' || e.key === 'L') && !e.ctrlKey && !e.metaKey && !e.altKey &&
+                this.stateManager.isPlaying()) {
+                this.cycleHudLayout();
+            }
+
             // Gate debug info (Shift+G) - debug only
             if (e.key === 'G' && e.shiftKey) {
                 if (this.worldManager && typeof this.worldManager.showGateDebugInfo === 'function') {
@@ -248,6 +261,29 @@ class RogueGame {
 
     cycleDisplayMode() {
         return this.setDisplayMode(nextDisplayMode(this.displayMode).id);
+    }
+
+    applyHudLayoutClass() {
+        const container = typeof document !== 'undefined' && document.getElementById('main-container');
+        if (!container) return;
+        container.classList.remove('hud-layout-sidebar', 'hud-layout-actionbar');
+        container.classList.add(`hud-layout-${this.hudLayout}`);
+    }
+
+    setHudLayout(id) {
+        const layout = getHudLayout(id);
+        this.hudLayout = layout.id;
+        saveHudLayout(layout.id);
+        this.applyHudLayoutClass();
+        this.resizeCanvas();
+        if (this.ui) {
+            this.ui.addMessage(`Layout: ${layout.label} (L to change).`, '#aaa');
+        }
+        return layout;
+    }
+
+    cycleHudLayout() {
+        return this.setHudLayout(nextHudLayout(this.hudLayout).id);
     }
 
     resizeCanvas() {
