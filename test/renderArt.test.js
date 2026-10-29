@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { rasterizeSprite, bitmapText, liftColor, hash01, OUTLINE } from '../src/js/modules/render/pixelArt.js';
 import { CHARACTER_SPRITES, ITEM_SPRITES } from '../src/js/modules/render/spriteDefs.js';
 import { itemVisual, monsterSpriteKey } from '../src/js/modules/render/visuals.js';
+import { SLOT_SPRITES } from '../src/js/modules/render/itemIcons.js';
 import { MonsterDatabase } from '../src/js/modules/entity/monsterDatabase.js';
 import { ItemDatabase } from '../src/js/modules/items/itemDatabase.js';
 
@@ -48,6 +49,12 @@ describe('visual registry coverage', () => {
             expect(ITEM_SPRITES[v.sprite], item.id).toBeDefined();
             expect([...v.glyph].length, item.id).toBe(1);
             expect(v.color, item.id).toMatch(/^#/);
+        }
+    });
+
+    it('has an empty-slot picture for every equipment slot', () => {
+        for (const slot of ['head', 'body', 'feet', 'weapon', 'offhand', 'ring', 'amulet']) {
+            expect(ITEM_SPRITES[SLOT_SPRITES[slot]], slot).toBeDefined();
         }
     });
 

@@ -164,3 +164,23 @@ body {
     flex-direction: column;
     overflow: hidden;
 }
+/* Item icons drawn from the 16-bit sprites (render/itemIcons.js) */
+.pixel-icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    -webkit-user-drag: none;
+}
+
+.pixel-icon-empty {
+    opacity: 0.3;
+    filter: grayscale(1) brightness(1.4);
+}
+
+.pixel-icon-inline {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    vertical-align: -3px;
+}
