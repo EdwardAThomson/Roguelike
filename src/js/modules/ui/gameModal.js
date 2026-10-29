@@ -1,6 +1,6 @@
-// GameModal: the single tabbed modal hosting the Character sheet, Inventory
-// and Spellbook. It owns the shell (fixed-size frame, tab bar, close button,
-// keyboard lifecycle, pause integration); the three screens are content
+// GameModal: the single tabbed modal hosting the Character sheet, Inventory,
+// Spellbook and Map. It owns the shell (fixed-size frame, tab bar, close button,
+// keyboard lifecycle, pause integration); the screens are content
 // providers implementing a small interface:
 //
 //   mountPanel(panelEl)  called once at initialize; the provider keeps the
@@ -12,15 +12,15 @@
 // The frame size is fixed (see .game-modal in src/css/style.css) so switching
 // tabs never resizes or reflows the modal. Opening the modal genuinely pauses
 // gameplay via stateManager.openMenu(); UI polling keeps running so the
-// I/C/B/H toggles still work while paused.
+// I/C/B/M/H toggles still work while paused.
 
 export class GameModal {
     constructor(game, providers) {
         this.game = game;
-        // { character: GameUI, inventory: InventoryUI, spellbook: SpellbookUI }
+        // { character: GameUI, inventory: InventoryUI, spellbook: SpellbookUI, map: MapUI }
         this.providers = providers;
-        this.tabs = ['character', 'inventory', 'spellbook'];
-        this.tabLabels = { character: 'Character', inventory: 'Inventory', spellbook: 'Spellbook' };
+        this.tabs = ['character', 'inventory', 'spellbook', 'map'];
+        this.tabLabels = { character: 'Character', inventory: 'Inventory', spellbook: 'Spellbook', map: 'Map' };
         this.activeTab = null;
         this.isOpen = false;
         this.tabButtons = {};

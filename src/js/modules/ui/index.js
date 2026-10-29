@@ -4,6 +4,7 @@ import { EquipmentDisplay } from './equipmentDisplay.js';
 import { HelpScreen } from './helpScreen.js';
 import { SpellbookUI } from './spellbookUI.js';
 import { GameModal } from './gameModal.js';
+import { MapUI } from './mapUI.js';
 
 export class UI {
     constructor(game) {
@@ -15,12 +16,15 @@ export class UI {
         this.equipmentDisplay = new EquipmentDisplay(game);
         this.helpScreen = new HelpScreen(game);
         this.spellbookUI = new SpellbookUI(game);
+        this.mapUI = new MapUI(game);
 
-        // The tabbed modal hosting character sheet, inventory and spellbook.
+        // The tabbed modal hosting character sheet, inventory, spellbook
+        // and the world map.
         this.gameModal = new GameModal(game, {
             character: this.gameUI,
             inventory: this.inventoryUI,
-            spellbook: this.spellbookUI
+            spellbook: this.spellbookUI,
+            map: this.mapUI
         });
 
         // Create backup UI buttons
@@ -29,7 +33,7 @@ export class UI {
 
     initialize() {
         this.gameUI.initialize();
-        // Builds the modal shell and mounts the three tab panels; must run
+        // Builds the modal shell and mounts the tab panels; must run
         // after gameUI.initialize() (GameUI defers its DOM to initialize()).
         this.gameModal.initialize();
     }
@@ -72,6 +76,15 @@ export class UI {
             this.gameModal.toggleTab('spellbook');
         };
         buttonContainer.appendChild(spellbookButton);
+
+        // Create map button
+        const mapButton = document.createElement('button');
+        mapButton.textContent = 'Map (M)';
+        mapButton.style.cssText = 'padding: 8px 16px; background: #a72; color: white; border: none; border-radius: 4px; cursor: pointer;';
+        mapButton.onclick = () => {
+            this.gameModal.toggleTab('map');
+        };
+        buttonContainer.appendChild(mapButton);
         
         // Create pickup button
         const pickupButton = document.createElement('button');

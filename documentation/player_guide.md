@@ -20,7 +20,10 @@ Your goal is to explore the procedurally generated dungeon, fight monsters, coll
 - The Inventory, Character, and Spellbook screens are tabs of one game menu: the game pauses while it is open, pressing a tab's key again (or Esc) closes it, and pressing another tab's key switches tabs.
 - Save: Press Ctrl+S (Cmd+S on Mac) to save your run at any time (see Saving and Loading below).
 - Help: Press 'H' to open the help screen with controls and information.
-- Map Reveal: Press 'M' to toggle between revealing the entire map and showing only explored areas (cheat mode).
+- Map: Press 'M' to open the map tab (the game pauses). It has two modes, switched with 1/2 or Tab:
+  - Area: the section you are in, drawn from what you have explored, with gates and where they lead.
+  - World: every section you have visited on the world grid (north up), with dashed outlines for neighbours you have not entered. Pan with arrows/WASD or by dragging, zoom with +/- or the mouse wheel, Space recenters on you and F fits everything you know. Click a section to open it in Area mode.
+- Map Reveal: Press Shift+M to toggle between revealing the entire map and showing only explored areas (cheat mode).
 
 ## Dungeon Exploration
 
