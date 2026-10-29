@@ -69,7 +69,8 @@ npx http-server . -p 8080 -c-1 -o
 - **H**: Toggle help screen
 - **Ctrl+S**: Save the game (also autosaves when changing sections)
 - **Esc**: Close any open screen
-- **M**: Toggle map reveal (debug/cheat mode)
+- **M**: Open the map (Area view of this section, World view of every visited section; 1/2 or Tab to switch)
+- **Shift+M**: Toggle map reveal (debug/cheat mode)
 - **Shift+G**: Show gate debug information
 
 ### Gameplay

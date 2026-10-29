@@ -488,7 +488,8 @@ export class InputManager {
                 i: false,
                 c: false,
                 h: false,
-                b: false
+                b: false,
+                m: false
             };
         }
         
@@ -497,20 +498,24 @@ export class InputManager {
         const cDown = this.input.isKeyDown('c');
         const hDown = this.input.isKeyDown('h');
         const bDown = this.input.isKeyDown('b');
+        const mDown = this.input.isKeyDown('m');
         
         // Detect rising edge (key just pressed)
         const iPressed = iDown && !this.uiKeyStates.i;
         const cPressed = cDown && !this.uiKeyStates.c;
         const hPressed = hDown && !this.uiKeyStates.h;
         const bPressed = bDown && !this.uiKeyStates.b;
+        // Shift+M is the map-reveal cheat (main.js), not the map screen.
+        const mPressed = mDown && !this.uiKeyStates.m && !this.input.isKeyDown('shift');
         
         // Update last states
         this.uiKeyStates.i = iDown;
         this.uiKeyStates.c = cDown;
         this.uiKeyStates.h = hDown;
         this.uiKeyStates.b = bDown;
+        this.uiKeyStates.m = mDown;
         
-        // Handle UI keys: I/C/B open (or switch to) a tab of the game
+        // Handle UI keys: I/C/B/M open (or switch to) a tab of the game
         // modal; the same key on its own tab closes it. H is the separate
         // help overlay, mutually exclusive with the modal.
         if (iPressed) {
@@ -523,6 +528,10 @@ export class InputManager {
 
         if (bPressed) {
             this.game.ui.gameModal.toggleTab('spellbook');
+        }
+
+        if (mPressed) {
+            this.game.ui.gameModal.toggleTab('map');
         }
 
         if (hPressed) {

@@ -163,3 +163,115 @@ body {
     flex-direction: column;
     overflow: hidden;
 }
+
+/* Map tab (M): mode switch + hint row, a canvas filling the rest of the
+   fixed frame, and a stats / legend footer. The canvas never scrolls; the
+   world view pans and zooms instead. */
+.gm-panel[data-tab="map"].active {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 10px 14px 8px;
+    gap: 8px;
+}
+
+.wm-header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.wm-mode {
+    padding: 5px 12px;
+    background-color: #1c1c24;
+    border: 1px solid #3a3a48;
+    border-radius: 4px;
+    color: #aaa;
+    font-family: monospace;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.wm-mode:hover {
+    color: #fff;
+}
+
+.wm-mode.active {
+    background-color: #2b2618;
+    border-color: #daa520;
+    color: #ffd34d;
+    font-weight: bold;
+}
+
+.wm-key {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 0 4px;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.wm-title {
+    margin-left: 10px;
+    color: #ddd;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.wm-hint {
+    margin-left: auto;
+    color: #777;
+    font-size: 11px;
+    text-align: right;
+}
+
+.wm-canvas-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    border: 1px solid #2c2c3c;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #0a0a0f;
+}
+
+.wm-canvas {
+    display: block;
+    position: absolute;
+    inset: 0;
+    image-rendering: pixelated;
+    user-select: none;
+}
+
+.wm-footer {
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 16px;
+    color: #aaa;
+    font-size: 12px;
+}
+
+.wm-legend {
+    color: #777;
+}
+
+.wm-legend i {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin: 0 4px 0 10px;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+
+.wm-legend i.wm-dashed {
+    width: 10px;
+    border: 1px dashed #6b5a2a;
+    border-radius: 0;
+    background: none;
+}

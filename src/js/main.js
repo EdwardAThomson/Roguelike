@@ -183,8 +183,9 @@ class RogueGame {
             // Most input is now handled through InputManager and UI.update()
             // This listener only handles special debug/cheat keys
             
-            // Map reveal toggle (cheat)
-            if (e.key === 'm' || e.key === 'M') {
+            // Map reveal toggle (cheat, Shift+M). Plain M opens the map
+            // screen via InputManager.handleUIInput.
+            if ((e.key === 'm' || e.key === 'M') && e.shiftKey) {
                 const revealed = this.stateManager.toggleMapReveal();
                 this.ui.addMessage(revealed ? 
                     'Full map revealed (cheat mode).' : 
