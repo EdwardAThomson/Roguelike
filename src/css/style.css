@@ -35,6 +35,7 @@ body {
     height: 100%;
     background-color: #111;
     image-rendering: pixelated; /* For crisp pixel art */
+    object-fit: contain; /* Keep tiles square whatever the container shape */
 }
 
 /* UI area for permanent UI elements (right side) */

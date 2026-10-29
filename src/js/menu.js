@@ -4,6 +4,7 @@ import { IndexedDBSaveStore } from './modules/persistence/indexedDBSaveStore.js'
 import { SAVE_SLOT, isCompatibleEnvelope } from './modules/persistence/saveSchema.js';
 import { authClient } from './modules/persistence/authClient.js';
 import { CloudSaveStore } from './modules/persistence/cloudSaveStore.js';
+import { DISPLAY_MODES, loadDisplayMode, saveDisplayMode } from './modules/render/displayModes.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Update version display dynamically
@@ -46,10 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>Multiplayer is on the roadmap but not implemented yet.</p>
         <p>For now, brave the dungeon solo. Adventurers wanted!</p>
     `));
-    optionsBtn.addEventListener('click', () => openMenuModal('Options', `
-        <p>No options to tweak yet.</p>
-        <p>Keybindings, accessibility settings and more are planned.</p>
-    `));
+    optionsBtn.addEventListener('click', openOptions);
     creditsBtn.addEventListener('click', () => openMenuModal('Credits', `
         <p><strong>Developed by:</strong> Edward Thomson</p>
         <p>Built with vanilla JavaScript and HTML5 Canvas.</p>
@@ -100,6 +98,28 @@ document.addEventListener('DOMContentLoaded', () => {
         modalTitle.textContent = title;
         modalBody.innerHTML = bodyHtml;
         modalBackdrop.style.display = 'flex';
+    }
+
+    // Options: the graphics style is a display setting stored per player,
+    // separate from any run (T cycles it in game).
+    function openOptions() {
+        const current = loadDisplayMode();
+        openMenuModal('Options', `
+            <p class="menu-option-label">Graphics</p>
+            <div class="display-mode-list" role="radiogroup" aria-label="Graphics">
+                ${DISPLAY_MODES.map(m => `
+                    <button type="button" class="display-mode-btn" role="radio" data-display-mode="${m.id}"
+                        aria-checked="${m.id === current}">${m.label}</button>`).join('')}
+            </div>
+            <p class="menu-option-hint">Press T in game to switch between them.</p>
+        `);
+        modalBody.querySelectorAll('[data-display-mode]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                saveDisplayMode(btn.dataset.displayMode);
+                modalBody.querySelectorAll('[data-display-mode]').forEach(b =>
+                    b.setAttribute('aria-checked', String(b === btn)));
+            });
+        });
     }
 
     function closeMenuModal() {

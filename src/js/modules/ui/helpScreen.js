@@ -367,6 +367,11 @@ export class HelpScreen {
                         <td>Open this help screen</td>
                     </tr>
                     <tr>
+                        <td>Graphics Style</td>
+                        <td><span class="help-key">T</span></td>
+                        <td>Switch between 16-bit with lighting, 16-bit, ASCII and Classic</td>
+                    </tr>
+                    <tr>
                         <td>Save Game</td>
                         <td><span class="help-key">Ctrl+S</span></td>
                         <td>Save your run (also autosaves when changing sections)</td>
