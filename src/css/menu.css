@@ -11,7 +11,7 @@
         linear-gradient(90deg, rgba(11, 10, 15, 0.97) 0%, rgba(11, 10, 15, 0.9) 34%, rgba(11, 10, 15, 0.25) 75%),
         url('../../assets/menu-background.png');
     background-size: cover;
-    background-position: 70% 50%;
+    background-position: 75% 55%;
     image-rendering: pixelated;
     display: flex;
     align-items: center;
