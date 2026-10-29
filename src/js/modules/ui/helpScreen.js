@@ -362,6 +362,11 @@ export class HelpScreen {
                         <td>Open the game menu on the Spellbook tab</td>
                     </tr>
                     <tr>
+                        <td>Map Tab</td>
+                        <td><span class="help-key">M</span></td>
+                        <td>Open the map: Area (this section) or World (every section you have visited); 1/2 or Tab switch</td>
+                    </tr>
+                    <tr>
                         <td>Drop Item</td>
                         <td><span class="help-key">Z</span></td>
                         <td>Open the inventory in drop mode (click or press 1-9 to drop)</td>
@@ -398,7 +403,7 @@ export class HelpScreen {
                     </tr>
                 </table>
                 <p style="margin-top: 10px; color: #aaa; font-size: 0.9em;">
-                    The Inventory, Character and Spellbook tabs share one menu: the game pauses while
+                    The Inventory, Character, Spellbook and Map tabs share one menu: the game pauses while
                     it is open, pressing a tab's key again (or Esc) closes it, and pressing another
                     tab's key switches tabs.
                 </p>

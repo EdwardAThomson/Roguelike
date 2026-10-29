@@ -631,6 +631,119 @@ kbd {
     overflow: hidden;
 }
 
+/* Map tab (M): mode switch + hint row, a canvas filling the rest of the
+   fixed frame, and a stats / legend footer. The canvas never scrolls; the
+   world view pans and zooms instead. */
+.gm-panel[data-tab="map"].active {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 10px 14px 8px;
+    gap: 8px;
+}
+
+.wm-header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.wm-mode {
+    padding: 5px 12px;
+    background-color: var(--ui-inset);
+    border: 1px solid var(--ui-line-strong);
+    border-radius: 3px;
+    color: var(--ui-muted);
+    font-family: var(--ui-font);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.wm-mode:hover {
+    color: var(--ui-text);
+}
+
+.wm-mode.active {
+    background-color: #2a2233;
+    border-color: var(--ui-gold);
+    color: var(--ui-gold);
+    font-weight: bold;
+}
+
+.wm-key {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 0 4px;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.wm-title {
+    margin-left: 10px;
+    color: var(--ui-text);
+    font-family: var(--ui-font-display);
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.wm-hint {
+    margin-left: auto;
+    color: var(--ui-muted);
+    font-size: 11px;
+    text-align: right;
+}
+
+.wm-canvas-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    border: 1px solid var(--ui-line);
+    border-radius: 3px;
+    overflow: hidden;
+    background-color: #0a0a0f;
+}
+
+.wm-canvas {
+    display: block;
+    position: absolute;
+    inset: 0;
+    image-rendering: pixelated;
+    user-select: none;
+}
+
+.wm-footer {
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 16px;
+    color: var(--ui-muted);
+    font-size: 12px;
+}
+
+.wm-legend {
+    color: var(--ui-faint);
+}
+
+.wm-legend i {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin: 0 4px 0 10px;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+
+.wm-legend i.wm-dashed {
+    width: 10px;
+    border: 1px dashed #6b5a2a;
+    border-radius: 0;
+    background: none;
+}
+
 /* Item icons drawn from the 16-bit sprites (render/itemIcons.js) */
 .pixel-icon {
     display: block;

@@ -19,6 +19,7 @@ const KEY_HINTS = [
     { key: 'I', label: 'Pack', action: 'tab', tab: 'inventory' },
     { key: 'C', label: 'Hero', action: 'tab', tab: 'character' },
     { key: 'B', label: 'Spells', action: 'tab', tab: 'spellbook' },
+    { key: 'M', label: 'Map', action: 'tab', tab: 'map' },
     { key: 'H', label: 'Help', action: 'help' },
     { key: 'T', label: 'Style', action: 'style' },
     { key: 'L', label: 'Layout', action: 'layout' }
