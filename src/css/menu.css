@@ -237,3 +237,43 @@
 .menu-modal-body p {
     margin: 0 0 10px;
 }
+
+/* Options: graphics style picker */
+.menu-option-label {
+    color: #ff9d00;
+    font-weight: bold;
+}
+
+.display-mode-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.display-mode-btn {
+    background-color: #222;
+    color: #ccc;
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 9px 8px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.display-mode-btn:hover {
+    border-color: #ff9d00;
+    color: #fff;
+}
+
+.display-mode-btn[aria-checked="true"] {
+    background-color: #ff9d00;
+    border-color: #ff9d00;
+    color: #1a1206;
+    font-weight: bold;
+}
+
+.menu-option-hint {
+    color: #999;
+    font-size: 12px;
+}

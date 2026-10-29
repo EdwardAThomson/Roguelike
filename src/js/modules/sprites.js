@@ -2,7 +2,6 @@ export class SpriteRenderer {
     constructor(game) {
         this.game = game;
         this.ctx = game.ctx;
-        this.tileSize = game.tileSize;
         this.sprites = {
             player: null,
             // wall/floor hold one sprite per theme, keyed by theme name.
@@ -12,6 +11,11 @@ export class SpriteRenderer {
             key: null
         };
         this.loaded = false;
+    }
+
+    // Follows the game's tile size, which changes with the display mode.
+    get tileSize() {
+        return this.game.tileSize;
     }
 
     async loadSprites() {

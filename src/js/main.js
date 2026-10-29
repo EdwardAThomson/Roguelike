@@ -27,6 +27,7 @@ import { SaveManager } from './modules/persistence/saveManager.js';
 import { IndexedDBSaveStore } from './modules/persistence/indexedDBSaveStore.js';
 import { CloudSaveStore } from './modules/persistence/cloudSaveStore.js';
 import { cloudConfigured } from './config.js';
+import { getDisplayMode, nextDisplayMode, loadDisplayMode, saveDisplayMode, viewportFor, canvasTarget } from './modules/render/displayModes.js';
 
 
 // Export a function to start the game
@@ -65,7 +66,10 @@ class RogueGame {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
-        this.tileSize = 24; // Reduced tile size for more visible area
+        // Display mode (Classic / ASCII / 16-bit / 16-bit with lighting) is a
+        // per-player setting from localStorage; it sets the tile size.
+        this.displayMode = loadDisplayMode();
+        this.tileSize = getDisplayMode(this.displayMode).tileSize;
         this.gridWidth = 80; // Width for rooms
         this.gridHeight = 40; // Height for rooms
         
@@ -84,6 +88,7 @@ class RogueGame {
         // Initialize managers
         this.stateManager = new GameStateManager(this);
         this.camera = new CameraManager(this);
+        this.applyViewport();
         this.fov = new FOVManager(this);
         
         // Magic system managers
@@ -192,6 +197,12 @@ class RogueGame {
                     revealed ? '#ff0' : '#aaa');
             }
             
+            // Cycle the graphics style (Classic / ASCII / 16-bit / lit).
+            if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey && !e.altKey &&
+                this.stateManager.isPlaying()) {
+                this.cycleDisplayMode();
+            }
+
             // Gate debug info (Shift+G) - debug only
             if (e.key === 'G' && e.shiftKey) {
                 if (this.worldManager && typeof this.worldManager.showGateDebugInfo === 'function') {
@@ -210,10 +221,45 @@ class RogueGame {
         });
     }
 
+    // Fit the camera to the current display mode's tile size.
+    applyViewport() {
+        const container = typeof document !== 'undefined' && document.getElementById('game-container');
+        const rect = container ? container.getBoundingClientRect() : null;
+        const target = canvasTarget(rect && rect.width, rect && rect.height);
+        const viewport = viewportFor(getDisplayMode(this.displayMode), this.gridWidth, this.gridHeight, target);
+        this.camera.viewportWidth = viewport.width;
+        this.camera.viewportHeight = viewport.height;
+    }
+
+    setDisplayMode(id) {
+        const mode = getDisplayMode(id);
+        this.displayMode = mode.id;
+        this.tileSize = mode.tileSize;
+        saveDisplayMode(mode.id);
+        this.resizeCanvas();
+        if (this.camera && typeof this.camera.update === 'function') {
+            this.camera.update();
+        }
+        if (this.ui) {
+            this.ui.addMessage(`Graphics: ${mode.label} (T to change).`, '#aaa');
+        }
+        return mode;
+    }
+
+    cycleDisplayMode() {
+        return this.setDisplayMode(nextDisplayMode(this.displayMode).id);
+    }
+
     resizeCanvas() {
         // Get the game container to use its dimensions
         const gameContainer = document.getElementById('game-container');
         const containerRect = gameContainer.getBoundingClientRect();
+
+        // The viewport follows the container's shape and the display mode.
+        this.applyViewport();
+        if (this.camera && typeof this.camera.update === 'function') {
+            this.camera.update();
+        }
         
         // Adjust the canvas size to fill its container while maintaining aspect ratio
         this.canvas.width = this.camera.viewportWidth * this.tileSize;

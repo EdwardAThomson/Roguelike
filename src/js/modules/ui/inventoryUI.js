@@ -1,3 +1,5 @@
+import { itemIconHtml, emptySlotIconHtml, spriteIconHtml } from '../render/itemIcons.js';
+
 export class InventoryUI {
     constructor(game) {
         this.game = game;
@@ -185,8 +187,8 @@ export class InventoryUI {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                width: 30px;
-                height: 30px;
+                width: 32px;
+                height: 32px;
             }
             
             .item-row {
@@ -405,7 +407,7 @@ export class InventoryUI {
                 <div class="inventory-title">${this.dropMode ? 'Select Item to Drop' : 'Inventory'}</div>
                 <div class="inventory-stats">
                     <span>Space: ${inventory.items.length}/${inventory.maxSize}</span>
-                    <span class="inventory-gold">🪙 Gold: ${inventory.gold}</span>
+                    <span class="inventory-gold">${spriteIconHtml('gold', 'pixel-icon-inline')} Gold: ${inventory.gold}</span>
                 </div>
             </div>
             <div class="inventory-instructions">
@@ -437,7 +439,7 @@ export class InventoryUI {
                 
                 html += `
                     <div class="item-row ${selected}" data-index="${i}">
-                        <div class="item-icon">${item.icon}</div>
+                        <div class="item-icon">${itemIconHtml(item)}</div>
                         <div class="item-info">
                             <div class="item-name ${item.equipped ? 'equipped' : ''} rarity-${item.rarity}">
                                 ${item.name} ${item.equipped ? '(E)' : ''}${item.stackable && item.quantity > 1 ? ` <span class="item-quantity">x${item.quantity}</span>` : ''}
@@ -479,7 +481,7 @@ export class InventoryUI {
             
             html += `
                 <div class="item-slot ${isEmpty ? 'item-slot-empty' : ''} ${selected}" data-slot="${slotKey}">
-                    <div class="item-icon">${isEmpty ? slotInfo.icon : equippedItem.icon}</div>
+                    <div class="item-icon">${isEmpty ? emptySlotIconHtml(slotKey) : itemIconHtml(equippedItem)}</div>
                     <div class="item-info">
                         <div class="item-name ${isEmpty ? '' : 'rarity-' + equippedItem.rarity}">
                             ${isEmpty ? `${slotInfo.name}: Empty` : `${slotInfo.name}: ${equippedItem.name}`}
