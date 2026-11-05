@@ -278,6 +278,35 @@
     font-weight: 600;
 }
 
+.volume-list {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.volume-row {
+    display: grid;
+    grid-template-columns: 70px 1fr 32px;
+    align-items: center;
+    gap: 10px;
+    color: var(--ui-text-soft);
+}
+
+.volume-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--ui-gold);
+}
+
+.volume-row output {
+    text-align: right;
+    color: var(--ui-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.volume-mute {
+    min-height: 34px;
+}
+
 .menu-option-hint {
     color: var(--ui-muted);
     font-size: 12px;

@@ -29,6 +29,8 @@ import { CloudSaveStore } from './modules/persistence/cloudSaveStore.js';
 import { cloudConfigured } from './config.js';
 import { getDisplayMode, nextDisplayMode, loadDisplayMode, saveDisplayMode, viewportFor, canvasTarget } from './modules/render/displayModes.js';
 import { getHudLayout, nextHudLayout, loadHudLayout, saveHudLayout } from './modules/ui/hudLayouts.js';
+import { audio } from './modules/audio/audioEngine.js';
+import { AudioDirector } from './modules/audio/audioDirector.js';
 
 
 // Export a function to start the game
@@ -99,6 +101,11 @@ class RogueGame {
         this.statusEffectManager = new StatusEffectManager(this);
         this.targetingSystem = new TargetingSystem(this);
         this.spellDatabase = new SpellDatabase();
+
+        // Sound: one shared Web Audio engine (also used by the menu for the
+        // title music) and a director that turns game state into sound.
+        this.audio = audio;
+        this.audioDirector = new AudioDirector(audio);
     }
 
     async init(options = {}) {
@@ -114,6 +121,7 @@ class RogueGame {
         
         // Set up key event listeners
         this.setupKeyListeners();
+        this.audio.installUnlock();
         
         // Initialize core systems
         this.input = new InputHandler();
@@ -217,6 +225,11 @@ class RogueGame {
                 this.cycleHudLayout();
             }
 
+            // Mute / unmute all sound (N). Works while paused too.
+            if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                this.toggleSound();
+            }
+
             // Gate debug info (Shift+G) - debug only
             if (e.key === 'G' && e.shiftKey) {
                 if (this.worldManager && typeof this.worldManager.showGateDebugInfo === 'function') {
@@ -233,6 +246,14 @@ class RogueGame {
                 }
             }
         });
+    }
+
+    toggleSound() {
+        const muted = this.audio.toggleMute();
+        if (this.ui) {
+            this.ui.addMessage(muted ? 'Sound off (N to turn it back on).' : 'Sound on (N to mute).', '#aaa');
+        }
+        return muted;
     }
 
     // Fit the camera to the current display mode's tile size.
@@ -329,6 +350,11 @@ class RogueGame {
         }
         
         this.renderer.render();
+
+        // Sound follows the frame's state (also after death, for the dirge).
+        if (this.audioDirector) {
+            this.audioDirector.update(this, timestamp);
+        }
         
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
     }

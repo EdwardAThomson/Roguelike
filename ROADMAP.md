@@ -40,6 +40,6 @@ turn-based tactical combat, magic, and character progression. See
 
 - [ ] Multiplayer mode
 - [ ] Quest system & NPC interactions
-- [ ] Sound & music
+- [x] Sound & music (generated chiptune music and effects, volume options, N to mute)
 - [ ] Localization / language support
 - [ ] Performance optimization (lazy loading, caching, code splitting)
