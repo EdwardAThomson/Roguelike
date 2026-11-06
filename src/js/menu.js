@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modeHardcore.addEventListener('click', () => pickMode(true));
     modeBack.addEventListener('click', hideModeSelect);
     multiplayerBtn.addEventListener('click', () => openMenuModal('Multiplayer', `
-        <p>Multiplayer is on the roadmap but not implemented yet.</p>
+        <p><strong>In development.</strong> Multiplayer is on the roadmap but not playable yet.</p>
         <p>For now, brave the dungeon solo. Adventurers wanted!</p>
     `));
     optionsBtn.addEventListener('click', openOptions);
