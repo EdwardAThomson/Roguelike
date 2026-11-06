@@ -387,6 +387,11 @@ export class HelpScreen {
                         <td>Switch between the sidebar and the bottom action bar</td>
                     </tr>
                     <tr>
+                        <td>Sound</td>
+                        <td><span class="help-key">N</span></td>
+                        <td>Mute or unmute music and sound effects (volumes are in the menu's Options)</td>
+                    </tr>
+                    <tr>
                         <td>Quick Use</td>
                         <td><span class="help-key">1</span> <span class="help-key">2</span> <span class="help-key">3</span></td>
                         <td>Drink or use the potions and wands on your belt (shown on the HUD)</td>

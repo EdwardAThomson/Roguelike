@@ -28,7 +28,7 @@ There is no linter and no build step in the runtime path. Tests split into three
 
 - **Unit tests** (`test/*.test.js`) cover pure logic decoupled from the DOM/canvas (pathfinding, combat math, monster database, magic items, etc.).
 - **Integration tests** (`test/integration/*.test.js`) use `test/helpers/fakeGame.js` — a headless harness that assembles real managers (Dungeon, MonsterDatabase, ItemManager, WorldManager, CombatManager, FOV, projectile/status/spell systems, InputManager, Player) with only DOM-shaped pieces stubbed. `bootFakeGame()` also runs `worldManager.initializeFirstSection()` for scenarios that need a live section. Cross-manager wire-up bugs show up here.
-- **E2E** (`test/e2e/*.spec.js`, Playwright) loads `index.html` in headless Chromium and drives real keystrokes: `smoke.spec.js` (boot + input), `saveload.spec.js` (Ctrl+S, reload, Continue with real IndexedDB), `gameModal.spec.js` (tabbed modal, pause, capture-mode binding; fails on any native dialog), `worldMap.spec.js` (M map tab, Area/World modes, Shift+M cheat). All boot via Quick Play, then pick a card in the mode chooser. Convention: `.test.js` = Vitest, `.spec.js` = Playwright — `vitest.config.js` restricts include to `.test.js` so the suites don't collide.
+- **E2E** (`test/e2e/*.spec.js`, Playwright) loads `index.html` in headless Chromium and drives real keystrokes: `smoke.spec.js` (boot + input), `saveload.spec.js` (Ctrl+S, reload, Continue with real IndexedDB), `gameModal.spec.js` (tabbed modal, pause, capture-mode binding; fails on any native dialog), `worldMap.spec.js` (M map tab, Area/World modes, Shift+M cheat), `audio.spec.js` (title/theme music, effects, N mute, volume options). All boot via Quick Play, then pick a card in the mode chooser. Convention: `.test.js` = Vitest, `.spec.js` = Playwright — `vitest.config.js` restricts include to `.test.js` so the suites don't collide.
 
 Persistence is unit-tested in node via the storage-adapter seam: serializer/hydrator are pure functions exercised on the fake game, and `InMemorySaveStore` stands in for IndexedDB (which does not exist in the node test env; real IndexedDB round-trips live in the e2e tier only).
 
@@ -59,7 +59,7 @@ Two cooperating input layers:
 - `input.js` (`InputHandler`) — low-level key state polling.
 - `inputManager.js` (`InputManager`) — game-aware input. `update()` calls `inputManager.handleUIInput()` always (so I/C/B/H work while paused), and `inputManager.handleInput()` only when `stateManager.isPlaying()` and a player exists.
 
-`handleUIInput` routes I/C/B/M to `gameModal.toggleTab(...)` (M is skipped while Shift is held) and H to the help overlay (mutually exclusive with the modal). A small set of keys is wired directly in `main.js#setupKeyListeners`: Shift+M (map reveal cheat), T (graphics style), L (HUD layout), Shift+G (gate debug), and Ctrl+S / Cmd+S (manual save). During play, `handleInput` also maps 1/2/3 to the HUD belt (`hud.useBeltSlot`); while the modal is open the same digits belong to the inventory tab. While the game modal is open, its own document keydown listener (attached on open, detached on close) handles Escape, spellbook capture keys, and the inventory tab's item-action keys.
+`handleUIInput` routes I/C/B/M to `gameModal.toggleTab(...)` (M is skipped while Shift is held) and H to the help overlay (mutually exclusive with the modal). A small set of keys is wired directly in `main.js#setupKeyListeners`: Shift+M (map reveal cheat), T (graphics style), L (HUD layout), Shift+G (gate debug), N (mute sound), and Ctrl+S / Cmd+S (manual save). During play, `handleInput` also maps 1/2/3 to the HUD belt (`hud.useBeltSlot`); while the modal is open the same digits belong to the inventory tab. While the game modal is open, its own document keydown listener (attached on open, detached on close) handles Escape, spellbook capture keys, and the inventory tab's item-action keys.
 
 ### World / dungeon model
 
@@ -114,6 +114,15 @@ The non-classic modes live in `src/js/modules/render/` and only read game state:
 - `spriteDefs.js` holds every character and item sprite as a 16x16 letter grid plus palette; `pixelArt.rasterizeSprite` adds the outline and top-left shading, so a new monster is a grid and a palette. Add one for every new monster type and map new items in `visuals.js#itemVisual`; `test/renderArt.test.js` fails if a database entry has no picture.
 - `effects.js` (`EffectsTracker`) observes positions and health once per frame and derives smooth movement, camera glide, melee lunges, hit flashes, damage numbers, death fades and projectile bursts. It must stay an observer: never write to game state from render code.
 - `pixelBackend.js` draws into a 16 px offscreen canvas and scales it 2x with smoothing off; in `lit` mode it multiplies a light map over the scene and adds particles. `asciiBackend.js` draws glyphs on light-tinted cells.
+
+### Audio
+
+All sound is generated in code with Web Audio; the game ships no audio files. `src/js/modules/audio/`:
+
+- `audioEngine.js` exports one shared `audio` engine (the menu uses it for the title music, the game exposes it as `game.audio`). It creates the `AudioContext` on the first key press or click (`installUnlock`), because browsers block audio before a gesture, and is a silent no-op where Web Audio does not exist (node tests). It synthesizes effect voices (oscillators, pulse waves, filtered noise) and runs a lookahead step sequencer with crossfades for the music.
+- `sfxPresets.js` holds every effect as a list of synth voices (data, like the sprite grids). `musicTracks.js` holds the tunes in a small step notation (`'A4 - - C5 | . k'`); each voice loops on its own length, which must divide the track length (`test/audio.test.js` checks it).
+- `audioDirector.js` is an observer like `render/effects.js`: once per frame (`main.js#gameLoop`, also after death) it diffs health, level, gold, pack contents, equipped gear, open gates, monsters, projectiles and the pause state, and asks the engine for effects and music (section theme, `combat` while an aware monster is in sight, `death` on game over). Gameplay code makes no audio calls; to give a new event a sound, observe it in the director and add a preset.
+- Settings (master, music, effects volume, mute) are per player in localStorage (`modernrogue.audio`, `audioSettings.js`), never in the save. The menu's Options has the sliders; N toggles mute in game.
 
 ### UI
 

@@ -8,8 +8,11 @@ import { defineConfig, devices } from '@playwright/test';
 // In CI, Chromium is pre-installed at this path. Locally it usually isn't,
 // so fall back to the Playwright-managed browser (run `npx playwright install
 // chromium` once) rather than launching a non-existent executable.
-const CI_CHROMIUM = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
-const launchOptions = existsSync(CI_CHROMIUM)
+const CI_CHROMIUM = [
+    '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+    '/opt/pw-browsers/chromium' // newer images: a symlink to the current build
+].find(path => existsSync(path));
+const launchOptions = CI_CHROMIUM
     ? { executablePath: CI_CHROMIUM }
     : {};
 export default defineConfig({

@@ -6,6 +6,7 @@ import { authClient } from './modules/persistence/authClient.js';
 import { CloudSaveStore } from './modules/persistence/cloudSaveStore.js';
 import { DISPLAY_MODES, loadDisplayMode, saveDisplayMode } from './modules/render/displayModes.js';
 import { HUD_LAYOUTS, loadHudLayout, saveHudLayout } from './modules/ui/hudLayouts.js';
+import { audio } from './modules/audio/audioEngine.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Update version display dynamically
@@ -32,6 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('menu-modal-title');
     const modalBody = document.getElementById('menu-modal-body');
     const modalClose = document.getElementById('menu-modal-close');
+
+    // Title music starts with the first click or key press (browsers block
+    // audio before a gesture); menu buttons click.
+    audio.installUnlock();
+    audio.playMusic('title');
+    landingPage.addEventListener('click', (e) => {
+        if (e.target.closest('button')) audio.play('uiClick');
+    });
 
     // Remember the player's last mode pick to highlight it as the default.
     const LAST_MODE_KEY = 'modernrogue.lastMode';
@@ -118,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="menu-option-hint">Press T in game to switch between them.</p>
             ${radioGroup('Layout', 'data-hud-layout', HUD_LAYOUTS, currentLayout)}
             <p class="menu-option-hint">Sidebar keeps everything beside the map; Action bar puts it along the bottom. Press L in game to switch.</p>
+            ${soundOptions()}
         `);
         const wire = (attr, save) => {
             const buttons = modalBody.querySelectorAll(`[${attr}]`);
@@ -130,6 +140,52 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         wire('data-display-mode', saveDisplayMode);
         wire('data-hud-layout', saveHudLayout);
+        wireSoundOptions();
+    }
+
+    // Sound: master / music / effects volume and mute (N mutes in game).
+    const VOLUME_SLIDERS = [
+        { key: 'master', label: 'Master' },
+        { key: 'music', label: 'Music' },
+        { key: 'sfx', label: 'Effects' }
+    ];
+
+    function soundOptions() {
+        const s = audio.getSettings();
+        return `
+            <p class="menu-option-label">Sound</p>
+            <div class="volume-list">
+                ${VOLUME_SLIDERS.map(v => `
+                    <label class="volume-row">
+                        <span>${v.label}</span>
+                        <input type="range" min="0" max="100" step="5" data-volume="${v.key}"
+                            value="${Math.round(s[v.key] * 100)}" aria-label="${v.label} volume">
+                        <output>${Math.round(s[v.key] * 100)}</output>
+                    </label>`).join('')}
+                <button type="button" class="display-mode-btn volume-mute" role="switch" data-sound-mute
+                    aria-checked="${!s.muted}">${s.muted ? 'Sound off' : 'Sound on'}</button>
+            </div>
+            <p class="menu-option-hint">Music and effects are made by the game itself. Press N in game to mute.</p>`;
+    }
+
+    function wireSoundOptions() {
+        modalBody.querySelectorAll('[data-volume]').forEach(input => {
+            input.addEventListener('input', () => {
+                const value = Number(input.value) / 100;
+                audio.setSettings({ [input.dataset.volume]: value });
+                input.nextElementSibling.textContent = input.value;
+            });
+            // Let the player hear the effects level they picked.
+            input.addEventListener('change', () => {
+                if (input.dataset.volume !== 'music') audio.play('pickup');
+            });
+        });
+        const mute = modalBody.querySelector('[data-sound-mute]');
+        mute.addEventListener('click', () => {
+            const muted = audio.toggleMute();
+            mute.setAttribute('aria-checked', String(!muted));
+            mute.textContent = muted ? 'Sound off' : 'Sound on';
+        });
     }
 
     function closeMenuModal() {

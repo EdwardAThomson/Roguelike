@@ -22,7 +22,8 @@ const KEY_HINTS = [
     { key: 'M', label: 'Map', action: 'tab', tab: 'map' },
     { key: 'H', label: 'Help', action: 'help' },
     { key: 'T', label: 'Style', action: 'style' },
-    { key: 'L', label: 'Layout', action: 'layout' }
+    { key: 'L', label: 'Layout', action: 'layout' },
+    { key: 'N', label: 'Sound', action: 'sound' }
 ];
 
 const MAX_LOG_LINES = 40;
@@ -246,6 +247,9 @@ export class Hud {
                 break;
             case 'layout':
                 if (typeof this.game.cycleHudLayout === 'function') this.game.cycleHudLayout();
+                break;
+            case 'sound':
+                if (typeof this.game.toggleSound === 'function') this.game.toggleSound();
                 break;
             case 'cast':
                 if (this.isPlaying() && this.game.inputManager) {
