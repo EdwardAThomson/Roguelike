@@ -95,6 +95,32 @@
     opacity: 0.75;
 }
 
+/* A menu entry for a feature that is not built yet: dimmed, with a small
+   "In development" tag on the right. It stays clickable so it can explain. */
+.menu-btn-wip {
+    color: var(--ui-muted);
+    border-style: dashed;
+}
+
+.menu-btn-wip:hover,
+.menu-btn-wip:focus-visible {
+    color: var(--ui-text-soft);
+    border-color: var(--ui-gold-dim);
+}
+
+.menu-btn-tag {
+    padding: 3px 7px;
+    border: 1px solid var(--ui-gold-dim);
+    border-radius: 2px;
+    background-color: var(--ui-inset);
+    color: var(--ui-gold);
+    font-family: var(--ui-font);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
 .game-copyright {
     color: var(--ui-faint);
     font-size: 11px;
