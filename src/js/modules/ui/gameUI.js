@@ -75,6 +75,30 @@ export class GameUI {
             .character-content {
                 margin-bottom: 20px;
             }
+
+            /* The modal frame is wide, so the sheet uses columns instead of
+               one long list; they stack again when the window is narrow. */
+            .cs-columns {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                gap: 8px 28px;
+                align-items: start;
+            }
+
+            .cs-section h3 {
+                margin: 4px 0 12px;
+            }
+
+            .cs-skill-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 12px;
+                margin-top: 12px;
+            }
+
+            .cs-skill-grid .skill-item {
+                margin-bottom: 0;
+            }
             
             .stat-row {
                 display: flex;
@@ -213,6 +237,9 @@ export class GameUI {
         if (this.selectedStatTab === 'attributes') {
             this.characterContent.innerHTML = `
                 <h2>Character sheet</h2>
+                <div class="cs-columns">
+                <section class="cs-section">
+                <h3>Progress</h3>
                 <div class="stat-row">
                     <div class="stat-label">Level:</div>
                     <div>${stats.level}</div>
@@ -224,7 +251,9 @@ export class GameUI {
                 <div class="progress-bar exp-bar">
                     <div class="progress-fill" style="width: ${(stats.experience / stats.experienceToNextLevel) * 100}%"></div>
                 </div>
-                
+                </section>
+
+                <section class="cs-section">
                 <h3>Attributes</h3>
                 <div class="stat-row">
                     <div class="stat-label">Stat Points Available:</div>
@@ -258,7 +287,9 @@ export class GameUI {
                         ${stats.statPoints > 0 ? `<button class="stat-button" data-stat="intelligence">+</button>` : ''}
                     </div>
                 </div>
-                
+                </section>
+
+                <section class="cs-section">
                 <h3>Derived Stats</h3>
                 <div class="stat-row">
                     <div class="stat-label">Health:</div>
@@ -286,6 +317,8 @@ export class GameUI {
                     <div class="stat-label">Critical Chance:</div>
                     <div>${stats.criticalChance}% ${stats.criticalChance_bonus ? `<span style="color: var(--ui-good)">(+${stats.criticalChance_bonus}%)</span>` : ''}</div>
                 </div>
+                </section>
+                </div>
             `;
             
             // Add event listeners to stat buttons
@@ -306,6 +339,7 @@ export class GameUI {
                     <div class="stat-label">Skill Points:</div>
                     <div>${stats.skillPoints}</div>
                 </div>
+                <div class="cs-skill-grid">
             `;
             
             // Add each skill
@@ -331,6 +365,7 @@ export class GameUI {
                 `;
             }
             
+            skillsHtml += `</div>`;
             this.characterContent.innerHTML = skillsHtml;
             
             // Add event listeners to skill buttons

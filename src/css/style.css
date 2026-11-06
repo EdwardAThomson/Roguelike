@@ -522,14 +522,14 @@ kbd {
 
 /* Unified tabbed game modal (Character / Inventory / Spellbook).
    The frame size is FIXED (height, not max-height) so switching tabs never
-   resizes the modal; each panel scrolls internally instead. 1000x680 fits
-   the widest tab content and still fits a 1366x768 laptop; min() keeps
-   small screens usable. */
+   resizes the modal; each panel scrolls internally instead. Every tab gets
+   the same large frame (up to 1200x820, most of a 1080p screen) and min()
+   shrinks it with the window so small screens stay usable. */
 .game-modal {
     display: flex;
     flex-direction: column;
-    width: min(92vw, 1000px);
-    height: min(85vh, 680px);
+    width: min(94vw, 1200px);
+    height: min(90vh, 820px);
     background-color: var(--ui-panel);
     border: 2px solid var(--ui-line-strong);
     border-radius: 6px;
