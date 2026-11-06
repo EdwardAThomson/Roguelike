@@ -33,63 +33,88 @@ export class HelpScreen {
     addStyles() {
         const style = document.createElement('style');
         style.textContent = `
+            /* Same fixed frame as the game modal (.game-modal in style.css):
+               the size never changes between pages, the header and footer
+               stay put and only the page body scrolls. */
             .help-screen {
+                flex-direction: column;
+                width: min(94vw, 1200px);
+                height: min(90vh, 820px);
+                box-sizing: border-box;
                 background-color: var(--ui-panel);
                 color: var(--ui-text);
-                padding: 20px;
                 border-radius: 6px;
                 font-family: var(--ui-font);
                 font-size: 13px;
-                width: 80%;
-                max-width: 800px;
-                max-height: 85vh;
-                overflow-y: auto;
+                overflow: hidden;
                 border: 2px solid var(--ui-line-strong);
                 box-shadow: 0 0 0 1px #000, 0 24px 60px rgba(0, 0, 0, 0.6);
                 margin: 0 auto;
             }
-            
+
+            .help-header {
+                flex: 0 0 auto;
+                display: flex;
+                align-items: stretch;
+                border-bottom: 2px solid var(--ui-line);
+                background-color: var(--ui-panel-2);
+            }
+
             .help-title {
-                font-size: 1.5em;
-                text-align: center;
-                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                padding: 0 22px;
+                font-size: 18px;
                 color: var(--ui-gold);
                 font-family: var(--ui-font-display);
-                border-bottom: 1px solid var(--ui-line);
-                padding-bottom: 10px;
+                border-right: 1px solid var(--ui-line);
             }
-            
+
             .help-tabs {
                 display: flex;
-                margin-bottom: 15px;
-                border-bottom: 1px solid var(--ui-line);
-                padding-bottom: 10px;
+                flex-wrap: wrap;
             }
-            
+
             .help-tab {
-                padding: 5px 15px;
+                padding: 13px 20px;
                 cursor: pointer;
-                border-radius: 3px;
-                margin-right: 10px;
                 color: var(--ui-muted);
+                font-family: var(--ui-font-display);
+                font-size: 15px;
             }
-            
+
             .help-tab:hover {
                 color: var(--ui-text);
             }
-            
+
             .help-tab.active {
-                background-color: var(--ui-panel-2);
+                background-color: var(--ui-panel);
+                box-shadow: inset 0 -2px 0 var(--ui-gold);
                 color: var(--ui-gold);
             }
-            
-            .help-content {
-                margin-bottom: 20px;
+
+            .help-scroll {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+                padding: 18px 22px;
             }
-            
+
+            /* Pages flow into columns so the wide frame is used instead of
+               one long scroll; narrow windows fall back to one column. */
+            .help-content {
+                columns: 2 420px;
+                column-gap: 32px;
+            }
+
             .help-section {
                 margin-bottom: 20px;
+                break-inside: avoid;
             }
+
+            .help-screen ::-webkit-scrollbar { width: 10px; }
+            .help-screen ::-webkit-scrollbar-track { background: var(--ui-inset); }
+            .help-screen ::-webkit-scrollbar-thumb { background: var(--ui-line-strong); border-radius: 5px; }
             
             .help-section-title {
                 font-size: 1.2em;
@@ -129,9 +154,9 @@ export class HelpScreen {
             }
             
             .help-footer {
-                margin-top: 20px;
+                flex: 0 0 auto;
                 border-top: 1px solid var(--ui-line);
-                padding-top: 10px;
+                padding: 10px;
                 display: flex;
                 justify-content: center;
             }
@@ -223,7 +248,7 @@ export class HelpScreen {
     
     openHelpScreen() {
         this.isOpen = true;
-        this.helpElement.style.display = 'block';
+        this.helpElement.style.display = 'flex';
         document.getElementById('overlay-container').classList.add('active');
         this.updateContent();
 
@@ -242,15 +267,17 @@ export class HelpScreen {
     
     updateContent() {
         let content = `
-            <div class="help-title">Modern Rogue - Help</div>
-            
+            <div class="help-header">
+            <div class="help-title">Help</div>
             <div class="help-tabs">
                 <div class="help-tab ${this.currentPage === 'controls' ? 'active' : ''}" data-page="controls">Controls</div>
                 <div class="help-tab ${this.currentPage === 'items' ? 'active' : ''}" data-page="items">Items & Inventory</div>
                 <div class="help-tab ${this.currentPage === 'stats' ? 'active' : ''}" data-page="stats">Character Stats</div>
                 <div class="help-tab ${this.currentPage === 'about' ? 'active' : ''}" data-page="about">About</div>
             </div>
-            
+            </div>
+
+            <div class="help-scroll">
             <div class="help-content">
         `;
         
@@ -272,7 +299,8 @@ export class HelpScreen {
         
         content += `
             </div>
-            
+            </div>
+
             <div class="help-footer">
                 <button class="help-close-button">Close Help (H)</button>
             </div>
