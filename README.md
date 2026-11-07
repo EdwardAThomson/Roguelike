@@ -20,8 +20,16 @@ A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features
 - **Run Modes**: Adventure (death resumes from the last save) or Hardcore (death erases the save), chosen at the start of each run
 - **Modular Architecture**: Clean, extensible codebase with separated concerns
 - **Rich UI**: Intuitive interface with inventory, character screen, and help system
+- **Display Styles**: 16-bit pixel art with dynamic lighting (default), plain 16-bit, ASCII, or Classic; press T to switch
+- **HUD Layouts**: Sidebar or bottom action bar, picked in Options or cycled with L
+- **Generated Audio**: Themed music and sound effects synthesized live with Web Audio (no audio files)
 
-![Gameplay](screenshots/screenshot.png)
+![Exploring a crypt with the default sidebar HUD](screenshots/gameplay-crypt.png)
+
+<p>
+  <img src="screenshots/action-bar-castle.png" alt="A castle hall with the action-bar HUD layout" width="49%">
+  <img src="screenshots/bestiary.png" alt="Bestiary of every monster and the dungeon themes it appears in" width="49%">
+</p>
 
 ## 🚀 Getting Started
 
