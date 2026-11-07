@@ -1,6 +1,6 @@
 # Version Management Guide
 
-**Current Version**: 0.5.0 "Crypts & Castles"
+**Current Version**: 0.6.0 "Torchlight"
 
 ---
 
