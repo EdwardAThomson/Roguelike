@@ -1,6 +1,6 @@
 # Modern Roguelike
 
-**Version 0.5.0 "Crypts & Castles"** | July 2026
+**Version 0.6.0 "Torchlight"** | November 2026
 
 A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features procedurally generated dungeons, tactical combat, magic system, and an immersive exploration experience.
 
