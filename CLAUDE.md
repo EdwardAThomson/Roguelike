@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Modern Rogue is a browser-based roguelike built with vanilla JavaScript (ES modules) and HTML5 Canvas. There is no build step or bundler in the runtime path — the browser loads `index.html` directly and pulls ES modules from `src/js/`. Vite is listed in `devDependencies` only as an optional alternative dev server.
+Modern Rogue Classic is the free, open edition of Modern Rogue, a browser-based roguelike built with vanilla JavaScript (ES modules) and HTML5 Canvas. There is no build step or bundler in the runtime path — the browser loads `index.html` directly and pulls ES modules from `src/js/`. Vite is listed in `devDependencies` only as an optional alternative dev server.
 
 ## Commands
 
@@ -28,7 +28,7 @@ There is no linter and no build step in the runtime path. Tests split into three
 
 - **Unit tests** (`test/*.test.js`) cover pure logic decoupled from the DOM/canvas (pathfinding, combat math, monster database, magic items, etc.).
 - **Integration tests** (`test/integration/*.test.js`) use `test/helpers/fakeGame.js` — a headless harness that assembles real managers (Dungeon, MonsterDatabase, ItemManager, WorldManager, CombatManager, FOV, projectile/status/spell systems, InputManager, Player) with only DOM-shaped pieces stubbed. `bootFakeGame()` also runs `worldManager.initializeFirstSection()` for scenarios that need a live section. Cross-manager wire-up bugs show up here.
-- **E2E** (`test/e2e/*.spec.js`, Playwright) loads `index.html` in headless Chromium and drives real keystrokes: `smoke.spec.js` (boot + input), `saveload.spec.js` (Ctrl+S, reload, Continue with real IndexedDB), `gameModal.spec.js` (tabbed modal, pause, capture-mode binding; fails on any native dialog). All boot via Quick Play, then pick a card in the mode chooser. Convention: `.test.js` = Vitest, `.spec.js` = Playwright — `vitest.config.js` restricts include to `.test.js` so the suites don't collide.
+- **E2E** (`test/e2e/*.spec.js`, Playwright) loads `index.html` in headless Chromium and drives real keystrokes: `smoke.spec.js` (boot + input), `displayModes.spec.js` (T cycles Classic/ASCII), `saveload.spec.js` (Ctrl+S, reload, Continue with real IndexedDB), `gameModal.spec.js` (tabbed modal, pause, capture-mode binding; fails on any native dialog), `worldMap.spec.js` (M map tab, Area/World modes, Shift+M cheat), `audio.spec.js` (title/theme music, effects, N mute, volume options), `helpScreen.spec.js` (H overlay keeps one size across pages). All boot via Quick Play, then pick a card in the mode chooser. Convention: `.test.js` = Vitest, `.spec.js` = Playwright — `vitest.config.js` restricts include to `.test.js` so the suites don't collide.
 
 Persistence is unit-tested in node via the storage-adapter seam: serializer/hydrator are pure functions exercised on the fake game, and `InMemorySaveStore` stands in for IndexedDB (which does not exist in the node test env; real IndexedDB round-trips live in the e2e tier only).
 
@@ -59,7 +59,7 @@ Two cooperating input layers:
 - `input.js` (`InputHandler`) — low-level key state polling.
 - `inputManager.js` (`InputManager`) — game-aware input. `update()` calls `inputManager.handleUIInput()` always (so I/C/B/H work while paused), and `inputManager.handleInput()` only when `stateManager.isPlaying()` and a player exists.
 
-`handleUIInput` routes I/C/B to `gameModal.toggleTab(...)` and H to the help overlay (mutually exclusive with the modal). A small set of keys is wired directly in `main.js#setupKeyListeners`: M (map reveal cheat), Shift+G (gate debug), and Ctrl+S / Cmd+S (manual save). While the game modal is open, its own document keydown listener (attached on open, detached on close) handles Escape, spellbook capture keys, and the inventory tab's item-action keys.
+`handleUIInput` routes I/C/B/M to `gameModal.toggleTab(...)` (M is skipped while Shift is held) and H to the help overlay (mutually exclusive with the modal). A small set of keys is wired directly in `main.js#setupKeyListeners`: Shift+M (map reveal cheat), T (graphics style), L (HUD layout), Shift+G (gate debug), N (mute sound), and Ctrl+S / Cmd+S (manual save). During play, `handleInput` also maps 1/2/3 to the HUD belt (`hud.useBeltSlot`); while the modal is open the same digits belong to the inventory tab. While the game modal is open, its own document keydown listener (attached on open, detached on close) handles Escape, spellbook capture keys, and the inventory tab's item-action keys.
 
 ### World / dungeon model
 
@@ -103,11 +103,37 @@ Things that will bite you if you change them casually:
 
 Cloud saves are dormant until `src/js/config.js` is filled in (hub URL, Supabase URL/anon key, gateway URL); with an empty config the game is fully offline and account UI stays hidden. `authClient.js` implements the Octonion hub SSO flow (one-time-token exchange, lazy supabase-js import); `cloudSaveStore.js` speaks the RPG-Loom gateway contract (`/api/saves/:slot`, generation-based optimistic concurrency, 503 degradation). Sync is local-first: IndexedDB is the source of truth, cloud pushes ride behind local saves, and the menu pulls a newer cloud save into IndexedDB before offering Continue. The server side (gateway + `newroguelike` schema) lives in the sibling octonion repos and is not built yet.
 
+### Rendering and display modes
+
+This is the Classic edition: two display modes. `Renderer.render()` dispatches on `game.displayMode` (`render/displayModes.js`): `classic` (the original renderer, the default; the code at the bottom of `renderer.js` plus `sprites.js`) and `ascii`. The mode is a per-player display setting in localStorage (`modernrogue.displayMode`), never in the save; T cycles it in game and the menu's Options picks it. `game.setDisplayMode(id)` swaps the tile size and viewport.
+
+The ASCII mode lives in `src/js/modules/render/` and only reads game state:
+
+- `sectionScene.js` caches a per-section `MapView` plus deterministic decoration (torches, banners, candles, mushrooms, bones, castle carpets from `dungeon.rooms`, built in `sceneData.js`) and rebuilds when the dungeon object or any tile changes. `collectLights` turns the player, decor, projectiles and impacts into light sources.
+- `spriteDefs.js` holds the item and spell icon sprites as 16x16 letter grids plus palette; `pixelArt.rasterizeSprite` adds the outline and shading. Map new items in `visuals.js#itemVisual`; `test/renderArt.test.js` fails if a database item has no picture.
+- `effects.js` (`EffectsTracker`) observes positions and health once per frame and derives smooth movement, camera glide, melee lunges, hit flashes, damage numbers, death fades and projectile bursts. It must stay an observer: never write to game state from render code.
+- `asciiBackend.js` draws glyphs on light-tinted cells.
+
+### Audio
+
+All sound is generated in code with Web Audio; the game ships no audio files. `src/js/modules/audio/`:
+
+- `audioEngine.js` exports one shared `audio` engine (the menu uses it for the title music, the game exposes it as `game.audio`). It creates the `AudioContext` on the first key press or click (`installUnlock`), because browsers block audio before a gesture, and is a silent no-op where Web Audio does not exist (node tests). It synthesizes effect voices (oscillators, pulse waves, filtered noise) and runs a lookahead step sequencer with crossfades for the music.
+- `sfxPresets.js` holds every effect as a list of synth voices (data, like the sprite grids). `musicTracks.js` holds the tunes in a small step notation (`'A4 - - C5 | . k'`); each voice loops on its own length, which must divide the track length (`test/audio.test.js` checks it).
+- `audioDirector.js` is an observer like `render/effects.js`: once per frame (`main.js#gameLoop`, also after death) it diffs health, level, gold, pack contents, equipped gear, open gates, monsters, projectiles and the pause state, and asks the engine for effects and music (section theme, `combat` while an aware monster is in sight, `death` on game over). Gameplay code makes no audio calls; to give a new event a sound, observe it in the director and add a preset.
+- Settings (master, music, effects volume, mute) are per player in localStorage (`modernrogue.audio`, `audioSettings.js`), never in the save. The menu's Options has the sliders; N toggles mute in game.
+
 ### UI
 
-`ui/index.js` exports a `UI` class that composes `GameUI` (HUD + character tab), `InventoryUI`, `EquipmentDisplay` (persistent HUD sidebar), `HelpScreen`, `SpellbookUI`, and `GameModal`. Use `game.ui.addMessage(text, color)` for the message log. UI components mutate the DOM in `#ui-container` and `#overlay-container`; the canvas (`#game-canvas`) is owned by the `Renderer`.
+`ui/index.js` exports a `UI` class that composes `GameUI` (message log data + character tab), `Hud`, `InventoryUI`, `HelpScreen`, `SpellbookUI`, and `GameModal`. Use `game.ui.addMessage(text, color)` for the message log. UI components mutate the DOM in `#ui-container` and `#overlay-container`; the canvas (`#game-canvas`) is owned by the `Renderer`.
 
-**The game modal** (`ui/gameModal.js`) is the single tabbed screen hosting Character / Inventory / Spellbook. Its frame size is fixed (`.game-modal` in `src/css/style.css`, `min(92vw,1000px)` by `min(85vh,680px)`) so switching tabs never resizes; panels scroll internally. The three screens are content providers implementing `mountPanel(el)` / `onShow(options)` / `onHide()` / optional `handleKey(e)`; they render into persistent panels and own no modal chrome. When adding a tab, implement that interface and register it in the `UI` constructor.
+**Theme.** Colours, fonts and sizes are CSS custom properties on `:root` in `src/css/style.css` (`--ui-panel`, `--ui-gold`, `--ui-font-display`, ...); the JS-injected styles in the UI modules use the same variables. Fonts (Pixelify Sans for headings, JetBrains Mono for text) are vendored in `assets/fonts/`, so the game needs no network. Icons are pixel sprites from `render/itemIcons.js` (`itemIconHtml`, `spellIconHtml`; spell art is `SPELL_SPRITES` in `spriteDefs.js`), never emoji.
+
+**The HUD** (`ui/hud.js`) builds everything in `#ui-container`: hero bars, stats, equipped gear, the spell hotbar plus a three-slot potion/wand belt (`beltItems()`), the message log (`#message-area`) and clickable key hints. `update()` runs every frame but rebuilds a section only when its signature string changes. One set of elements serves both **HUD layouts** (`ui/hudLayouts.js`: `sidebar`, the default, and `actionbar`); the layout is a per-player localStorage setting (`modernrogue.hudLayout`), never in the save, picked in Options or cycled with L. `main.js` puts `hud-layout-<id>` on `#main-container` and the CSS grid does the arranging, so the map's size depends on the layout: `setHudLayout` calls `resizeCanvas()` and the viewport follows the container.
+
+**The game modal** (`ui/gameModal.js`) is the single tabbed screen hosting Character / Inventory / Spellbook / Map. Its frame size is fixed (`.game-modal` in `src/css/style.css`, `min(94vw,1200px)` by `min(90vh,820px)`) so switching tabs never resizes; panels scroll internally. The screens are content providers implementing `mountPanel(el)` / `onShow(options)` / `onHide()` / optional `handleKey(e)`; they render into persistent panels and own no modal chrome. When adding a tab, implement that interface and register it in the `UI` constructor.
+
+**The map tab** (`ui/mapUI.js`, M) has two canvas modes: Area (one section fitted to the frame) and World (every visited section on the world grid, north = `worldY + 1` drawn up, with pan/zoom/fit because the world is unbounded). All reads of game state go through the pure `ui/worldMapModel.js` (unit-tested in `test/integration/worldMap.test.js`); it reads the live section from `game.dungeon`/`game.fov` and departed ones from `worldManager.sectionStates`/`explorationMemory`, so nothing new is persisted.
 
 **Pause is real and lives in `GameStateManager`**: opening the modal or help calls `stateManager.openMenu()` (state `'menu'`), which halts gameplay input, player/monster updates, and status ticks via the existing `isPlaying()` gates; `closeMenu()` only restores `'playing'` from `'menu'`, so `gameOver` is sticky. Never reintroduce the old `game.gameState` ad-hoc property; it was dead state that made modals silently fail to pause.
 
@@ -118,7 +144,7 @@ Cloud saves are dormant until `src/js/config.js` is filled in (hub URL, Supabase
 - ES module imports use relative paths with `.js` extensions (required since there's no bundler resolving extensions).
 - Managers consistently defensively check `typeof this.x === 'function'` before delegating (e.g. `main.js#update`). Mirror this pattern when adding manager methods called from `main.js`.
 - The codebase logs liberally to `console.log` with emoji prefixes (📖, 🎮, ⚠️). This is intentional for debugging in the browser console.
-- Tile coordinates are integer grid positions; pixel rendering is `tileSize=24` px per tile (`main.js`). The viewport size lives on `CameraManager`.
+- Tile coordinates are integer grid positions. `game.tileSize` follows the display mode (24 px for Classic and ASCII) and can change mid-run, so read it at draw time rather than caching it. The viewport size lives on `CameraManager` and is set by `main.js#applyViewport` from the mode and the container's shape.
 
 ## Documentation
 

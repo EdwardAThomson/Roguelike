@@ -7,6 +7,14 @@ notes on what changed and why. Newest entries first. Entries dated before
 For curated, per-release notes in Keep-a-Changelog format, see
 [`documentation/CHANGELOG.md`](documentation/CHANGELOG.md).
 
+## 2026-11-07
+
+Release day: shipped v0.6.0 "Torchlight", the minor bump collecting everything since 0.5.0. That covers save & continue with Adventure/Hardcore run modes, four display styles led by 16-bit pixel art with dynamic lighting, the world map tab, the redesigned HUD with sidebar and action-bar layouts, and music and sound effects generated live with Web Audio. The README picked up fresh screenshots of the new look the same day.
+
+**Decisions & notes:** 0.6.0 rather than 1.0.0 because the overworld and game-mode work is still open and multiplayer is only a placeholder. `package-lock.json` had been left at 0.4.0 by earlier bumps (the bump script only touches `package.json` and `version.js`) and is synced here.
+
+---
+
 ## 2026-07-04
 
 A big feature day: the game gained a full save/load system, a unified in-game modal, and a reworked landing menu, built and tested as one body of work. A new `src/js/modules/persistence/` module owns saving end to end: a versioned save schema with compact tile encoding, a pure serializer/hydrator pair, a `SaveStore` adapter with IndexedDB and in-memory backends, and a `SaveManager` that owns every policy (manual Ctrl+S, autosave on section transitions, death handling). Runs now start as Adventure or Hardcore, chosen once via a new mode-chooser and immutable for the run: hardcore death deletes the save, adventure death resumes from the last save via the menu's Continue button. A cloud layer (Octonion hub SSO auth client plus a `CloudSaveStore` speaking the RPG-Loom gateway contract, local-first with pull-if-newer on the menu) shipped dormant; it stays inert until `src/js/config.js` is filled in, and the server side lives in the sibling octonion repos later. On the UI side, Character, Inventory, and Spellbook were consolidated into one fixed-size tabbed `GameModal` (panels scroll internally so switching tabs never resizes), the three screens became content providers instead of owning their own modal chrome, and the landing menu's Multiplayer/Options/Credits alerts became a styled in-menu modal. The day closed with a CLAUDE.md update documenting the new persistence and modal architecture so future agent sessions inherit the hazards and conventions.

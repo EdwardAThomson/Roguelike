@@ -27,6 +27,10 @@ import { SaveManager } from './modules/persistence/saveManager.js';
 import { IndexedDBSaveStore } from './modules/persistence/indexedDBSaveStore.js';
 import { CloudSaveStore } from './modules/persistence/cloudSaveStore.js';
 import { cloudConfigured } from './config.js';
+import { getDisplayMode, nextDisplayMode, loadDisplayMode, saveDisplayMode, viewportFor, canvasTarget } from './modules/render/displayModes.js';
+import { getHudLayout, nextHudLayout, loadHudLayout, saveHudLayout } from './modules/ui/hudLayouts.js';
+import { audio } from './modules/audio/audioEngine.js';
+import { AudioDirector } from './modules/audio/audioDirector.js';
 
 
 // Export a function to start the game
@@ -65,7 +69,12 @@ class RogueGame {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
-        this.tileSize = 24; // Reduced tile size for more visible area
+        // Display mode (Classic / ASCII) is a
+        // per-player setting from localStorage; it sets the tile size.
+        this.displayMode = loadDisplayMode();
+        this.tileSize = getDisplayMode(this.displayMode).tileSize;
+        // HUD layout (sidebar / action bar), also a per-player setting.
+        this.hudLayout = loadHudLayout();
         this.gridWidth = 80; // Width for rooms
         this.gridHeight = 40; // Height for rooms
         
@@ -84,6 +93,7 @@ class RogueGame {
         // Initialize managers
         this.stateManager = new GameStateManager(this);
         this.camera = new CameraManager(this);
+        this.applyViewport();
         this.fov = new FOVManager(this);
         
         // Magic system managers
@@ -91,18 +101,27 @@ class RogueGame {
         this.statusEffectManager = new StatusEffectManager(this);
         this.targetingSystem = new TargetingSystem(this);
         this.spellDatabase = new SpellDatabase();
+
+        // Sound: one shared Web Audio engine (also used by the menu for the
+        // title music) and a director that turns game state into sound.
+        this.audio = audio;
+        this.audioDirector = new AudioDirector(audio);
     }
 
     async init(options = {}) {
         // Log version
         Version.logVersion();
         
+        // Arrange the HUD first: the map's size depends on the layout.
+        this.applyHudLayoutClass();
+
         // Resize canvas
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
         
         // Set up key event listeners
         this.setupKeyListeners();
+        this.audio.installUnlock();
         
         // Initialize core systems
         this.input = new InputHandler();
@@ -144,6 +163,7 @@ class RogueGame {
         // Initialize UI
         this.ui = new UI(this);
         this.ui.initialize();
+        this.resizeCanvas();
         this.ui.addMessage('Welcome to Modern Rogue!', '#0ff');
         this.ui.addMessage('Use arrow keys to move.', '#aaa');
         this.ui.addMessage('Press H for help screen with controls and info.', '#0f0');
@@ -183,8 +203,9 @@ class RogueGame {
             // Most input is now handled through InputManager and UI.update()
             // This listener only handles special debug/cheat keys
             
-            // Map reveal toggle (cheat)
-            if (e.key === 'm' || e.key === 'M') {
+            // Map reveal toggle (cheat, Shift+M). Plain M opens the map
+            // screen via InputManager.handleUIInput.
+            if ((e.key === 'm' || e.key === 'M') && e.shiftKey) {
                 const revealed = this.stateManager.toggleMapReveal();
                 this.ui.addMessage(revealed ? 
                     'Full map revealed (cheat mode).' : 
@@ -192,6 +213,23 @@ class RogueGame {
                     revealed ? '#ff0' : '#aaa');
             }
             
+            // Cycle the graphics style (Classic / ASCII).
+            if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey && !e.altKey &&
+                this.stateManager.isPlaying()) {
+                this.cycleDisplayMode();
+            }
+
+            // Switch the HUD layout (sidebar / action bar).
+            if ((e.key === 'l' || e.key === 'L') && !e.ctrlKey && !e.metaKey && !e.altKey &&
+                this.stateManager.isPlaying()) {
+                this.cycleHudLayout();
+            }
+
+            // Mute / unmute all sound (N). Works while paused too.
+            if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                this.toggleSound();
+            }
+
             // Gate debug info (Shift+G) - debug only
             if (e.key === 'G' && e.shiftKey) {
                 if (this.worldManager && typeof this.worldManager.showGateDebugInfo === 'function') {
@@ -210,10 +248,76 @@ class RogueGame {
         });
     }
 
+    toggleSound() {
+        const muted = this.audio.toggleMute();
+        if (this.ui) {
+            this.ui.addMessage(muted ? 'Sound off (N to turn it back on).' : 'Sound on (N to mute).', '#aaa');
+        }
+        return muted;
+    }
+
+    // Fit the camera to the current display mode's tile size.
+    applyViewport() {
+        const container = typeof document !== 'undefined' && document.getElementById('game-container');
+        const rect = container ? container.getBoundingClientRect() : null;
+        const target = canvasTarget(rect && rect.width, rect && rect.height);
+        const viewport = viewportFor(getDisplayMode(this.displayMode), this.gridWidth, this.gridHeight, target);
+        this.camera.viewportWidth = viewport.width;
+        this.camera.viewportHeight = viewport.height;
+    }
+
+    setDisplayMode(id) {
+        const mode = getDisplayMode(id);
+        this.displayMode = mode.id;
+        this.tileSize = mode.tileSize;
+        saveDisplayMode(mode.id);
+        this.resizeCanvas();
+        if (this.camera && typeof this.camera.update === 'function') {
+            this.camera.update();
+        }
+        if (this.ui) {
+            this.ui.addMessage(`Graphics: ${mode.label} (T to change).`, '#aaa');
+        }
+        return mode;
+    }
+
+    cycleDisplayMode() {
+        return this.setDisplayMode(nextDisplayMode(this.displayMode).id);
+    }
+
+    applyHudLayoutClass() {
+        const container = typeof document !== 'undefined' && document.getElementById('main-container');
+        if (!container) return;
+        container.classList.remove('hud-layout-sidebar', 'hud-layout-actionbar');
+        container.classList.add(`hud-layout-${this.hudLayout}`);
+    }
+
+    setHudLayout(id) {
+        const layout = getHudLayout(id);
+        this.hudLayout = layout.id;
+        saveHudLayout(layout.id);
+        this.applyHudLayoutClass();
+        this.resizeCanvas();
+        if (this.ui) {
+            this.ui.addMessage(`Layout: ${layout.label} (L to change).`, '#aaa');
+        }
+        return layout;
+    }
+
+    cycleHudLayout() {
+        return this.setHudLayout(nextHudLayout(this.hudLayout).id);
+    }
+
     resizeCanvas() {
         // Get the game container to use its dimensions
         const gameContainer = document.getElementById('game-container');
         const containerRect = gameContainer.getBoundingClientRect();
+
+        // The viewport follows the container's shape and the display mode.
+        this.applyViewport();
+        if (this.camera && typeof this.camera.update === 'function') {
+            this.camera.update();
+        }
         
         // Adjust the canvas size to fill its container while maintaining aspect ratio
         this.canvas.width = this.camera.viewportWidth * this.tileSize;
@@ -246,6 +350,11 @@ class RogueGame {
         }
         
         this.renderer.render();
+
+        // Sound follows the frame's state (also after death, for the dirge).
+        if (this.audioDirector) {
+            this.audioDirector.update(this, timestamp);
+        }
         
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
     }

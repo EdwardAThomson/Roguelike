@@ -47,7 +47,7 @@ test('saves with Ctrl+S, then continues the run after a page reload', async ({ p
     const continueBtn = page.locator('#continue-btn');
     await expect(continueBtn).toBeVisible();
     await expect(continueBtn).toContainText(`Lv ${saved.level}`);
-    await expect(continueBtn).toContainText(saved.sectionId);
+    await expect(continueBtn).toContainText(saved.sectionId.replace('_', ', ')); // shown as "0, 0"
     await expect(continueBtn).toContainText('hardcore');
 
     // Continue bypasses the mode chooser entirely; the run keeps the mode

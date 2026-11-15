@@ -1,3 +1,5 @@
+import { spriteIconHtml } from '../render/itemIcons.js';
+
 export class HelpScreen {
     constructor(game) {
         this.game = game;
@@ -31,65 +33,95 @@ export class HelpScreen {
     addStyles() {
         const style = document.createElement('style');
         style.textContent = `
+            /* Same fixed frame as the game modal (.game-modal in style.css):
+               the size never changes between pages, the header and footer
+               stay put and only the page body scrolls. */
             .help-screen {
-                background-color: rgba(0, 0, 0, 0.9);
-                color: #fff;
-                padding: 20px;
-                border-radius: 10px;
-                font-family: monospace;
-                width: 80%;
-                max-width: 800px;
-                max-height: 85vh;
-                overflow-y: auto;
-                border: 2px solid #444;
+                flex-direction: column;
+                width: min(94vw, 1200px);
+                height: min(90vh, 820px);
+                box-sizing: border-box;
+                background-color: var(--ui-panel);
+                color: var(--ui-text);
+                border-radius: 6px;
+                font-family: var(--ui-font);
+                font-size: 13px;
+                overflow: hidden;
+                border: 2px solid var(--ui-line-strong);
+                box-shadow: 0 0 0 1px #000, 0 24px 60px rgba(0, 0, 0, 0.6);
                 margin: 0 auto;
             }
-            
-            .help-title {
-                font-size: 1.5em;
-                text-align: center;
-                margin-bottom: 15px;
-                color: #0c0;
-                border-bottom: 1px solid #444;
-                padding-bottom: 10px;
+
+            .help-header {
+                flex: 0 0 auto;
+                display: flex;
+                align-items: stretch;
+                border-bottom: 2px solid var(--ui-line);
+                background-color: var(--ui-panel-2);
             }
-            
+
+            .help-title {
+                display: flex;
+                align-items: center;
+                padding: 0 22px;
+                font-size: 18px;
+                color: var(--ui-gold);
+                font-family: var(--ui-font-display);
+                border-right: 1px solid var(--ui-line);
+            }
+
             .help-tabs {
                 display: flex;
-                margin-bottom: 15px;
-                border-bottom: 1px solid #333;
-                padding-bottom: 10px;
+                flex-wrap: wrap;
             }
-            
+
             .help-tab {
-                padding: 5px 15px;
+                padding: 13px 20px;
                 cursor: pointer;
-                border-radius: 5px;
-                margin-right: 10px;
+                color: var(--ui-muted);
+                font-family: var(--ui-font-display);
+                font-size: 15px;
             }
-            
+
             .help-tab:hover {
-                background-color: #333;
+                color: var(--ui-text);
             }
-            
+
             .help-tab.active {
-                background-color: #444;
-                color: #0c0;
+                background-color: var(--ui-panel);
+                box-shadow: inset 0 -2px 0 var(--ui-gold);
+                color: var(--ui-gold);
             }
-            
+
+            .help-scroll {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+                padding: 18px 22px;
+            }
+
+            /* Pages flow into columns so the wide frame is used instead of
+               one long scroll; narrow windows fall back to one column. */
             .help-content {
-                margin-bottom: 20px;
+                columns: 2 420px;
+                column-gap: 32px;
             }
-            
+
             .help-section {
                 margin-bottom: 20px;
+                break-inside: avoid;
             }
+
+            .help-screen ::-webkit-scrollbar { width: 10px; }
+            .help-screen ::-webkit-scrollbar-track { background: var(--ui-inset); }
+            .help-screen ::-webkit-scrollbar-thumb { background: var(--ui-line-strong); border-radius: 5px; }
             
             .help-section-title {
                 font-size: 1.2em;
-                color: #0c0;
+                color: var(--ui-gold);
+                font-family: var(--ui-font-display);
                 margin-bottom: 10px;
-                border-bottom: 1px solid #333;
+                border-bottom: 1px solid var(--ui-line);
                 padding-bottom: 5px;
             }
             
@@ -102,39 +134,43 @@ export class HelpScreen {
             .help-controls-table th, .help-controls-table td {
                 padding: 8px;
                 text-align: left;
-                border-bottom: 1px solid #333;
+                border-bottom: 1px solid var(--ui-line);
             }
             
             .help-controls-table th {
-                color: #0c0;
+                color: var(--ui-muted);
+                font-weight: 400;
             }
             
             .help-key {
                 display: inline-block;
-                background-color: #333;
-                border: 1px solid #555;
-                border-radius: 4px;
-                padding: 2px 6px;
-                font-family: monospace;
+                min-width: 12px;
+                border: 1px solid #4a4456;
+                border-bottom-width: 2px;
+                border-radius: 3px;
+                padding: 1px 6px;
+                text-align: center;
                 margin: 0 2px;
             }
             
             .help-footer {
-                margin-top: 20px;
-                border-top: 1px solid #444;
-                padding-top: 10px;
+                flex: 0 0 auto;
+                border-top: 1px solid var(--ui-line);
+                padding: 10px;
                 display: flex;
                 justify-content: center;
             }
             
             .help-close-button {
-                background-color: #333;
-                border: 1px solid #555;
-                color: #fff;
-                padding: 8px 15px;
-                border-radius: 5px;
+                min-height: 40px;
+                background-color: var(--ui-panel-2);
+                border: 1px solid var(--ui-line-strong);
+                color: var(--ui-text);
+                padding: 8px 18px;
+                border-radius: 3px;
                 cursor: pointer;
-                font-family: monospace;
+                font-family: var(--ui-font-display);
+                font-size: 15px;
             }
             
             .rarity-display {
@@ -148,18 +184,12 @@ export class HelpScreen {
                 margin-right: 10px;
             }
             
-            .rarity-common { color: #aaa; }
-            .rarity-uncommon { color: #5d5; }
-            .rarity-rare { color: #55d; }
-            .rarity-epic { color: #c5c; }
-            .rarity-legendary { color: #fb0; }
-            
             .item-example {
                 display: flex;
                 align-items: center;
-                background-color: rgba(40, 40, 40, 0.7);
-                border: 1px solid #555;
-                border-radius: 5px;
+                background-color: var(--ui-inset);
+                border: 1px solid var(--ui-line);
+                border-radius: 3px;
                 padding: 8px;
                 margin-bottom: 10px;
             }
@@ -185,9 +215,9 @@ export class HelpScreen {
             .item-example-button {
                 width: 20px;
                 height: 20px;
-                background-color: #333;
-                border: 1px solid #555;
-                color: #fff;
+                background-color: var(--ui-panel-2);
+                border: 1px solid var(--ui-line-strong);
+                color: var(--ui-text);
                 font-size: 10px;
                 border-radius: 3px;
                 display: flex;
@@ -196,13 +226,13 @@ export class HelpScreen {
             }
             
             .item-example-button.equip {
-                background-color: #22a;
-                border-color: #44c;
+                background-color: var(--ui-gold-dim);
+                border-color: var(--ui-gold);
             }
             
             .item-example-button.use {
-                background-color: #2a2;
-                border-color: #4c4;
+                background-color: #24375e;
+                border-color: var(--ui-mp);
             }
         `;
         document.head.appendChild(style);
@@ -218,7 +248,7 @@ export class HelpScreen {
     
     openHelpScreen() {
         this.isOpen = true;
-        this.helpElement.style.display = 'block';
+        this.helpElement.style.display = 'flex';
         document.getElementById('overlay-container').classList.add('active');
         this.updateContent();
 
@@ -237,15 +267,17 @@ export class HelpScreen {
     
     updateContent() {
         let content = `
-            <div class="help-title">Modern Rogue - Help</div>
-            
+            <div class="help-header">
+            <div class="help-title">Help</div>
             <div class="help-tabs">
                 <div class="help-tab ${this.currentPage === 'controls' ? 'active' : ''}" data-page="controls">Controls</div>
                 <div class="help-tab ${this.currentPage === 'items' ? 'active' : ''}" data-page="items">Items & Inventory</div>
                 <div class="help-tab ${this.currentPage === 'stats' ? 'active' : ''}" data-page="stats">Character Stats</div>
                 <div class="help-tab ${this.currentPage === 'about' ? 'active' : ''}" data-page="about">About</div>
             </div>
-            
+            </div>
+
+            <div class="help-scroll">
             <div class="help-content">
         `;
         
@@ -267,7 +299,8 @@ export class HelpScreen {
         
         content += `
             </div>
-            
+            </div>
+
             <div class="help-footer">
                 <button class="help-close-button">Close Help (H)</button>
             </div>
@@ -357,6 +390,11 @@ export class HelpScreen {
                         <td>Open the game menu on the Spellbook tab</td>
                     </tr>
                     <tr>
+                        <td>Map Tab</td>
+                        <td><span class="help-key">M</span></td>
+                        <td>Open the map: Area (this section) or World (every section you have visited); 1/2 or Tab switch</td>
+                    </tr>
+                    <tr>
                         <td>Drop Item</td>
                         <td><span class="help-key">Z</span></td>
                         <td>Open the inventory in drop mode (click or press 1-9 to drop)</td>
@@ -365,6 +403,26 @@ export class HelpScreen {
                         <td>Help Screen</td>
                         <td><span class="help-key">H</span></td>
                         <td>Open this help screen</td>
+                    </tr>
+                    <tr>
+                        <td>Graphics Style</td>
+                        <td><span class="help-key">T</span></td>
+                        <td>Switch between Classic and ASCII</td>
+                    </tr>
+                    <tr>
+                        <td>HUD Layout</td>
+                        <td><span class="help-key">L</span></td>
+                        <td>Switch between the sidebar and the bottom action bar</td>
+                    </tr>
+                    <tr>
+                        <td>Sound</td>
+                        <td><span class="help-key">N</span></td>
+                        <td>Mute or unmute music and sound effects (volumes are in the menu's Options)</td>
+                    </tr>
+                    <tr>
+                        <td>Quick Use</td>
+                        <td><span class="help-key">1</span> <span class="help-key">2</span> <span class="help-key">3</span></td>
+                        <td>Drink or use the potions and wands on your belt (shown on the HUD)</td>
                     </tr>
                     <tr>
                         <td>Save Game</td>
@@ -378,7 +436,7 @@ export class HelpScreen {
                     </tr>
                 </table>
                 <p style="margin-top: 10px; color: #aaa; font-size: 0.9em;">
-                    The Inventory, Character and Spellbook tabs share one menu: the game pauses while
+                    The Inventory, Character, Spellbook and Map tabs share one menu: the game pauses while
                     it is open, pressing a tab's key again (or Esc) closes it, and pressing another
                     tab's key switches tabs.
                 </p>
@@ -520,7 +578,7 @@ export class HelpScreen {
                 <div class="help-section-title">Item Types</div>
                 
                 <div class="item-example">
-                    <div class="item-example-icon rarity-rare">⚔️</div>
+                    <div class="item-example-icon rarity-rare">${spriteIconHtml('axe')}</div>
                     <div class="item-example-name">
                         <div class="rarity-rare">Battle Axe</div>
                         <div style="font-size: 0.8em; color: #888;">Weapon (weapon)</div>
@@ -532,7 +590,7 @@ export class HelpScreen {
                 <p><strong>Weapons</strong>: Increase your Attack Power and sometimes other attributes. Equip in weapon slot.</p>
                 
                 <div class="item-example">
-                    <div class="item-example-icon rarity-uncommon">👕</div>
+                    <div class="item-example-icon rarity-uncommon">${spriteIconHtml('armor')}</div>
                     <div class="item-example-name">
                         <div class="rarity-uncommon">Chainmail</div>
                         <div style="font-size: 0.8em; color: #888;">Armor (body)</div>
@@ -544,7 +602,7 @@ export class HelpScreen {
                 <p><strong>Armor</strong>: Increases your Defense and sometimes other attributes. Comes in head, body, and feet slots.</p>
                 
                 <div class="item-example">
-                    <div class="item-example-icon rarity-common">🧪</div>
+                    <div class="item-example-icon rarity-common">${spriteIconHtml('potion_health')}</div>
                     <div class="item-example-name">
                         <div class="rarity-common">Health Potion</div>
                         <div style="font-size: 0.8em; color: #888;">Consumable</div>
@@ -556,7 +614,7 @@ export class HelpScreen {
                 <p><strong>Consumables</strong>: One-time use items like potions that can restore health, mana, or provide other effects.</p>
                 
                 <div class="item-example">
-                    <div class="item-example-icon rarity-epic">💍</div>
+                    <div class="item-example-icon rarity-epic">${spriteIconHtml('ring')}</div>
                     <div class="item-example-name">
                         <div class="rarity-epic">Ring of Strength</div>
                         <div style="font-size: 0.8em; color: #888;">Accessory (ring)</div>

@@ -1,3 +1,5 @@
+import { spellIconHtml } from '../render/itemIcons.js';
+
 // SpellbookUI - the spellbook tab of the game modal
 export class SpellbookUI {
     constructor(game) {
@@ -51,11 +53,11 @@ export class SpellbookUI {
                 flex: 0 0 auto;
                 padding: 8px 12px;
                 margin-bottom: 12px;
-                border: 1px solid #0af;
-                border-radius: 5px;
-                color: #0ff;
-                background-color: rgba(0, 170, 255, 0.12);
-                font-weight: bold;
+                border: 1px solid var(--ui-gold);
+                border-radius: 3px;
+                color: var(--ui-gold-bright);
+                background-color: rgba(216, 166, 74, 0.12);
+                font-weight: 600;
                 text-align: center;
                 visibility: hidden; /* keeps its space; zero reflow when shown */
             }
@@ -71,13 +73,13 @@ export class SpellbookUI {
             }
 
             .spell-slot.capturing {
-                border-color: #0af;
+                border-color: var(--ui-gold);
                 animation: sb-pulse 0.8s infinite alternate;
             }
 
             @keyframes sb-pulse {
-                from { box-shadow: 0 0 4px rgba(0, 170, 255, 0.4); }
-                to { box-shadow: 0 0 14px rgba(0, 170, 255, 0.9); }
+                from { box-shadow: 0 0 4px rgba(216, 166, 74, 0.4); }
+                to { box-shadow: 0 0 14px rgba(216, 166, 74, 0.9); }
             }
 
             .spellbook-container {
@@ -85,208 +87,172 @@ export class SpellbookUI {
                 gap: 20px;
                 height: 100%;
             }
-            
+
             .spell-slots-panel {
                 flex: 0 0 250px;
-                background-color: rgba(20, 20, 20, 0.8);
-                border-radius: 8px;
-                padding: 15px;
             }
-            
-            .spell-slots-panel h3 {
-                margin: 0 0 15px 0;
-                color: #0af;
-                font-size: 16px;
-                border-bottom: 1px solid #444;
-                padding-bottom: 8px;
+
+            .spell-slots-panel h3,
+            .spell-list-panel h3 {
+                margin: 0 0 12px 0;
+                font-size: 15px;
             }
-            
+
             .spell-slot {
-                background-color: rgba(40, 40, 40, 0.9);
-                border: 2px solid #555;
-                border-radius: 6px;
-                padding: 10px;
-                margin-bottom: 10px;
-                cursor: pointer;
-                transition: all 0.2s;
-                min-height: 60px;
                 display: flex;
                 align-items: center;
                 gap: 10px;
+                min-height: 56px;
+                margin-bottom: 8px;
+                padding: 8px 10px;
+                background-color: var(--ui-inset);
+                border: 1px solid var(--ui-gold-dim);
+                border-radius: 3px;
+                cursor: pointer;
             }
-            
+
             .spell-slot:hover {
-                border-color: #0af;
-                background-color: rgba(50, 50, 50, 0.9);
+                border-color: var(--ui-gold);
             }
-            
+
             .spell-slot.empty {
                 border-style: dashed;
-                border-color: #333;
-                justify-content: center;
-                color: #666;
+                border-color: var(--ui-line-strong);
+                color: var(--ui-faint);
             }
-            
-            .spell-slot.empty:hover {
-                border-color: #555;
-            }
-            
+
             .spell-slot-key {
-                font-size: 20px;
-                font-weight: bold;
-                color: #0af;
-                background-color: rgba(0, 170, 255, 0.2);
-                border: 1px solid #0af;
-                border-radius: 4px;
-                width: 32px;
-                height: 32px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
+                width: 30px;
+                height: 30px;
+                border: 1px solid #4a4456;
+                border-bottom-width: 3px;
+                border-radius: 3px;
+                color: var(--ui-text);
+                font-family: var(--ui-font-display);
+                font-size: 16px;
             }
-            
+
             .spell-slot-info {
                 flex: 1;
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
-            
+
             .spell-slot-name {
-                font-weight: bold;
-                color: #fff;
+                color: var(--ui-text);
                 margin-bottom: 2px;
             }
-            
-            .spell-slot-mana {
+
+            .spell-slot-mana,
+            .spell-item-mana {
                 font-size: 12px;
-                color: #0af;
+                color: #8fb4f0;
             }
-            
+
             .spell-list-panel {
                 flex: 1;
-                background-color: rgba(20, 20, 20, 0.8);
-                border-radius: 8px;
-                padding: 15px;
+                padding-right: 6px;
                 overflow-y: auto;
-                overflow-x: visible;
             }
-            
-            .spell-list-panel h3 {
-                margin: 0 0 15px 0;
-                color: #0af;
-                font-size: 16px;
-                border-bottom: 1px solid #444;
-                padding-bottom: 8px;
-            }
-            
+
             .spell-item {
-                background-color: rgba(40, 40, 40, 0.9);
-                border: 2px solid #555;
-                border-radius: 6px;
+                margin-bottom: 8px;
                 padding: 12px;
-                margin-bottom: 10px;
+                background-color: var(--ui-inset);
+                border: 1px solid var(--ui-line-strong);
+                border-radius: 3px;
                 cursor: pointer;
-                transition: all 0.2s;
-                overflow: visible;
             }
-            
+
             .spell-item:hover {
-                border-color: #0af;
-                background-color: rgba(50, 50, 50, 0.9);
+                border-color: var(--ui-gold-dim);
             }
-            
+
             .spell-item.locked {
-                opacity: 0.5;
-                border-color: #333;
+                opacity: 0.55;
+                border-color: var(--ui-line);
                 cursor: not-allowed;
             }
-            
-            .spell-item.locked:hover {
-                border-color: #444;
-                background-color: rgba(40, 40, 40, 0.9);
+
+            .spell-item.locked .pixel-icon {
+                filter: grayscale(1);
             }
-            
+
             .spell-item.selected {
-                border-color: #0f0;
-                background-color: rgba(0, 255, 0, 0.1);
+                border-color: var(--ui-gold);
+                background-color: #2a2233;
             }
-            
+
             .spell-item-header {
                 display: flex;
                 align-items: center;
                 gap: 10px;
                 margin-bottom: 8px;
             }
-            
-            .spell-item-icon {
-                font-size: 24px;
-            }
-            
+
             .spell-item-title {
                 flex: 1;
             }
-            
+
             .spell-item-name {
-                font-weight: bold;
-                color: #fff;
-                margin-bottom: 2px;
+                color: var(--ui-text);
+                font-family: var(--ui-font-display);
+                font-size: 16px;
             }
-            
-            .spell-item-mana {
-                font-size: 12px;
-                color: #0af;
-            }
-            
+
             .spell-item-lock {
-                color: #f55;
-                font-size: 18px;
+                color: var(--ui-faint);
+                font-size: 11px;
             }
-            
+
             .spell-item-desc {
-                color: #aaa;
-                font-size: 13px;
                 margin-bottom: 8px;
+                color: var(--ui-text-soft);
             }
-            
+
             .spell-item-stats {
                 display: flex;
-                gap: 15px;
-                font-size: 12px;
-                color: #888;
+                flex-wrap: wrap;
+                gap: 6px;
+                font-size: 11px;
             }
-            
+
             .spell-item-stat {
-                display: flex;
-                align-items: center;
-                gap: 4px;
+                padding: 2px 8px;
+                border: 1px solid var(--ui-line-strong);
+                border-radius: 3px;
+                color: var(--ui-muted);
             }
-            
+
             .spell-assign-button {
-                background-color: #0a5;
-                border: 2px solid #0f0;
-                color: #fff;
-                padding: 8px 16px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-family: monospace;
-                font-size: 14px;
-                font-weight: bold;
-                margin-top: 10px;
-                width: 100%;
-                transition: background-color 0.2s;
                 display: block;
+                width: 100%;
+                min-height: 40px;
+                margin-top: 10px;
+                background-color: var(--ui-gold);
+                border: 1px solid var(--ui-gold-bright);
+                border-radius: 3px;
+                color: #1a1408;
+                font-family: var(--ui-font-display);
+                font-size: 15px;
+                cursor: pointer;
             }
-            
+
             .spell-assign-button:hover {
-                background-color: #0c7;
-                border-color: #0ff;
+                background-color: var(--ui-gold-bright);
             }
-            
+
             .spell-assign-button:disabled {
-                background-color: #333;
-                color: #666;
+                background-color: var(--ui-panel-2);
+                border-color: var(--ui-line);
+                color: var(--ui-faint);
                 cursor: not-allowed;
             }
-            
         `;
         document.head.appendChild(style);
     }
@@ -305,7 +271,7 @@ export class SpellbookUI {
         
         // Left panel: Spell slots (hotbar)
         html += '<div class="spell-slots-panel">';
-        html += '<h3>🔥 Spell Hotbar</h3>';
+        html += '<h3>Hotbar</h3>';
         
         for (const slot of summary.spellSlots) {
             if (slot.spell) {
@@ -313,8 +279,11 @@ export class SpellbookUI {
                     <div class="spell-slot" data-slot="${slot.slotIndex}">
                         <div class="spell-slot-key">${slot.key}</div>
                         <div class="spell-slot-info">
-                            <div class="spell-slot-name">${slot.spell.icon} ${slot.spell.name}</div>
-                            <div class="spell-slot-mana">💧 ${slot.spell.manaCost} mana</div>
+                            ${spellIconHtml(slot.spell.id)}
+                            <div>
+                                <div class="spell-slot-name">${slot.spell.name}</div>
+                                <div class="spell-slot-mana">${slot.spell.manaCost} mana</div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -322,7 +291,7 @@ export class SpellbookUI {
                 html += `
                     <div class="spell-slot empty" data-slot="${slot.slotIndex}">
                         <div class="spell-slot-key">${slot.key}</div>
-                        <div style="color: #666;">Empty Slot</div>
+                        <div>Empty slot</div>
                     </div>
                 `;
             }
@@ -332,7 +301,7 @@ export class SpellbookUI {
         
         // Right panel: All spells
         html += '<div class="spell-list-panel">';
-        html += `<h3>📖 Known Spells (${summary.knownSpellCount})</h3>`;
+        html += `<h3>Known spells (${summary.knownSpellCount})</h3>`;
         
         // Get all possible spells (including locked ones)
         const allSpells = this.getAllSpellDefinitions();
@@ -347,23 +316,23 @@ export class SpellbookUI {
             html += `
                 <div class="spell-item ${classes.join(' ')}" data-spell-id="${spell.id}">
                     <div class="spell-item-header">
-                        <div class="spell-item-icon">${spell.icon}</div>
+                        <div class="spell-item-icon">${spellIconHtml(spell.id)}</div>
                         <div class="spell-item-title">
                             <div class="spell-item-name">${spell.name}</div>
-                            <div class="spell-item-mana">💧 ${spell.manaCost} mana</div>
+                            <div class="spell-item-mana">${spell.manaCost} mana</div>
                         </div>
-                        ${!isUnlocked ? '<div class="spell-item-lock">🔒</div>' : ''}
+                        ${!isUnlocked ? '<div class="spell-item-lock">Locked</div>' : ''}
                     </div>
                     <div class="spell-item-desc">${spell.description}</div>
                     <div class="spell-item-stats">
-                        ${spell.baseDamage ? `<div class="spell-item-stat">⚔️ ${spell.baseDamage} base dmg</div>` : ''}
-                        ${spell.damage ? `<div class="spell-item-stat">⚔️ ${spell.damage.min}-${spell.damage.max}</div>` : ''}
-                        ${spell.healing ? `<div class="spell-item-stat">💚 ${spell.healing.min}-${spell.healing.max}</div>` : ''}
-                        <div class="spell-item-stat">📏 Range: ${spell.range}</div>
-                        ${spell.damageType ? `<div class="spell-item-stat">🔮 ${spell.damageType}</div>` : ''}
-                        ${spell.element ? `<div class="spell-item-stat">🔮 ${spell.element}</div>` : ''}
+                        ${spell.baseDamage ? `<div class="spell-item-stat">${spell.baseDamage} base damage</div>` : ''}
+                        ${spell.damage ? `<div class="spell-item-stat">${spell.damage.min}–${spell.damage.max} damage</div>` : ''}
+                        ${spell.healing ? `<div class="spell-item-stat">Heals ${spell.healing.min}–${spell.healing.max}</div>` : ''}
+                        <div class="spell-item-stat">Range ${spell.range}</div>
+                        ${spell.damageType ? `<div class="spell-item-stat">${spell.damageType}</div>` : ''}
+                        ${spell.element ? `<div class="spell-item-stat">${spell.element}</div>` : ''}
                     </div>
-                    ${isUnlocked ? `<button class="spell-assign-button" data-spell-id="${spell.id}">⚡ Assign to Hotkey</button>` : '<div style="color: #666; font-size: 12px; margin-top: 8px;">🔒 Find a scroll to unlock</div>'}
+                    ${isUnlocked ? `<button class="spell-assign-button" data-spell-id="${spell.id}">Assign to a hotkey</button>` : '<div class="spell-item-lock" style="margin-top: 8px;">Find a scroll to unlock</div>'}
                 </div>
             `;
         }

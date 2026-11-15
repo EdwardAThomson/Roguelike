@@ -4,6 +4,9 @@ import { IndexedDBSaveStore } from './modules/persistence/indexedDBSaveStore.js'
 import { SAVE_SLOT, isCompatibleEnvelope } from './modules/persistence/saveSchema.js';
 import { authClient } from './modules/persistence/authClient.js';
 import { CloudSaveStore } from './modules/persistence/cloudSaveStore.js';
+import { DISPLAY_MODES, loadDisplayMode, saveDisplayMode } from './modules/render/displayModes.js';
+import { HUD_LAYOUTS, loadHudLayout, saveHudLayout } from './modules/ui/hudLayouts.js';
+import { audio } from './modules/audio/audioEngine.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Update version display dynamically
@@ -31,6 +34,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalBody = document.getElementById('menu-modal-body');
     const modalClose = document.getElementById('menu-modal-close');
 
+    // Title music starts with the first click or key press (browsers block
+    // audio before a gesture); menu buttons click.
+    audio.installUnlock();
+    audio.playMusic('title');
+    landingPage.addEventListener('click', (e) => {
+        if (e.target.closest('button')) audio.play('uiClick');
+    });
+
     // Remember the player's last mode pick to highlight it as the default.
     const LAST_MODE_KEY = 'modernrogue.lastMode';
 
@@ -43,13 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
     modeHardcore.addEventListener('click', () => pickMode(true));
     modeBack.addEventListener('click', hideModeSelect);
     multiplayerBtn.addEventListener('click', () => openMenuModal('Multiplayer', `
-        <p>Multiplayer is on the roadmap but not implemented yet.</p>
+        <p><strong>In development.</strong> Multiplayer is on the roadmap but not playable yet.</p>
         <p>For now, brave the dungeon solo. Adventurers wanted!</p>
     `));
-    optionsBtn.addEventListener('click', () => openMenuModal('Options', `
-        <p>No options to tweak yet.</p>
-        <p>Keybindings, accessibility settings and more are planned.</p>
-    `));
+    optionsBtn.addEventListener('click', openOptions);
     creditsBtn.addEventListener('click', () => openMenuModal('Credits', `
         <p><strong>Developed by:</strong> Edward Thomson</p>
         <p>Built with vanilla JavaScript and HTML5 Canvas.</p>
@@ -102,6 +110,84 @@ document.addEventListener('DOMContentLoaded', () => {
         modalBackdrop.style.display = 'flex';
     }
 
+    // Options: the graphics style and the HUD layout are display settings
+    // stored per player, separate from any run (T and L cycle them in game).
+    function openOptions() {
+        const currentMode = loadDisplayMode();
+        const currentLayout = loadHudLayout();
+        const radioGroup = (label, attr, options, current) => `
+            <p class="menu-option-label">${label}</p>
+            <div class="display-mode-list" role="radiogroup" aria-label="${label}">
+                ${options.map(o => `
+                    <button type="button" class="display-mode-btn" role="radio" ${attr}="${o.id}"
+                        aria-checked="${o.id === current}">${o.label}</button>`).join('')}
+            </div>`;
+        openMenuModal('Options', `
+            ${radioGroup('Graphics', 'data-display-mode', DISPLAY_MODES, currentMode)}
+            <p class="menu-option-hint">Press T in game to switch between them.</p>
+            ${radioGroup('Layout', 'data-hud-layout', HUD_LAYOUTS, currentLayout)}
+            <p class="menu-option-hint">Sidebar keeps everything beside the map; Action bar puts it along the bottom. Press L in game to switch.</p>
+            ${soundOptions()}
+        `);
+        const wire = (attr, save) => {
+            const buttons = modalBody.querySelectorAll(`[${attr}]`);
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    save(btn.getAttribute(attr));
+                    buttons.forEach(b => b.setAttribute('aria-checked', String(b === btn)));
+                });
+            });
+        };
+        wire('data-display-mode', saveDisplayMode);
+        wire('data-hud-layout', saveHudLayout);
+        wireSoundOptions();
+    }
+
+    // Sound: master / music / effects volume and mute (N mutes in game).
+    const VOLUME_SLIDERS = [
+        { key: 'master', label: 'Master' },
+        { key: 'music', label: 'Music' },
+        { key: 'sfx', label: 'Effects' }
+    ];
+
+    function soundOptions() {
+        const s = audio.getSettings();
+        return `
+            <p class="menu-option-label">Sound</p>
+            <div class="volume-list">
+                ${VOLUME_SLIDERS.map(v => `
+                    <label class="volume-row">
+                        <span>${v.label}</span>
+                        <input type="range" min="0" max="100" step="5" data-volume="${v.key}"
+                            value="${Math.round(s[v.key] * 100)}" aria-label="${v.label} volume">
+                        <output>${Math.round(s[v.key] * 100)}</output>
+                    </label>`).join('')}
+                <button type="button" class="display-mode-btn volume-mute" role="switch" data-sound-mute
+                    aria-checked="${!s.muted}">${s.muted ? 'Sound off' : 'Sound on'}</button>
+            </div>
+            <p class="menu-option-hint">Music and effects are made by the game itself. Press N in game to mute.</p>`;
+    }
+
+    function wireSoundOptions() {
+        modalBody.querySelectorAll('[data-volume]').forEach(input => {
+            input.addEventListener('input', () => {
+                const value = Number(input.value) / 100;
+                audio.setSettings({ [input.dataset.volume]: value });
+                input.nextElementSibling.textContent = input.value;
+            });
+            // Let the player hear the effects level they picked.
+            input.addEventListener('change', () => {
+                if (input.dataset.volume !== 'music') audio.play('pickup');
+            });
+        });
+        const mute = modalBody.querySelector('[data-sound-mute]');
+        mute.addEventListener('click', () => {
+            const muted = audio.toggleMute();
+            mute.setAttribute('aria-checked', String(!muted));
+            mute.textContent = muted ? 'Sound off' : 'Sound on';
+        });
+    }
+
     function closeMenuModal() {
         modalBackdrop.style.display = 'none';
     }
@@ -130,8 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isCompatibleEnvelope(envelope)) {
                 const meta = envelope.meta || {};
                 const mode = meta.hardcore ? ', hardcore' : '';
-                continueBtn.textContent =
-                    `Continue (Lv ${meta.playerLevel ?? '?'}, section ${meta.currentSectionId ?? '?'}${mode})`;
+                continueBtn.innerHTML = `Continue <span class="menu-btn-meta">Lv ${meta.playerLevel ?? '?'} · section ${
+                    String(meta.currentSectionId ?? '?').replace('_', ', ')}${mode}</span>`;
                 continueBtn.style.display = '';
             } else {
                 continueBtn.style.display = 'none';
@@ -183,13 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide the landing page
         landingPage.style.display = 'none';
 
-        // Show the main container and explicitly set its display to flex
-        mainContainer.style.display = 'flex';
-
-        // Explicitly set the UI container's display properties
-        const uiContainer = document.getElementById('ui-container');
-        uiContainer.style.display = 'flex';
-        uiContainer.style.flexDirection = 'column';
+        // Show the game; the HUD layout class on it decides the arrangement.
+        mainContainer.style.display = '';
 
         // Initialize the game
         if (window.startGame && typeof window.startGame === 'function') {

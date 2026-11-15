@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.0] - 2026-11-07 "Torchlight"
+
+### Added
+- **Save & Continue**
+  - Local saves in IndexedDB: manual save (Ctrl+S), autosave on section transitions, and Continue on the main menu
+  - Run modes chosen at the start of each run: Adventure (death resumes from the last save) or Hardcore (death erases the save)
+  - Dormant cloud-save layer (Octonion hub sign-in, gateway save store), inactive until `config.js` is filled in
+
+- **Graphics**
+  - Four display styles, cycled with T or picked in Options: 16-bit with dynamic lighting (default), 16-bit, ASCII, and Classic
+  - 16 px pixel art drawn at 2x: three-quarter walls, per-theme materials, torches, banners, candles, carpets and bones
+  - Smooth movement, camera glide, melee lunges, hit flashes, damage numbers, death fades and projectile bursts
+
+- **World Map**
+  - Map tab (M) with an Area view of the current section and a pannable, zoomable World view of every visited section
+
+- **Audio**
+  - Music for the title screen, each dungeon theme, combat and death, plus sound effects, all synthesized live with Web Audio (no audio files)
+  - Master, music and effects volume in Options; N toggles mute
+
+### Changed
+- **UI Redesign**
+  - New HUD with hero bars, stats, equipped gear, a spell hotbar, a three-slot potion/wand belt (1/2/3) and clickable key hints
+  - Two HUD layouts, sidebar (default) and bottom action bar, picked in Options or cycled with L
+  - Character, Inventory, Spellbook and Map share one fixed-size tabbed modal that really pauses the game
+  - Pixel-sprite icons and vendored pixel/mono fonts replace emoji and system fonts
+  - Reworked title screen and menu; Multiplayer is marked as in development
+  - Spell hotkeys are bound in place in the Spellbook tab; native browser dialogs are gone from the game and menu
+
+---
+
 ## [0.5.0] - 2026-07-02 "Crypts & Castles"
 
 ### Added

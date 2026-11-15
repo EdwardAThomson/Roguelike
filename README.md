@@ -1,27 +1,31 @@
-# Modern Roguelike
+# Modern Rogue Classic
 
-**Version 0.5.0 "Crypts & Castles"** | July 2026
+**The free, open edition of Modern Rogue** | Classic 1.0 (based on 0.6.0 "Torchlight")
 
-A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features procedurally generated dungeons, tactical combat, magic system, and an immersive exploration experience.
+A roguelike built with vanilla JavaScript and HTML5 Canvas: procedurally generated dungeons, tactical combat, a magic system and an open world to explore. This edition is frozen; it gets occasional fixes but no new features.
+
+Modern Rogue itself, with 16-bit pixel art and lighting, the Descent campaign, a town hub, bosses and more, is developed separately.
 
 ## 🎮 Features
 
+- **Two display styles**: Classic tiles (default) or ASCII; press T to switch
 - **Magic System**: 10 spells across offensive, healing, and utility categories with projectile-based combat
 - **Spell Scaling**: Intelligence-based damage scaling with level bonuses for character progression
 - **Status Effects**: Damage over time, healing over time, buffs, debuffs, stun, and slow effects
-- **Tactical Combat**: Strategic turn-based combat system with various monsters and weapons
-- **Character Progression**: Stat point allocation system enabling wizard, warrior, and hybrid builds
-- **Procedural Generation**: Dynamically generated dungeons with varied layouts and challenges
-- **Dungeon Themes**: Cave, castle, and crypt sections with distinct visuals and theme-specific monster spawns
-- **Inventory System**: Comprehensive item management with equipment, consumables, and loot
-- **Field of View**: Realistic line-of-sight and fog of war mechanics
-- **World Management**: Multi-section world with seamless transitions
-- **Save & Continue**: Local saves (IndexedDB) with manual save (Ctrl+S), autosave on section transitions, and a Continue option on the main menu
-- **Run Modes**: Adventure (death resumes from the last save) or Hardcore (death erases the save), chosen at the start of each run
-- **Modular Architecture**: Clean, extensible codebase with separated concerns
-- **Rich UI**: Intuitive interface with inventory, character screen, and help system
+- **Tactical Combat**: Turn-based combat with melee, ranged and spellcasting monsters
+- **Character Progression**: Stat point allocation enabling wizard, warrior, and hybrid builds
+- **Procedural Generation**: Dynamically generated dungeons with gates and keys
+- **Dungeon Themes**: Cave, castle, and crypt sections with theme-specific monster spawns
+- **Open World**: An unbounded grid of sections, with a world map (M)
+- **Save & Continue**: Local saves (IndexedDB) with manual save (Ctrl+S) and autosave on section transitions
+- **Run Modes**: Adventure (death resumes from the last save) or Hardcore (death erases the save)
+- **HUD Layouts**: Sidebar or bottom action bar, picked in Options or cycled with L
+- **Generated Audio**: Themed music and sound effects synthesized live with Web Audio (no audio files)
 
-![Gameplay](screenshots/screenshot.png)
+<p>
+  <img src="screenshots/classic.png" alt="Classic display style" width="49%">
+  <img src="screenshots/ascii.png" alt="ASCII display style" width="49%">
+</p>
 
 ## 🚀 Getting Started
 
@@ -35,8 +39,8 @@ A modern roguelike game built with vanilla JavaScript and HTML5 Canvas. Features
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd NewRoguelike
+git clone https://github.com/EdwardAThomson/Roguelike.git
+cd Roguelike
 ```
 
 2. Install dependencies:
@@ -67,9 +71,11 @@ npx http-server . -p 8080 -c-1 -o
 - **C**: Toggle character screen
 - **B**: Toggle spellbook
 - **H**: Toggle help screen
+- **T**: Switch between Classic and ASCII
 - **Ctrl+S**: Save the game (also autosaves when changing sections)
 - **Esc**: Close any open screen
-- **M**: Toggle map reveal (debug/cheat mode)
+- **M**: Open the map (Area view of this section, World view of every visited section; 1/2 or Tab to switch)
+- **Shift+M**: Toggle map reveal (debug/cheat mode)
 - **Shift+G**: Show gate debug information
 
 ### Gameplay
@@ -180,3 +186,7 @@ The narrative development log lives at [`DEVLOG.md`](DEVLOG.md) in the repo root
 - Inspired by classic roguelike games
 - Uses HTML5 Canvas for rendering
 - Modular design for easy extension and maintenance
+
+## 📜 Licence
+
+The code is licensed under the GNU General Public License v3.0 or later (see [`LICENSE`](LICENSE)). The fonts in `assets/fonts/` are under the SIL Open Font License. The "Modern Rogue" name and Octonion Software branding are not covered by the licence; see [`NOTICE`](NOTICE).

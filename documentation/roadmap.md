@@ -52,7 +52,7 @@ This document outlines the planned features and enhancements for the Modern Rogu
 - Add accessibility options, such as color-blind mode and adjustable text size.
 - Optimize the UI for different screen sizes and resolutions.
 
-## 8. Sound and Music `[TODO]`
+## 8. Sound and Music `[DONE]`
 - Incorporate immersive sound effects for actions, environments, and monsters.
 - Add background music that dynamically changes based on the game state and dungeon theme.
 - Implement a music and sound settings menu for player customization.

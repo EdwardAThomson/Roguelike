@@ -1,12 +1,35 @@
 // New module for rendering the game
+//
+// Dispatches to the active display mode (see render/displayModes.js). The
+// Classic mode is the original renderer below; ASCII lives in render/. Every mode only reads game state.
+
+import { EffectsTracker } from './render/effects.js';
+import { SectionScene } from './render/sectionScene.js';
+import { AsciiBackend } from './render/asciiBackend.js';
 
 export class Renderer {
     constructor(game) {
         this.game = game;
         this.ctx = game.ctx;
+        this.effects = new EffectsTracker();
+        this.scene = new SectionScene();
+        this.backends = {
+            ascii: new AsciiBackend(game)
+        };
     }
 
     render() {
+        const mode = this.game.displayMode || 'classic';
+        const now = performance.now();
+        // Observe every frame, whatever the mode, so switching modes never
+        // replays stale hits or tweens.
+        this.effects.update(this.game, now);
+
+        if (mode !== 'classic') {
+            this.renderModern(mode, now);
+            return;
+        }
+
         // Clear the canvas
         this.ctx.clearRect(0, 0, this.game.canvas.width, this.game.canvas.height);
         
@@ -39,6 +62,35 @@ export class Renderer {
         
         // Draw section ID in top left corner
         this.renderSectionID();
+    }
+
+    renderModern(mode, now) {
+        const game = this.game;
+        if (!game.camera || !game.map) return;
+        this.scene.sync(game);
+        this.backends.ascii.render(this.scene, this.effects, now);
+        this.renderTargetingCursor();
+        if (game.stateManager.mapRevealed) {
+            this.renderGateIndicators();
+        }
+        this.renderSectionLabel();
+    }
+
+    // A quieter version of renderSectionID for the ASCII mode.
+    renderSectionLabel() {
+        const theme = this.game.dungeon && this.game.dungeon.theme;
+        const themeLabel = theme ? ` · ${theme.charAt(0).toUpperCase()}${theme.slice(1)}` : '';
+        const area = this.game.dungeonArea > 1 ? ` · Area ${this.game.dungeonArea}` : '';
+        const text = `Section ${this.game.worldX}, ${this.game.worldY}${themeLabel}${area}`;
+        const ctx = this.ctx;
+        ctx.font = 'bold 14px "DejaVu Sans Mono", Menlo, Consolas, monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        const w = ctx.measureText(text).width;
+        ctx.fillStyle = 'rgba(7, 6, 12, 0.7)';
+        ctx.fillRect(8, 8, w + 16, 24);
+        ctx.fillStyle = '#e8d8a8';
+        ctx.fillText(text, 16, 13);
     }
 
     renderDungeon() {

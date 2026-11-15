@@ -1,6 +1,6 @@
 {
-  "name": "modern-rogue",
-  "version": "0.5.0",
+  "name": "modern-rogue-classic",
+  "version": "0.6.0",
   "description": "A modern browser-based roguelike game inspired by the original Rogue",
   "scripts": {
     "start": "npx http-server . -p 8080 -o",
@@ -17,5 +17,6 @@
     "http-server": "^14.1.1",
     "vite": "^5.0.0",
     "vitest": "^4.1.7"
-  }
+  },
+  "license": "GPL-3.0-or-later"
 }
