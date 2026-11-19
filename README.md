@@ -4,7 +4,7 @@
 
 A roguelike built with vanilla JavaScript and HTML5 Canvas: procedurally generated dungeons, tactical combat, a magic system and an open world to explore. This edition is frozen; it gets occasional fixes but no new features.
 
-Modern Rogue itself, with 16-bit pixel art and lighting, the Descent campaign, a town hub, bosses and more, is developed separately.
+Its successor, **Below Emberwick**, with 16-bit pixel art and lighting, the descent beneath the town of Emberwick, bosses and more, is developed separately as a commercial game.
 
 ## 🎮 Features
 
@@ -189,4 +189,4 @@ The narrative development log lives at [`DEVLOG.md`](DEVLOG.md) in the repo root
 
 ## 📜 Licence
 
-The code is licensed under the GNU General Public License v3.0 or later (see [`LICENSE`](LICENSE)). The fonts in `assets/fonts/` are under the SIL Open Font License. The "Modern Rogue" name and Octonion Software branding are not covered by the licence; see [`NOTICE`](NOTICE).
+The code is licensed under the GNU General Public License v3.0 or later (see [`LICENSE`](LICENSE)). The fonts in `assets/fonts/` are under the SIL Open Font License. The "Modern Rogue" and "Below Emberwick" names and Octonion Software branding are not covered by the licence; see [`NOTICE`](NOTICE).
