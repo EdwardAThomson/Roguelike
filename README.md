@@ -189,4 +189,4 @@ The narrative development log lives at [`DEVLOG.md`](DEVLOG.md) in the repo root
 
 ## 📜 Licence
 
-The code is licensed under the GNU General Public License v3.0 or later (see [`LICENSE`](LICENSE)). The fonts in `assets/fonts/` are under the SIL Open Font License. The "Modern Rogue" and "Below Emberwick" names and Octonion Software branding are not covered by the licence; see [`NOTICE`](NOTICE).
+The code is licensed under the GNU General Public License v3.0 or later (see [`LICENSE`](LICENSE)). The fonts in `assets/fonts/` are under the SIL Open Font License. The "Modern Rogue" and "Below Emberwick" names and Octonion Games branding are not covered by the licence; see [`NOTICE`](NOTICE).
